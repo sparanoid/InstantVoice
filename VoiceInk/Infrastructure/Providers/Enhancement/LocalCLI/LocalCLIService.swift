@@ -20,14 +20,14 @@ enum LocalCLITemplate: String, CaseIterable, Identifiable {
     var commandTemplate: String {
         switch self {
         case .pi:
-            return "pi -ne -ns -p --no-tools --system-prompt \"$VOICEINK_SYSTEM_PROMPT\" \"$VOICEINK_USER_PROMPT\""
+            return "pi -ne -ns -p --no-tools --system-prompt \"$INSTANTVOICE_SYSTEM_PROMPT\" \"$INSTANTVOICE_USER_PROMPT\""
         case .claude:
-            return "claude -p --model claude-sonnet-5 --effort low \"$VOICEINK_FULL_PROMPT\""
+            return "claude -p --model claude-sonnet-5 --effort low \"$INSTANTVOICE_FULL_PROMPT\""
         case .codex:
             return
-                "codex exec -m gpt-5.6-luna -c model_reasoning_effort=low --skip-git-repo-check --ephemeral \"$VOICEINK_FULL_PROMPT\""
+                "codex exec -m gpt-5.6-luna -c model_reasoning_effort=low --skip-git-repo-check --ephemeral \"$INSTANTVOICE_FULL_PROMPT\""
         case .copilot:
-            return "copilot -p \"$VOICEINK_FULL_PROMPT\" -s --no-ask-user --available-tools=__none__ 2>/dev/null"
+            return "copilot -p \"$INSTANTVOICE_FULL_PROMPT\" -s --no-ask-user --available-tools=__none__ 2>/dev/null"
         }
     }
 }
@@ -124,9 +124,9 @@ final class LocalCLIService {
 
                 var environment = ProcessInfo.processInfo.environment
                 environment["PATH"] = ShellCommandEnvironment.preferredPATH(fallback: environment["PATH"])
-                environment["VOICEINK_SYSTEM_PROMPT"] = systemPrompt
-                environment["VOICEINK_USER_PROMPT"] = userPrompt
-                environment["VOICEINK_FULL_PROMPT"] = fullPrompt
+                environment["INSTANTVOICE_SYSTEM_PROMPT"] = systemPrompt
+                environment["INSTANTVOICE_USER_PROMPT"] = userPrompt
+                environment["INSTANTVOICE_FULL_PROMPT"] = fullPrompt
                 process.environment = environment
 
                 let usesArgumentPrompt =

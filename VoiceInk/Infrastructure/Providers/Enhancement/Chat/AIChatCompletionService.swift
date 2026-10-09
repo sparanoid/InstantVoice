@@ -52,8 +52,8 @@ extension AIService {
                 reasoning: policy.reasoning,
                 provider: policy.provider,
                 includeRouterMetadata: true,
-                appReferer: URL(string: "https://tryvoiceink.com"),
-                appTitle: "VoiceInk",
+                appReferer: URL(string: "https://github.com/sparanoid/InstantVoice"),
+                appTitle: "InstantVoice",
                 timeout: timeout
             )
             guard !OpenRouterRequestPolicy.outputWasTruncated(finishReason: completion.finishReason) else {
@@ -79,7 +79,7 @@ extension AIService {
             )
         case .voiceInkRefine:
             throw EnhancementError.customError(
-                String(localized: "VoiceInk Refine only supports transcript cleanup.")
+                String(localized: "InstantVoice Refine only supports transcript cleanup.")
             )
         case .ollama:
             result = try await enhanceWithOllama(

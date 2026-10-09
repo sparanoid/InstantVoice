@@ -636,7 +636,7 @@ struct ModeConfigFormView: View {
                 Text("Command")
                 InfoTip(
                     LocalizedStringKey(
-                        "Runs locally with your user permissions. The final transcript is sent on stdin and exposed as VOICEINK_TRANSCRIPT."
+                        "Runs locally with your user permissions. The final transcript is sent on stdin and exposed as INSTANTVOICE_TRANSCRIPT."
                     ))
                 Spacer()
                 Menu {

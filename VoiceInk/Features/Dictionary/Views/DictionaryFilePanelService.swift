@@ -10,7 +10,7 @@ enum DictionaryFilePanelService {
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [.json]
         savePanel.canCreateDirectories = true
-        savePanel.nameFieldStringValue = "VoiceInk_Dictionary.json"
+        savePanel.nameFieldStringValue = "InstantVoice_Dictionary.json"
         savePanel.title = String(localized: "Export Dictionary")
         savePanel.message = String(localized: "Export vocabulary and word replacements to a portable JSON file.")
 
@@ -29,7 +29,7 @@ enum DictionaryFilePanelService {
         openPanel.canChooseDirectories = false
         openPanel.allowsMultipleSelection = false
         openPanel.title = String(localized: "Import Dictionary")
-        openPanel.message = String(localized: "Choose a VoiceInk dictionary JSON file.")
+        openPanel.message = String(localized: "Choose an InstantVoice dictionary JSON file.")
 
         guard openPanel.runModal() == .OK, let url = openPanel.url else {
             return nil

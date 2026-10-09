@@ -22,7 +22,7 @@
 		E1F511012FA3B47000F00001 /* SelectedTextKit in Frameworks */ = {isa = PBXBuildFile; productRef = E1F511032FA3B47000F00001 /* SelectedTextKit */; };
 		E1FA00062FA7000000000001 /* VoiceInkRefineXPCProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FA00052FA7000000000001 /* VoiceInkRefineXPCProtocol.swift */; };
 		E1FA00072FA7000000000001 /* VoiceInkRefineXPCProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FA00052FA7000000000001 /* VoiceInkRefineXPCProtocol.swift */; };
-		E1FA00082FA7000000000001 /* VoiceInkRefineXPC.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = E1FA00012FA7000000000001 /* VoiceInkRefineXPC.xpc */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		E1FA00082FA7000000000001 /* InstantVoiceRefineXPC.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = E1FA00012FA7000000000001 /* InstantVoiceRefineXPC.xpc */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E1FA00132FA7000000000001 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = E1F900102FA6000000000001 /* MLXLLM */; };
 		E1FA00142FA7000000000001 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = E1F900112FA6000000000001 /* MLXLMCommon */; };
 		E1FA00152FA7000000000001 /* MLXHuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = E1F900122FA6000000000001 /* MLXHuggingFace */; };
@@ -73,7 +73,7 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/XPCServices";
 			dstSubfolderSpec = 16;
 			files = (
-				E1FA00082FA7000000000001 /* VoiceInkRefineXPC.xpc in Embed XPC Services */,
+				E1FA00082FA7000000000001 /* InstantVoiceRefineXPC.xpc in Embed XPC Services */,
 			);
 			name = "Embed XPC Services";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -81,14 +81,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		E11473B02CBE0F0A00318EE4 /* VoiceInk Dev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "VoiceInk Dev.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E11473B02CBE0F0A00318EE4 /* InstantVoice Dev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "InstantVoice Dev.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E11473C32CBE0F0B00318EE4 /* VoiceInkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VoiceInkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E11473CD2CBE0F0B00318EE4 /* VoiceInkUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VoiceInkUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E161D4A02F41ECB90086F83D /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
-		E1A0BD052EB1E7B800266859 /* whisper.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = whisper.xcframework; path = "$(HOME)/VoiceInk-Dependencies/whisper.cpp/build-apple/whisper.xcframework"; sourceTree = "<group>"; };
+		E1A0BD052EB1E7B800266859 /* whisper.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = whisper.xcframework; path = "$(HOME)/InstantVoice-Dependencies/whisper.cpp/build-apple/whisper.xcframework"; sourceTree = "<group>"; };
 		E1B2DCAA2E3DE70A008DFD68 /* whisper.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = whisper.xcframework; path = "../whisper.cpp/build-apple/whisper.xcframework"; sourceTree = "<group>"; };
 		E1CE28772E4336150082B758 /* whisper.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = whisper.xcframework; path = "../build-apple/whisper.xcframework"; sourceTree = "<group>"; };
-		E1FA00012FA7000000000001 /* VoiceInkRefineXPC.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = VoiceInkRefineXPC.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1FA00012FA7000000000001 /* InstantVoiceRefineXPC.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = InstantVoiceRefineXPC.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1FA00052FA7000000000001 /* VoiceInkRefineXPCProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceInkRefineXPCProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -210,10 +210,10 @@
 		E11473B12CBE0F0A00318EE4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E11473B02CBE0F0A00318EE4 /* VoiceInk Dev.app */,
+				E11473B02CBE0F0A00318EE4 /* InstantVoice Dev.app */,
 				E11473C32CBE0F0B00318EE4 /* VoiceInkTests.xctest */,
 				E11473CD2CBE0F0B00318EE4 /* VoiceInkUITests.xctest */,
-				E1FA00012FA7000000000001 /* VoiceInkRefineXPC.xpc */,
+				E1FA00012FA7000000000001 /* InstantVoiceRefineXPC.xpc */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -271,7 +271,7 @@
 				E1701E74305E77220098872B /* LLMkit */,
 			);
 			productName = VoiceInk;
-			productReference = E11473B02CBE0F0A00318EE4 /* VoiceInk Dev.app */;
+			productReference = E11473B02CBE0F0A00318EE4 /* InstantVoice Dev.app */;
 			productType = "com.apple.product-type.application";
 		};
 		E11473C22CBE0F0B00318EE4 /* VoiceInkTests */ = {
@@ -344,7 +344,7 @@
 				E1F900142FA6000000000001 /* Tokenizers */,
 			);
 			productName = VoiceInkRefineXPC;
-			productReference = E1FA00012FA7000000000001 /* VoiceInkRefineXPC.xpc */;
+			productReference = E1FA00012FA7000000000001 /* InstantVoiceRefineXPC.xpc */;
 			productType = "com.apple.product-type.xpc-service";
 		};
 /* End PBXNativeTarget section */
@@ -532,7 +532,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = V6J6A3VWY2;
+				DEVELOPMENT_TEAM = B5483RCL5H;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -599,7 +599,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = V6J6A3VWY2;
+				DEVELOPMENT_TEAM = B5483RCL5H;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -635,12 +635,12 @@
 				CURRENT_PROJECT_VERSION = 221;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"VoiceInk/Preview Content\"";
-				DEVELOPMENT_TEAM = V6J6A3VWY2;
+				DEVELOPMENT_TEAM = B5483RCL5H;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = VoiceInk/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "VoiceInk Dev";
+				INFOPLIST_KEY_CFBundleDisplayName = "InstantVoice Dev";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -649,9 +649,9 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 2.21;
-				PRODUCT_BUNDLE_IDENTIFIER = com.prakashjoshipax.VoiceInk.dev;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sparanoid.InstantVoice.dev;
 				PRODUCT_MODULE_NAME = VoiceInk;
-				PRODUCT_NAME = "VoiceInk Dev";
+				PRODUCT_NAME = "InstantVoice Dev";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG ENABLE_NATIVE_SPEECH_ANALYZER $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -671,12 +671,12 @@
 				CURRENT_PROJECT_VERSION = 221;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"VoiceInk/Preview Content\"";
-				DEVELOPMENT_TEAM = V6J6A3VWY2;
+				DEVELOPMENT_TEAM = B5483RCL5H;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = VoiceInk/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = VoiceInk;
+				INFOPLIST_KEY_CFBundleDisplayName = InstantVoice;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -685,8 +685,9 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 2.21;
-				PRODUCT_BUNDLE_IDENTIFIER = com.prakashjoshipax.VoiceInk;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.sparanoid.InstantVoice;
+				PRODUCT_MODULE_NAME = VoiceInk;
+				PRODUCT_NAME = InstantVoice;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "ENABLE_NATIVE_SPEECH_ANALYZER $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -703,11 +704,11 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.prakashjoshipax.VoiceInkTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sparanoid.InstantVoiceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VoiceInk Dev.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/VoiceInk Dev";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/InstantVoice Dev.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/InstantVoice Dev";
 			};
 			name = Debug;
 		};
@@ -721,11 +722,11 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.prakashjoshipax.VoiceInkTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sparanoid.InstantVoiceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VoiceInk.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/VoiceInk";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/InstantVoice.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/InstantVoice";
 			};
 			name = Release;
 		};
@@ -737,7 +738,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.prakashjoshipax.VoiceInkUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sparanoid.InstantVoiceUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -753,7 +754,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.prakashjoshipax.VoiceInkUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sparanoid.InstantVoiceUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -774,15 +775,16 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = VoiceInkRefineXPC/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = VoiceInkRefineXPC;
+				INFOPLIST_KEY_CFBundleDisplayName = InstantVoiceRefineXPC;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 2.13;
-				PRODUCT_BUNDLE_IDENTIFIER = com.prakashjoshipax.VoiceInk.RefineXPC;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.sparanoid.InstantVoice.RefineXPC;
+				PRODUCT_MODULE_NAME = VoiceInkRefineXPC;
+				PRODUCT_NAME = InstantVoiceRefineXPC;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -803,15 +805,16 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = VoiceInkRefineXPC/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = VoiceInkRefineXPC;
+				INFOPLIST_KEY_CFBundleDisplayName = InstantVoiceRefineXPC;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 2.13;
-				PRODUCT_BUNDLE_IDENTIFIER = com.prakashjoshipax.VoiceInk.RefineXPC;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.sparanoid.InstantVoice.RefineXPC;
+				PRODUCT_MODULE_NAME = VoiceInkRefineXPC;
+				PRODUCT_NAME = InstantVoiceRefineXPC;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;

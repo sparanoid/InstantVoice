@@ -92,7 +92,7 @@ actor AutoLearnPendingQueue {
             in: .userDomainMask
         )[0]
         queueFileURL = applicationSupport
-            .appendingPathComponent("com.prakashjoshipax.VoiceInk", isDirectory: true)
+            .appendingPathComponent("com.sparanoid.InstantVoice", isDirectory: true)
             .appendingPathComponent("auto-learn-pending-corrections.json")
     }
 

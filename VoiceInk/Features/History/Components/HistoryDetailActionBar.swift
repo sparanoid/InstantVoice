@@ -197,7 +197,7 @@ struct HistoryDetailActionBar: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     if promptsUnavailable {
-                        Text("Custom prompts aren't available with VoiceInk Refine. Select another mode first.")
+                        Text("Custom prompts aren't available with InstantVoice Refine. Select another mode first.")
                             .font(.system(size: 12))
                             .foregroundStyle(AppTheme.Text.secondary)
                             .fixedSize(horizontal: false, vertical: true)

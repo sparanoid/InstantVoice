@@ -21,7 +21,7 @@ final class VoiceInkRefineXPCService: NSObject, VoiceInkRefineXPCProtocol {
             reply(
                 makeVoiceInkRefineXPCError(
                     .invalidRequest,
-                    description: "VoiceInk Refine received an invalid prepare request."
+                    description: "InstantVoice Refine received an invalid prepare request."
                 )
             )
             return
@@ -48,7 +48,7 @@ final class VoiceInkRefineXPCService: NSObject, VoiceInkRefineXPCProtocol {
             reply(
                 makeVoiceInkRefineXPCError(
                     .connectionFailed,
-                    description: "VoiceInk Refine is shutting down."
+                    description: "InstantVoice Refine is shutting down."
                 )
             )
             return
@@ -70,7 +70,7 @@ final class VoiceInkRefineXPCService: NSObject, VoiceInkRefineXPCProtocol {
                 nil,
                 makeVoiceInkRefineXPCError(
                     .invalidRequest,
-                    description: "VoiceInk Refine received an invalid enhancement request."
+                    description: "InstantVoice Refine received an invalid enhancement request."
                 )
             )
             return
@@ -105,7 +105,7 @@ final class VoiceInkRefineXPCService: NSObject, VoiceInkRefineXPCProtocol {
                 nil,
                 makeVoiceInkRefineXPCError(
                     .connectionFailed,
-                    description: "VoiceInk Refine is shutting down."
+                    description: "InstantVoice Refine is shutting down."
                 )
             )
             return

@@ -1,8 +1,8 @@
 import Foundation
 
-// Stars the VoiceInk repo via the gh CLI when available, since GUI apps don't inherit shell PATH.
+// Stars the InstantVoice repo via the gh CLI when available, since GUI apps don't inherit shell PATH.
 enum GitHubCLIStarService {
-    private static let repoSlug = "Beingpax/VoiceInk"
+    private static let repoSlug = "sparanoid/InstantVoice"
 
     enum RemoteStarState {
         case starred

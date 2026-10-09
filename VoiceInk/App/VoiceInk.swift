@@ -49,7 +49,7 @@ struct VoiceInkApp: App {
         AppAppearancePreference.applyStored()
         OnboardingV2Migration.prepareIfNeeded()
 
-        let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "Initialization")
+        let logger = Logger(subsystem: "com.sparanoid.instantvoice", category: "Initialization")
         // Keep existing model order stable; append new models after synced entities.
         let schema = Schema([
             Transcription.self,
@@ -73,7 +73,7 @@ struct VoiceInkApp: App {
                     alert.messageText = String(localized: "Storage Warning")
                     alert.informativeText = String(
                         localized:
-                            "VoiceInk couldn't access its storage location. Your transcriptions will not be saved between sessions."
+                            "InstantVoice couldn't access its storage location. Your transcriptions will not be saved between sessions."
                     )
                     alert.alertStyle = .warning
                     alert.addButton(withTitle: String(localized: "OK"))
@@ -86,7 +86,7 @@ struct VoiceInkApp: App {
                     "❌ All ModelContainer init attempts failed.\nPersistent:\n\(persistentDetail, privacy: .public)\nIn-memory:\n\(memoryDetail, privacy: .public)"
                 )
                 fatalError(
-                    "VoiceInk failed to initialize storage.\nPersistent:\n\(persistentDetail)\nIn-memory:\n\(memoryDetail)"
+                    "InstantVoice failed to initialize storage.\nPersistent:\n\(persistentDetail)\nIn-memory:\n\(memoryDetail)"
                 )
             }
         }
@@ -117,7 +117,7 @@ struct VoiceInkApp: App {
 
         // 1. Create modelsDirectory URL
         let appSupportDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("com.prakashjoshipax.VoiceInk")
+            .appendingPathComponent("com.sparanoid.InstantVoice")
         let modelsDirectory = appSupportDirectory.appendingPathComponent("WhisperModels")
 
         // 2. Create model managers
@@ -225,7 +225,7 @@ struct VoiceInkApp: App {
 
     private static func createPersistentContainer(schema: Schema, logger: Logger) throws -> ModelContainer {
         let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("com.prakashjoshipax.VoiceInk", isDirectory: true)
+            .appendingPathComponent("com.sparanoid.InstantVoice", isDirectory: true)
 
         try? FileManager.default.createDirectory(at: appSupportURL, withIntermediateDirectories: true)
 
@@ -247,7 +247,7 @@ struct VoiceInkApp: App {
             let dictionaryCloudKit: ModelConfiguration.CloudKitDatabase = .none
         #else
             let dictionaryCloudKit: ModelConfiguration.CloudKitDatabase = .private(
-                "iCloud.com.prakashjoshipax.VoiceInk")
+                "iCloud.com.sparanoid.InstantVoice")
         #endif
         let dictionaryConfig = ModelConfiguration(
             "dictionary",
@@ -293,7 +293,7 @@ struct VoiceInkApp: App {
     }
 
     var body: some Scene {
-        Window("VoiceInk", id: AppWindowID.main) {
+        Window("InstantVoice", id: AppWindowID.main) {
             Group {
                 if hasCompletedOnboardingV2 {
                     ContentView()

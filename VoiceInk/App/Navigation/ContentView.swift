@@ -10,7 +10,7 @@ enum ViewType: String, CaseIterable, Identifiable {
     case audio = "Audio"
     case dictionary = "Dictionary"
     case settings = "Settings"
-    case license = "VoiceInk Pro"
+    case license = "InstantVoice Pro"
 
     var id: String { rawValue }
 }
@@ -36,7 +36,7 @@ final class MainWindowNavigation: ObservableObject {
 }
 
 struct ContentView: View {
-    private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "ContentView")
+    private let logger = Logger(subsystem: "com.sparanoid.instantvoice", category: "ContentView")
     private static let detailBackgroundTintOpacity = 0.50
     @EnvironmentObject private var navigation: MainWindowNavigation
 

@@ -15,7 +15,7 @@ enum AIProvider: String, CaseIterable {
     case soniox = "Soniox"
     case speechmatics = "Speechmatics"
     case assemblyAI = "AssemblyAI"
-    case voiceInkRefine = "VoiceInk Refine"
+    case voiceInkRefine = "InstantVoice Refine"
     case ollama = "Ollama"
     case localCLI = "Local CLI"
     case custom = "Custom"

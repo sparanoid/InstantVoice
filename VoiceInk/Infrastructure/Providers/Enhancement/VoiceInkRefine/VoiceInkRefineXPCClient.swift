@@ -64,7 +64,7 @@ actor VoiceInkRefineXPCClient {
     private static let warmGracePeriod: Duration = .seconds(10)
 
     private let logger = Logger(
-        subsystem: "com.prakashjoshipax.voiceink",
+        subsystem: "com.sparanoid.instantvoice",
         category: "VoiceInkRefineXPCClient"
     )
 
@@ -105,7 +105,7 @@ actor VoiceInkRefineXPCClient {
                             .failure(
                                 makeVoiceInkRefineXPCError(
                                     .connectionFailed,
-                                    description: "Could not create the VoiceInk Refine XPC proxy."
+                                    description: "Could not create the InstantVoice Refine XPC proxy."
                                 )
                             )
                         )
@@ -169,7 +169,7 @@ actor VoiceInkRefineXPCClient {
                             .failure(
                                 makeVoiceInkRefineXPCError(
                                     .connectionFailed,
-                                    description: "Could not create the VoiceInk Refine XPC proxy."
+                                    description: "Could not create the InstantVoice Refine XPC proxy."
                                 )
                             )
                         )
@@ -187,7 +187,7 @@ actor VoiceInkRefineXPCClient {
                                     makeVoiceInkRefineXPCError(
                                         .invalidResponse,
                                         description:
-                                            "VoiceInk Refine returned an empty response."
+                                            "InstantVoice Refine returned an empty response."
                                     )
                                 )
                             )
@@ -206,7 +206,7 @@ actor VoiceInkRefineXPCClient {
             guard response.requestID == request.requestID else {
                 throw makeVoiceInkRefineXPCError(
                     .invalidResponse,
-                    description: "VoiceInk Refine returned a mismatched response."
+                    description: "InstantVoice Refine returned a mismatched response."
                 )
             }
 
@@ -431,20 +431,20 @@ actor VoiceInkRefineXPCClient {
         let description: String
         switch code {
         case .invalidRequest:
-            description = String(localized: "VoiceInk Refine received an invalid request.")
+            description = String(localized: "InstantVoice Refine received an invalid request.")
         case .inferenceFailed:
             switch operation {
             case .prepare:
-                description = String(localized: "VoiceInk Refine could not prepare the model.")
+                description = String(localized: "InstantVoice Refine could not prepare the model.")
             case .enhance:
                 description = String(
-                    localized: "VoiceInk Refine could not complete the enhancement."
+                    localized: "InstantVoice Refine could not complete the enhancement."
                 )
             }
         case .invalidResponse:
-            description = String(localized: "VoiceInk Refine returned an invalid response.")
+            description = String(localized: "InstantVoice Refine returned an invalid response.")
         case .connectionFailed:
-            description = String(localized: "Could not communicate with VoiceInk Refine.")
+            description = String(localized: "Could not communicate with InstantVoice Refine.")
         }
 
         return makeVoiceInkRefineXPCError(code, description: description)
@@ -463,7 +463,7 @@ actor VoiceInkRefineXPCClient {
             operationName = "enhance"
         }
         logger.error(
-            "VoiceInk Refine XPC \(operationName, privacy: .public) failed domain=\(nsError.domain, privacy: .public) code=\(nsError.code, privacy: .public) description=\(nsError.localizedDescription, privacy: .public)"
+            "InstantVoice Refine XPC \(operationName, privacy: .public) failed domain=\(nsError.domain, privacy: .public) code=\(nsError.code, privacy: .public) description=\(nsError.localizedDescription, privacy: .public)"
         )
     }
 
@@ -478,7 +478,7 @@ actor VoiceInkRefineXPCClient {
         connectionID = nil
         cancelIdleShutdown()
         logger.error(
-            "VoiceInk Refine XPC connection interrupted id=\(identifier.uuidString, privacy: .public)"
+            "InstantVoice Refine XPC connection interrupted id=\(identifier.uuidString, privacy: .public)"
         )
     }
 

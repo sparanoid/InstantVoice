@@ -1,32 +1,17 @@
 <div align="center">
   <img src="VoiceInk/Assets.xcassets/AppIcon.appiconset/256-mac.png" width="180" height="180" />
-  <h1>VoiceInk</h1>
+  <h1>InstantVoice</h1>
   <p>Voice to text app for macOS to transcribe what you say to text almost instantly</p>
 
   [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
   ![Platform](https://img.shields.io/badge/platform-macOS%2015.0%2B-brightgreen)
-  [![GitHub release (latest by date)](https://img.shields.io/github/v/release/Beingpax/VoiceInk)](https://github.com/Beingpax/VoiceInk/releases)
-  ![GitHub all releases](https://img.shields.io/github/downloads/Beingpax/VoiceInk/total)
-  ![GitHub stars](https://img.shields.io/github/stars/Beingpax/VoiceInk?style=social)
-  <p>
-    <a href="https://tryvoiceink.com">Website</a> •
-    <a href="https://www.youtube.com/@tryvoiceink">YouTube</a>
-  </p>
-
-  <a href="https://tryvoiceink.com">
-    <img src="https://img.shields.io/badge/Download%20Now-Latest%20Version-blue?style=for-the-badge&logo=apple" alt="Download VoiceInk" width="250"/>
-  </a>
 </div>
 
 ---
 
-VoiceInk is a native macOS application that transcribes what you say to text almost instantly. You can find all the information and download the app from [here](https://tryvoiceink.com). 
+InstantVoice is a native macOS application that transcribes what you say to text almost instantly.
 
-![VoiceInk Mac App](https://github.com/user-attachments/assets/12367379-83e7-48a6-b52c-4488a6a04bba)
-
-After dedicating the past 5 months to developing this app, I've decided to open source it for the greater good. 
-
-My goal is to make it **the most efficient and privacy-focused voice-to-text solution for macOS** that is a joy to use. While the source code is now open for experienced developers to build and contribute, purchasing a license helps support continued development and gives you access to automatic updates, priority support, and upcoming features.
+InstantVoice is a modified version of [VoiceInk](https://github.com/Beingpax/VoiceInk) by Prakash Joshi Pax, forked from VoiceInk 2.21 in October 2026 and rebranded. See the Git history for the changes made since the fork.
 
 ## Features
 
@@ -41,18 +26,8 @@ My goal is to make it **the most efficient and privacy-focused voice-to-text sol
 
 ## Get Started
 
-### Download
-Get the latest version with a free trial from [tryvoiceink.com](https://tryvoiceink.com). Your purchase helps me work on VoiceInk full-time and continuously improve it with new features and updates.
-
-#### Homebrew
-Alternatively, you can install VoiceInk via `brew`:
-
-```shell
-brew install --cask voiceink
-```
-
 ### Build from Source
-As an open-source project, you can build VoiceInk yourself by following the instructions in [BUILDING.md](BUILDING.md). However, the compiled version includes additional benefits like automatic updates, priority support via Discord and email, and helps fund ongoing development.
+Build InstantVoice yourself by following the instructions in [BUILDING.md](BUILDING.md).
 
 ## Requirements
 
@@ -61,15 +36,15 @@ As an open-source project, you can build VoiceInk yourself by following the inst
 ## Documentation
 
 - [Building from Source](BUILDING.md) - Detailed instructions for building the project
-- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to VoiceInk
+- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to InstantVoice
 - [Code of Conduct](CODE_OF_CONDUCT.md) - Our community standards
 
 ## Contributing
 
-This project is **not accepting pull requests** at this time. You're welcome to fork and modify VoiceInk for your own use.
+This project is **not accepting pull requests** at this time. You're welcome to fork and modify InstantVoice for your own use.
 
 You can still contribute by:
-- Reporting bugs via [issues](https://github.com/Beingpax/VoiceInk/issues)
+- Reporting bugs via [issues](https://github.com/sparanoid/InstantVoice/issues)
 - Suggesting features or enhancements
 - Improving documentation via issues
 
@@ -77,7 +52,7 @@ For more details, see our [Contributing Guidelines](CONTRIBUTING.md). For build 
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details. It is based on [VoiceInk](https://github.com/Beingpax/VoiceInk), which is also licensed under the GNU General Public License v3.0.
 
 ## Support
 
@@ -88,6 +63,9 @@ If you encounter any issues or have questions, please:
 
 ## Acknowledgments
 
+### Upstream
+- [VoiceInk](https://github.com/Beingpax/VoiceInk) by Prakash Joshi Pax - The open source project InstantVoice is built on
+
 ### Core Technology
 - [whisper.cpp](https://github.com/ggerganov/whisper.cpp) - High-performance inference of OpenAI's Whisper model
 - [FluidAudio](https://github.com/FluidInference/FluidAudio) - Used for Parakeet model implementation
@@ -95,15 +73,10 @@ If you encounter any issues or have questions, please:
 - [SenseVoice Small](https://huggingface.co/FunAudioLLM/SenseVoiceSmall) by FunAudioLLM / Alibaba - Multilingual model available under the [FunASR Model Open Source License Agreement](https://github.com/modelscope/FunASR/blob/main/MODEL_LICENSE)
 
 ### Essential Dependencies
-- [Sparkle](https://github.com/sparkle-project/Sparkle) - Keeping VoiceInk up to date
+- [Sparkle](https://github.com/sparkle-project/Sparkle) - Keeping InstantVoice up to date
 - [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) - User-customizable keyboard shortcuts
 - [LaunchAtLogin](https://github.com/sindresorhus/LaunchAtLogin) - Launch at login functionality
 - [MediaRemoteAdapter](https://github.com/ejbills/mediaremote-adapter) - Media playback control during recording
 - [Zip](https://github.com/marmelroy/Zip) - File compression and decompression utilities
 - [SelectedTextKit](https://github.com/tisfeng/SelectedTextKit) - A modern macOS library for getting selected text
 - [Swift Atomics](https://github.com/apple/swift-atomics) - Low-level atomic operations for thread-safe concurrent programming
-
-
----
-
-Made with ❤️ by Pax
