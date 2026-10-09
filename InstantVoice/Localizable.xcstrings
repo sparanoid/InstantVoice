@@ -863,76 +863,6 @@
         }
       }
     },
-    "%lld days left in trial" : {
-      "localizations" : {
-        "de" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Noch %lld Tag in der Testphase"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Noch %lld Tage in der Testphase"
-                }
-              }
-            }
-          }
-        },
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld day left in trial"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld days left in trial"
-                }
-              }
-            }
-          }
-        },
-        "fr" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld jour restant dans la période d’essai"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld jours restants dans la période d’essai"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "试用期剩余 %lld 天"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "%lld Enhancement models" : {
       "comment" : "Number of enhancement models available for a provider.",
       "localizations" : {
@@ -3418,116 +3348,6 @@
         }
       }
     },
-    "Activate" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktivieren"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activer"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "激活"
-          }
-        }
-      }
-    },
-    "Activate a license to continue using InstantVoice." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktiviere eine Lizenz, um InstantVoice weiter zu verwenden."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activez une licence pour continuer à utiliser InstantVoice."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "激活许可证以继续使用 InstantVoice。"
-          }
-        }
-      }
-    },
-    "Activate an existing key, purchase a license, or start a 7-day free trial." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktiviere einen vorhandenen Schlüssel, kaufe eine Lizenz oder starte eine 7-tägige kostenlose Testversion."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activez une clé existante, achetez une licence ou démarrez un essai gratuit de 7 jours."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "激活现有密钥、购买许可证，或开始 7 天免费试用。"
-          }
-        }
-      }
-    },
-    "Activate License" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz aktivieren"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activer la licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "激活许可证"
-          }
-        }
-      }
-    },
-    "Activating" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wird aktiviert"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activation"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在激活"
-          }
-        }
-      }
-    },
     "Active" : {
       "localizations" : {
         "de" : {
@@ -4398,30 +4218,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Affiliation"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "联盟计划"
-          }
-        }
-      }
-    },
-    "Affiliate Program" : {
-      "comment" : "Title of a resource link that opens the InstantVoice affiliate program.",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Partnerprogramm"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Programme d'affiliation"
           }
         },
         "zh-Hans" : {
@@ -6517,50 +6313,6 @@
         }
       }
     },
-    "Buy InstantVoice License" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice-Lizenz kaufen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Acheter une licence InstantVoice"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "购买 InstantVoice 许可证"
-          }
-        }
-      }
-    },
-    "Buy License" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz kaufen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Acheter une licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "购买许可证"
-          }
-        }
-      }
-    },
     "Calculating %@." : {
       "comment" : "Dashboard momentum headline shown while stats are loading. The placeholder is the highlighted progress label.",
       "isCommentAutoGenerated" : true,
@@ -6715,28 +6467,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更改排序方式"
-          }
-        }
-      }
-    },
-    "Changelog" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Änderungsprotokoll"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Journal des modifications"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更新日志"
           }
         }
       }
@@ -7930,28 +7660,6 @@
         }
       }
     },
-    "Copied" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kopiert"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copié"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已拷贝"
-          }
-        }
-      }
-    },
     "Copied to clipboard" : {
       "localizations" : {
         "de" : {
@@ -8038,28 +7746,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "拷贝上次转写"
-          }
-        }
-      }
-    },
-    "Copy License Key" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenzschlüssel kopieren"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copier la clé de licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拷贝许可证密钥"
           }
         }
       }
@@ -8292,28 +7978,6 @@
         }
       }
     },
-    "Could not reach the server. Please check your internet connection and try again." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der Server konnte nicht erreicht werden. Bitte überprüfe deine Internetverbindung und versuche es erneut."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible d'atteindre le serveur. Veuillez vérifier votre connexion Internet et réessayer."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法连接到服务器。请检查互联网连接后重试。"
-          }
-        }
-      }
-    },
     "Could not save re-enhancement" : {
       "comment" : "Error message shown when saving a re-enhanced transcription fails.",
       "isCommentAutoGenerated" : true,
@@ -8400,52 +8064,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法验证此 API 密钥。请检查密钥后重试。"
-          }
-        }
-      }
-    },
-    "Couldn't deactivate the license. Please try again." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Lizenz konnte nicht deaktiviert werden. Bitte versuche es erneut."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de désactiver la licence. Veuillez réessayer."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法停用许可证。请重试。"
-          }
-        }
-      }
-    },
-    "Couldn't open — try again" : {
-      "comment" : "A label for the action button in the footer of the dashboard.",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Konnte nicht geöffnet werden — erneut versuchen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible d'ouvrir — réessayez"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法打开 — 重试"
           }
         }
       }
@@ -9007,72 +8625,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "日期"
-          }
-        }
-      }
-    },
-    "Deactivate" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deaktivieren"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Désactiver"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "停用"
-          }
-        }
-      }
-    },
-    "Deactivate License" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz deaktivieren"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Désactiver la licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "停用许可证"
-          }
-        }
-      }
-    },
-    "Deactivate License?" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz deaktivieren?"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Désactiver la licence ?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "要停用许可证吗？"
           }
         }
       }
@@ -10252,28 +9804,6 @@
         }
       }
     },
-    "Documentation" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dokumentation"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Documentation"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文档"
-          }
-        }
-      }
-    },
     "Done" : {
       "localizations" : {
         "de" : {
@@ -11093,28 +10623,6 @@
         }
       }
     },
-    "Email Support" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "E-Mail-Support"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assistance par e-mail"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "邮件支持"
-          }
-        }
-      }
-    },
     "Emoji already exists." : {
       "localizations" : {
         "de" : {
@@ -11633,50 +11141,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请输入用于 AI 润色的模型 ID。"
-          }
-        }
-      }
-    },
-    "Enter License" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz eingeben"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entrez la licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "输入许可证"
-          }
-        }
-      }
-    },
-    "Enter License Key" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenzschlüssel eingeben"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entrez la clé de licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "输入许可证密钥"
           }
         }
       }
@@ -13036,75 +12500,6 @@
         }
       }
     },
-    "Find the best transcription setup" : {
-      "comment" : "Title of a resource link that opens a page with information about recommended recording devices.",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die beste Transkriptionseinrichtung finden"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trouvez la meilleure configuration de transcription"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "查找最佳转写设置"
-          }
-        }
-      }
-    },
-    "Finish Onboarding" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einführung abschließen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Terminer l'intégration"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "完成新手引导"
-          }
-        }
-      }
-    },
-    "Free updates" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kostenlose Updates"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mises à jour gratuites"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "免费更新"
-          }
-        }
-      }
-    },
     "General" : {
       "localizations" : {
         "de" : {
@@ -13211,28 +12606,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "获取 API 密钥"
-          }
-        }
-      }
-    },
-    "GitHub opened" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GitHub geöffnet"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GitHub ouvert"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已打开 GitHub"
           }
         }
       }
@@ -13373,72 +12746,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未找到 HAL Output AudioUnit"
-          }
-        }
-      }
-    },
-    "Have a license key?" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hast du einen Lizenzschlüssel?"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous avez une clé de licence ?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已有许可证密钥？"
-          }
-        }
-      }
-    },
-    "Have feedback, a bug report, or something that feels off? Send a note with system information by email, or join Discord for community discussion. Every report helps make InstantVoice more reliable and easier to use." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hast du Feedback, einen Fehlerbericht oder stimmt etwas nicht? Sende eine E-Mail mit Systeminformationen oder tritt dem Discord bei. Jeder Bericht hilft, InstantVoice zuverlässiger und einfacher nutzbar zu machen."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous avez des commentaires, un rapport de bug ou quelque chose qui ne va pas ? Envoyez une note contenant des informations système par e-mail ou rejoignez Discord pour une discussion communautaire. Chaque rapport contribue à rendre InstantVoice plus fiable et plus facile à utiliser."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有反馈、错误报告，或觉得哪里不对劲？可以通过电子邮件发送附带系统信息的留言，或加入 Discord 参与社区讨论。每一条报告都会让 InstantVoice 更可靠、更易用。"
-          }
-        }
-      }
-    },
-    "Help people discover InstantVoice" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hilf anderen, InstantVoice zu entdecken"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aidez les gens à découvrir InstantVoice"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "帮助更多人发现 InstantVoice"
           }
         }
       }
@@ -13820,28 +13127,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "混合"
-          }
-        }
-      }
-    },
-    "If InstantVoice has been useful, a star on GitHub helps others find it." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wenn dir InstantVoice geholfen hat, hilft ein Stern auf GitHub anderen, es zu finden."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Si InstantVoice a été utile, une étoile sur GitHub aide les autres à le trouver."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "如果 InstantVoice 对你有帮助，在 GitHub 上点个星标可以帮助更多人发现它。"
           }
         }
       }
@@ -14677,98 +13962,6 @@
         }
       }
     },
-    "InstantVoice couldn't access the macOS Keychain. Quit and reopen InstantVoice. If the problem continues, restart your Mac." : {
-      "comment" : "Error message displayed when the macOS Keychain is unavailable.",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice konnte nicht auf den macOS-Schlüsselbund zugreifen. Beende InstantVoice und öffne die App erneut. Falls das Problem weiterhin besteht, starte deinen Mac neu."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice n'a pas pu accéder au trousseau macOS. Quittez et rouvrez InstantVoice. Si le problème persiste, redémarrez votre Mac."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice 无法访问 macOS 钥匙串。请退出并重新打开 InstantVoice。如果问题仍然存在，请重新启动 Mac。"
-          }
-        }
-      }
-    },
-    "InstantVoice couldn't remove the saved license. Please try again." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice konnte die gespeicherte Lizenz nicht entfernen. Bitte versuche es erneut."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice n'a pas pu supprimer la licence enregistrée. Veuillez réessayer."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice 无法移除已保存的许可证。请重试。"
-          }
-        }
-      }
-    },
-    "InstantVoice couldn't save the license. Please try again." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice konnte die Lizenz nicht speichern. Bitte versuche es erneut."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice n'a pas pu enregistrer la licence. Veuillez réessayer."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice 无法保存许可证。请重试。"
-          }
-        }
-      }
-    },
-    "InstantVoice couldn't start the trial because the macOS Keychain is unavailable. Quit and reopen InstantVoice. If the problem continues, restart your Mac." : {
-      "comment" : "Error message displayed when the macOS Keychain is unavailable while starting a trial.",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice konnte den Testzeitraum nicht starten, da der macOS-Schlüsselbund nicht verfügbar ist. Beende InstantVoice und öffne die App erneut. Falls das Problem weiterhin besteht, starte deinen Mac neu."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice n'a pas pu démarrer la version d'essai car le trousseau macOS n'est pas disponible. Quittez et rouvrez InstantVoice. Si le problème persiste, redémarrez votre Mac."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice 无法开始试用，因为 macOS 钥匙串不可用。请退出并重新打开 InstantVoice。如果问题仍然存在，请重新启动 Mac。"
-          }
-        }
-      }
-    },
     "InstantVoice impact summary" : {
       "comment" : "A label for a section of the app that shows the user how much time they've saved by using InstantVoice.",
       "isCommentAutoGenerated" : true,
@@ -15011,28 +14204,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "InstantVoice 至少需要一个模式才能录音。创建一个模式即可开始听写。"
-          }
-        }
-      }
-    },
-    "InstantVoice Pro" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice Pro"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice Pro"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice Pro"
           }
         }
       }
@@ -15636,28 +14807,6 @@
         }
       }
     },
-    "Join Discord" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Discord beitreten"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rejoignez Discorde"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "加入 Discord"
-          }
-        }
-      }
-    },
     "Keep Audio For" : {
       "localizations" : {
         "de" : {
@@ -15880,52 +15029,6 @@
         }
       }
     },
-    "Later" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Später"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plus tard"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "稍后"
-          }
-        }
-      }
-    },
-    "Latest fixes and releases" : {
-      "comment" : "Title of a link that opens the changelog on GitHub.",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Neueste Korrekturen und Versionen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Derniers correctifs et versions"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最新修复和版本"
-          }
-        }
-      }
-    },
     "Launch at Login" : {
       "localizations" : {
         "de" : {
@@ -16064,294 +15167,6 @@
         }
       }
     },
-    "License activated successfully!" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz erfolgreich aktiviert!"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Licence activée avec succès !"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "许可证激活成功！"
-          }
-        }
-      }
-    },
-    "License active on this Mac." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz auf diesem Mac aktiv."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Licence active sur ce Mac."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "许可证已在这台 Mac 上激活。"
-          }
-        }
-      }
-    },
-    "License key" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenzschlüssel"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clé de licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "许可证密钥"
-          }
-        }
-      }
-    },
-    "License Key" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenzschlüssel"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clé de licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "许可证密钥"
-          }
-        }
-      }
-    },
-    "License key not found. Please double-check your key and try again." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenzschlüssel nicht gefunden. Bitte überprüfe deinen Schlüssel und versuche es erneut."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clé de licence introuvable. Veuillez vérifier votre clé et réessayer."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未找到许可证密钥。请仔细核对你的密钥后重试。"
-          }
-        }
-      }
-    },
-    "License Management" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenzverwaltung"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gestion des licences"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "许可证管理"
-          }
-        }
-      }
-    },
-    "License required" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz erforderlich"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Licence requise"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需要许可证"
-          }
-        }
-      }
-    },
-    "License Required" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz erforderlich"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Licence requise"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需要许可证"
-          }
-        }
-      }
-    },
-    "License validated successfully!" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz erfolgreich validiert!"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Licence validée avec succès !"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "许可证验证成功！"
-          }
-        }
-      }
-    },
-    "Licensed" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenziert"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autorisé"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已激活"
-          }
-        }
-      }
-    },
-    "Licensed (Pro)" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenziert (Pro)"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Licence (Pro)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已激活（Pro）"
-          }
-        }
-      }
-    },
-    "Lifetime access" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lebenslanger Zugang"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accès à vie"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "终身使用权"
-          }
-        }
-      }
-    },
-    "Lifetime access." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lebenslanger Zugang."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accès à vie."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "终身使用权。"
-          }
-        }
-      }
-    },
     "Light" : {
       "comment" : "Display name for light appearance preference.",
       "isCommentAutoGenerated" : true,
@@ -16482,28 +15297,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "载入模板"
-          }
-        }
-      }
-    },
-    "Loading" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wird geladen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chargement"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在载入"
           }
         }
       }
@@ -16863,28 +15656,6 @@
         }
       }
     },
-    "Lost Key?" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schlüssel verloren?"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clé perdue ?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "找不到密钥？"
-          }
-        }
-      }
-    },
     "Lowercase and Paste" : {
       "localizations" : {
         "de" : {
@@ -16969,28 +15740,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在「自定」标签页中管理自定润色模型。"
-          }
-        }
-      }
-    },
-    "Manage License" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz verwalten"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gérer la licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "管理许可证"
           }
         }
       }
@@ -19644,29 +18393,6 @@
         }
       }
     },
-    "Not Licensed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nicht lizenziert"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pas de licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未激活"
-          }
-        }
-      }
-    },
     "Not selected" : {
       "comment" : "A label describing a button that is not selected.",
       "isCommentAutoGenerated" : true,
@@ -21048,28 +19774,6 @@
         }
       }
     },
-    "Please enter a license key" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitte gib einen Lizenzschlüssel ein"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Veuillez saisir une clé de licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请输入许可证密钥"
-          }
-        }
-      }
-    },
     "Please fix the validation errors before saving." : {
       "localizations" : {
         "de" : {
@@ -21110,28 +19814,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请重新启动 App。如果问题仍然存在，请联系支持人员。"
-          }
-        }
-      }
-    },
-    "Premium Features Activated" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium-Funktionen aktiviert"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fonctionnalités Premium activées"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "高级功能已激活"
           }
         }
       }
@@ -21338,28 +20020,6 @@
         }
       }
     },
-    "Priority support" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bevorzugter Support"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assistance prioritaire"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "优先支持"
-          }
-        }
-      }
-    },
     "Privacy Starts Here" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21379,28 +20039,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "隐私从这里开始"
-          }
-        }
-      }
-    },
-    "PRO" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PRO"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PRO"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PRO"
           }
         }
       }
@@ -21536,29 +20174,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在汇总你的 InstantVoice 活动。"
-          }
-        }
-      }
-    },
-    "Purchase License" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz kaufen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Acheter une licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "购买许可证"
           }
         }
       }
@@ -21759,28 +20374,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新润色成功"
-          }
-        }
-      }
-    },
-    "REACH OUT" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "KONTAKT"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TENDRE LA MAIN"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "联系我们"
           }
         }
       }
@@ -22140,30 +20733,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "录音提示音"
-          }
-        }
-      }
-    },
-    "Recover or manage your license" : {
-      "comment" : "Title of a resource link that opens the license portal.",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenz wiederherstellen oder verwalten"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Récupérer ou gérer votre licence"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "找回或管理你的许可证"
           }
         }
       }
@@ -22750,28 +21319,6 @@
         }
       }
     },
-    "Report or Feedback" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bericht oder Feedback"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rapport ou commentaires"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "报告或反馈"
-          }
-        }
-      }
-    },
     "Request Timeout" : {
       "localizations" : {
         "de" : {
@@ -22922,30 +21469,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "还原为默认"
-          }
-        }
-      }
-    },
-    "Resources" : {
-      "comment" : "A heading for a list of resources.",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ressourcen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ressources"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "资源"
           }
         }
       }
@@ -23354,25 +21877,25 @@
         }
       }
     },
-    "Review how InstantVoice handles your data before choosing a license." : {
+    "Review how InstantVoice handles your data." : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Überprüfe, wie InstantVoice deine Daten handhabt, bevor du eine Lizenz auswählst."
+            "value" : "Überprüfe, wie InstantVoice deine Daten handhabt."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vérifiez comment InstantVoice gère vos données avant de choisir une licence."
+            "value" : "Vérifiez comment InstantVoice gère vos données."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择许可证前，请先查看 InstantVoice 如何处理你的数据。"
+            "value" : "请查看 InstantVoice 如何处理你的数据。"
           }
         }
       }
@@ -24416,30 +22939,6 @@
         }
       }
     },
-    "Send a note or join Discord" : {
-      "comment" : "Title of a resource link that opens a report or feedback form.",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nachricht senden oder Discord beitreten"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Envoyez une note ou rejoignez Discord"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "发送反馈或加入 Discord"
-          }
-        }
-      }
-    },
     "Send follow up" : {
       "localizations" : {
         "de" : {
@@ -24776,30 +23275,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已成功从 %@ 导入设置。\n\n已导入：%@。"
-          }
-        }
-      }
-    },
-    "Setup, features, and settings" : {
-      "comment" : "Title of a resource link that opens the InstantVoice documentation.",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einrichtung, Funktionen und Einstellungen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Configuration, fonctionnalités et paramètres"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "设置、功能和偏好"
           }
         }
       }
@@ -25398,50 +23873,6 @@
         }
       }
     },
-    "Star on GitHub" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auf GitHub sternen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Étoile sur GitHub"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 GitHub 上加星标"
-          }
-        }
-      }
-    },
-    "Starred — thank you!" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stern vergeben — danke!"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Étoilé — merci !"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已加星标，谢谢！"
-          }
-        }
-      }
-    },
     "Start" : {
       "localizations" : {
         "de" : {
@@ -25460,29 +23891,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "开始"
-          }
-        }
-      }
-    },
-    "Start 7-day Trial" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "7-tägige Testversion starten"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Commencer l'essai de 7 jours"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开始 7 天试用"
           }
         }
       }
@@ -26243,28 +24651,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在测试…"
-          }
-        }
-      }
-    },
-    "Thank you for using InstantVoice" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Danke, dass du InstantVoice verwendest"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Merci d'utiliser InstantVoice"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "感谢你使用 InstantVoice"
           }
         }
       }
@@ -27376,37 +25762,6 @@
         }
       }
     },
-    "This deactivates InstantVoice on this Mac and frees a device on your license." : {
-      "comment" : "A message displayed in a confirmation dialog when the user deactivates their license.",
-      "extractionState" : "manual",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dadurch wird InstantVoice auf diesem Mac deaktiviert und ein Geräteplatz in deiner Lizenz freigegeben."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This deactivates InstantVoice on this Mac and frees a device on your license."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cela désactive InstantVoice sur ce Mac et libère un appareil sur votre licence."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这将在此 Mac 上停用 InstantVoice，并释放许可证中的一个设备名额。"
-          }
-        }
-      }
-    },
     "This dictionary uses unsupported schema version %d." : {
       "localizations" : {
         "de" : {
@@ -27492,50 +25847,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这是针对英语优化的模型，仅支持英语转写。"
-          }
-        }
-      }
-    },
-    "This license has been revoked or disabled. Please contact support." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diese Lizenz wurde widerrufen oder deaktiviert. Bitte kontaktiere den Support."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cette licence a été révoquée ou désactivée. Veuillez contacter l'assistance."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此许可证已被吊销或停用。请联系支持人员。"
-          }
-        }
-      }
-    },
-    "This license has reached its device limit. Visit the License Management Portal to deactivate other devices." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diese Lizenz hat ihr Gerätelimit erreicht. Besuche das Lizenzverwaltungsportal, um andere Geräte zu deaktivieren."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cette licence a atteint sa limite d'appareils. Visitez le portail de gestion des licences pour désactiver d'autres appareils."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此许可证已达到设备数量上限。请前往许可证管理门户取消其他设备的激活。"
           }
         }
       }
@@ -28407,94 +26718,6 @@
         }
       }
     },
-    "Trial Active" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Testversion aktiv"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Essai actif"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "试用中"
-          }
-        }
-      }
-    },
-    "Trial ended" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Testphase beendet"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Essai terminé"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "试用已结束"
-          }
-        }
-      }
-    },
-    "Trial Ending Soon" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Testversion endet bald"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L'essai se termine bientôt"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "试用即将到期"
-          }
-        }
-      }
-    },
-    "Trial Expired" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Testversion abgelaufen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Essai expiré"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "试用已结束"
-          }
-        }
-      }
-    },
     "Triggers" : {
       "localizations" : {
         "de" : {
@@ -28950,29 +27173,6 @@
         }
       }
     },
-    "Use InstantVoice now." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "InstantVoice jetzt nutzen."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utilisez InstantVoice maintenant."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "立即使用 InstantVoice。"
-          }
-        }
-      }
-    },
     "Use NVIDIA's Parakeet model locally, or connect a cloud transcription provider." : {
       "comment" : "Text displayed in an onboarding step when using NVIDIA's Parakeet model locally or connecting a cloud transcription provider.",
       "isCommentAutoGenerated" : true,
@@ -29176,29 +27376,6 @@
         }
       }
     },
-    "Verification Successful" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Überprüfung erfolgreich"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vérification réussie"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "验证成功"
-          }
-        }
-      }
-    },
     "Verify" : {
       "localizations" : {
         "de" : {
@@ -29349,30 +27526,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "版本不匹配"
-          }
-        }
-      }
-    },
-    "Videos & Guides" : {
-      "comment" : "Link to a YouTube channel dedicated to tutorials and product updates.",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Videos und Anleitungen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vidéos et guides"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "视频与指南"
           }
         }
       }
@@ -29668,30 +27821,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "等待中"
-          }
-        }
-      }
-    },
-    "Walkthroughs and product updates" : {
-      "comment" : "Link to a YouTube channel dedicated to tutorials and updates related to InstantVoice.",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anleitungen und Produktupdates"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Procédures pas à pas et mises à jour du produit"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "演示教程和产品更新"
           }
         }
       }
@@ -30304,76 +28433,6 @@
         }
       }
     },
-    "You have %lld days left in your trial" : {
-      "localizations" : {
-        "de" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Deine Testphase läuft noch %lld Tag"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Deine Testphase läuft noch %lld Tage"
-                }
-              }
-            }
-          }
-        },
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "You have %lld day left in your trial"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "You have %lld days left in your trial"
-                }
-              }
-            }
-          }
-        },
-        "fr" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Il vous reste %lld jour d’essai"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Il vous reste %lld jours d’essai"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "你的试用期还剩 %lld 天"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "You have saved %@ with InstantVoice" : {
       "comment" : "A description of the amount of time saved with InstantVoice. The argument is a formatted duration.",
       "isCommentAutoGenerated" : true,
@@ -30649,29 +28708,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "退出并重新打开 InstantVoice 后，语言更改才会完全生效。"
-          }
-        }
-      }
-    },
-    "Your license key is verified. InstantVoice is ready to use on this Mac." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dein Lizenzschlüssel wurde verifiziert. InstantVoice ist auf diesem Mac einsatzbereit."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre clé de licence est vérifiée. InstantVoice est prêt à être utilisé sur ce Mac."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的许可证密钥已通过验证。InstantVoice 已可在这台 Mac 上使用。"
           }
         }
       }

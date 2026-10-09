@@ -12,8 +12,6 @@ struct CloudProviderManagementView: View {
             .anthropic,
             .gemini,
             .groq,
-            .mistral,
-            .cerebras,
         ]
 
         var descriptors = enhancementProviders.map { aiProvider in
@@ -42,8 +40,8 @@ struct CloudProviderManagementView: View {
         }
 
         let preferredOrder = [
-            "Groq", "Cerebras", "Gemini", "OpenAI", "OpenRouter", "Anthropic", "Mistral",
-            "Deepgram", "ElevenLabs", "Soniox", "Speechmatics", "AssemblyAI", "xAI", "Cartesia",
+            "Groq", "Gemini", "OpenAI", "OpenRouter", "Anthropic",
+            "Deepgram", "ElevenLabs", "Soniox", "xAI", "Cartesia",
         ]
 
         return descriptors.sorted { first, second in
@@ -118,20 +116,12 @@ struct ProviderDescriptor: Identifiable {
             return "provider-gemini"
         case "groq":
             return "provider-groq"
-        case "mistral":
-            return "provider-mistral"
-        case "cerebras":
-            return "provider-cerebras"
         case "deepgram":
             return "provider-deepgram"
         case "elevenlabs":
             return "provider-elevenlabs"
         case "soniox":
             return "provider-soniox"
-        case "speechmatics":
-            return "provider-speechmatics"
-        case "assemblyai":
-            return "provider-assemblyai"
         case "xai":
             return "provider-xai"
         case "cartesia":
@@ -145,8 +135,6 @@ struct ProviderDescriptor: Identifiable {
         switch providerKey.lowercased() {
         case "groq":
             return URL(string: "https://console.groq.com/keys")
-        case "cerebras":
-            return URL(string: "https://cloud.cerebras.ai/platform")
         case "gemini":
             return URL(string: "https://aistudio.google.com/app/apikey")
         case "openai":
@@ -155,18 +143,12 @@ struct ProviderDescriptor: Identifiable {
             return URL(string: "https://openrouter.ai/keys")
         case "anthropic":
             return URL(string: "https://console.anthropic.com/settings/keys")
-        case "mistral":
-            return URL(string: "https://console.mistral.ai/api-keys/")
         case "deepgram":
             return URL(string: "https://console.deepgram.com/project/keys")
         case "elevenlabs":
             return URL(string: "https://elevenlabs.io/app/settings/api-keys")
         case "soniox":
             return URL(string: "https://console.soniox.com/api-keys")
-        case "speechmatics":
-            return URL(string: "https://console.speechmatics.com/")
-        case "assemblyai":
-            return URL(string: "https://www.assemblyai.com/dashboard/signup")
         case "xai":
             return URL(string: "https://console.x.ai/")
         case "cartesia":

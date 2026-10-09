@@ -12,13 +12,9 @@ final class APIKeyManager {
     private static let providerToKeychainKey: [String: String] = [
         "groq": "groqAPIKey",
         "deepgram": "deepgramAPIKey",
-        "cerebras": "cerebrasAPIKey",
         "gemini": "geminiAPIKey",
-        "mistral": "mistralAPIKey",
         "elevenlabs": "elevenLabsAPIKey",
         "soniox": "sonioxAPIKey",
-        "speechmatics": "speechmaticsAPIKey",
-        "assemblyai": "assemblyAIAPIKey",
         "xai": "xaiAPIKey",
         "cartesia": "cartesiaAPIKey",
         "openai": "openAIAPIKey",

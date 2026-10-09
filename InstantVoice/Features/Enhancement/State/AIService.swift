@@ -3,18 +3,14 @@ import Foundation
 import LLMkit
 
 enum AIProvider: String, CaseIterable {
-    case cerebras = "Cerebras"
     case groq = "Groq"
     case gemini = "Gemini"
     case anthropic = "Anthropic"
     case openAI = "OpenAI"
     case openRouter = "OpenRouter"
-    case mistral = "Mistral"
     case elevenLabs = "ElevenLabs"
     case deepgram = "Deepgram"
     case soniox = "Soniox"
-    case speechmatics = "Speechmatics"
-    case assemblyAI = "AssemblyAI"
     case instantVoiceRefine = "InstantVoice Refine"
     case ollama = "Ollama"
     case localCLI = "Local CLI"
@@ -22,8 +18,6 @@ enum AIProvider: String, CaseIterable {
 
     var baseURL: String {
         switch self {
-        case .cerebras:
-            return "https://api.cerebras.ai/v1/chat/completions"
         case .groq:
             return "https://api.groq.com/openai/v1/chat/completions"
         case .gemini:
@@ -34,18 +28,12 @@ enum AIProvider: String, CaseIterable {
             return "https://api.openai.com/v1/chat/completions"
         case .openRouter:
             return "https://openrouter.ai/api/v1/chat/completions"
-        case .mistral:
-            return "https://api.mistral.ai/v1/chat/completions"
         case .elevenLabs:
             return "https://api.elevenlabs.io/v1/speech-to-text"
         case .deepgram:
             return "https://api.deepgram.com/v1/listen"
         case .soniox:
             return "https://api.soniox.com/v1"
-        case .speechmatics:
-            return "https://asr.api.speechmatics.com/v2"
-        case .assemblyAI:
-            return "https://api.assemblyai.com/v2/transcript"
         case .instantVoiceRefine:
             return ""
         case .ollama:
@@ -59,8 +47,6 @@ enum AIProvider: String, CaseIterable {
 
     var defaultModel: String {
         switch self {
-        case .cerebras:
-            return "qwen-3.8-27b"
         case .groq:
             return "qwen/qwen3.8-27b"
         case .gemini:
@@ -69,18 +55,12 @@ enum AIProvider: String, CaseIterable {
             return "claude-sonnet-5"
         case .openAI:
             return "gpt-6-luna"
-        case .mistral:
-            return "mistral-small-latest"
         case .elevenLabs:
             return "scribe_v2"
         case .deepgram:
             return "whisper-1"
         case .soniox:
             return "stt-async-v5"
-        case .speechmatics:
-            return "speechmatics-enhanced"
-        case .assemblyAI:
-            return "universal-3-5-pro"
         case .instantVoiceRefine:
             return InstantVoiceRefineService.modelName
         case .ollama:
@@ -96,11 +76,6 @@ enum AIProvider: String, CaseIterable {
 
     var availableModels: [String] {
         switch self {
-        case .cerebras:
-            return [
-                "qwen-3.8-27b",
-                "gpt-oss-120b",
-            ]
         case .groq:
             return [
                 "qwen/qwen3.8-27b",
@@ -138,22 +113,12 @@ enum AIProvider: String, CaseIterable {
                 "gpt-4.1-mini",
                 "gpt-4.1-nano",
             ]
-        case .mistral:
-            return [
-                "mistral-small-latest",
-                "mistral-medium-latest",
-                "mistral-large-latest",
-            ]
         case .elevenLabs:
             return ["scribe_v2", "scribe_v2_medical"]
         case .deepgram:
             return ["whisper-1"]
         case .soniox:
             return ["stt-async-v5"]
-        case .speechmatics:
-            return ["speechmatics-enhanced"]
-        case .assemblyAI:
-            return ["universal-3-5-pro"]
         case .instantVoiceRefine:
             return [InstantVoiceRefineService.modelName]
         case .ollama:
@@ -178,7 +143,7 @@ enum AIProvider: String, CaseIterable {
 
     var supportsEnhancement: Bool {
         switch self {
-        case .elevenLabs, .deepgram, .soniox, .speechmatics, .assemblyAI:
+        case .elevenLabs, .deepgram, .soniox:
             return false
         default:
             return true
@@ -187,7 +152,7 @@ enum AIProvider: String, CaseIterable {
 
     var supportsCustomModelID: Bool {
         switch self {
-        case .cerebras, .groq, .gemini, .anthropic, .openAI, .mistral:
+        case .groq, .gemini, .anthropic, .openAI:
             return true
         default:
             return false
@@ -633,14 +598,8 @@ class AIService: ObservableObject {
             result = await ElevenLabsClient.verifyAPIKey(key)
         case .deepgram:
             result = await DeepgramClient.verifyAPIKey(key)
-        case .mistral:
-            result = await MistralTranscriptionClient.verifyAPIKey(key)
         case .soniox:
             result = await SonioxClient.verifyAPIKey(key)
-        case .speechmatics:
-            result = await SpeechmaticsClient.verifyAPIKey(key)
-        case .assemblyAI:
-            result = await AssemblyAIClient.verifyAPIKey(key)
         case .openRouter:
             result = await OpenRouterClient.verifyAPIKey(key)
         case .openAI:

@@ -423,12 +423,8 @@ fileprivate extension AIProvider {
             return URL(string: "https://aistudio.google.com/app/apikey")
         case .anthropic:
             return URL(string: "https://console.anthropic.com/settings/keys")
-        case .mistral:
-            return URL(string: "https://console.mistral.ai/api-keys/")
         case .openRouter:
             return URL(string: "https://openrouter.ai/keys")
-        case .cerebras:
-            return URL(string: "https://cloud.cerebras.ai/platform")
         default:
             return nil
         }

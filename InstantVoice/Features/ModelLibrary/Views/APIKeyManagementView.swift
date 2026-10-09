@@ -385,14 +385,10 @@ struct APIKeyManagementView: View {
         case .openAI: return URL(string: "https://platform.openai.com/api-keys")
         case .gemini: return URL(string: "https://makersuite.google.com/app/apikey")
         case .anthropic: return URL(string: "https://console.anthropic.com/settings/keys")
-        case .mistral: return URL(string: "https://console.mistral.ai/api-keys")
         case .elevenLabs: return URL(string: "https://elevenlabs.io/speech-synthesis")
         case .deepgram: return URL(string: "https://console.deepgram.com/api-keys")
         case .soniox: return URL(string: "https://console.soniox.com/")
-        case .speechmatics: return URL(string: "https://portal.speechmatics.com/manage-access/")
-        case .assemblyAI: return URL(string: "https://www.assemblyai.com/dashboard/api-keys")
         case .openRouter: return URL(string: "https://openrouter.ai/keys")
-        case .cerebras: return URL(string: "https://cloud.cerebras.ai/")
         default: return nil
         }
     }

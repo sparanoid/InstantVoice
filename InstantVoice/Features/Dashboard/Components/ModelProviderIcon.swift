@@ -239,14 +239,6 @@ private struct ModelProviderIdentity {
             return .anthropic
         }
 
-        if lowercaseName.hasPrefix("mistral-") {
-            return .mistral
-        }
-
-        if lowercaseName.hasPrefix("zai-") {
-            return .cerebras
-        }
-
         if lowercaseName.hasPrefix("gpt-") {
             return .openAI
         }

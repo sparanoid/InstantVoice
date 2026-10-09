@@ -43,11 +43,6 @@ struct ReasoningConfig {
         "gpt-5.4-nano",
     ]
 
-    // Cerebras GPT-OSS has no true "none"; use lowest effort.
-    static let cerebrasGPTOSSMinimumReasoningModels: Set<String> = [
-        "gpt-oss-120b"
-    ]
-
     // Groq GPT-OSS has no true "none"; use lowest effort.
     static let groqGPTOSSMinimumReasoningModels: Set<String> = [
         "openai/gpt-oss-120b",
@@ -59,21 +54,10 @@ struct ReasoningConfig {
         "qwen/qwen3.8-27b"
     ]
 
-    // Cerebras Qwen supports "none" for low-latency requests.
-    static let cerebrasNoneReasoningModels: Set<String> = [
-        "qwen-3.8-27b"
-    ]
-
     static func getReasoningParameter(for provider: AIProvider, modelName: String) -> String? {
         switch provider {
         case .openAI:
             if openAINoneReasoningModels.contains(modelName) { return "none" }
-        case .cerebras:
-            if cerebrasGPTOSSMinimumReasoningModels.contains(modelName) {
-                return "low"
-            } else if cerebrasNoneReasoningModels.contains(modelName) {
-                return "none"
-            }
         case .groq:
             if groqGPTOSSMinimumReasoningModels.contains(modelName) {
                 return "low"
@@ -88,9 +72,7 @@ struct ReasoningConfig {
 
     // Provider-specific body params for hiding reasoning.
     static func getExtraBodyParameters(for provider: AIProvider, modelName: String) -> [String: Any]? {
-        if provider == .cerebras && modelName == "gpt-oss-120b" {
-            return ["reasoning_format": "hidden"]
-        } else if provider == .groq && (modelName == "openai/gpt-oss-120b" || modelName == "openai/gpt-oss-20b") {
+        if provider == .groq && (modelName == "openai/gpt-oss-120b" || modelName == "openai/gpt-oss-20b") {
             return ["include_reasoning": false]
         }
         return nil

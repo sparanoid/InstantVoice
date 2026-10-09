@@ -2,9 +2,6 @@ import SwiftUI
 
 @MainActor
 final class OnboardingCoordinator: ObservableObject {
-    let licenseViewModel = LicenseViewModel.shared
-    @Published var licenseKeyDraft = ""
-
     @Published var storedStage: String {
         didSet {
             defaults.set(storedStage, forKey: OnboardingStorageKeys.stage)
@@ -94,18 +91,16 @@ final class OnboardingCoordinator: ObservableObject {
     }
 
     var stage: OnboardingStage {
-        #if LOCAL_BUILD
-            if storedStage == OnboardingStage.license.rawValue {
-                return .trust
-            }
-        #endif
-
         if let stage = OnboardingStage(rawValue: storedStage) {
             return stage
         }
 
         if storedStage == "starterMode" || storedStage == "shortcut" {
             return .experience
+        }
+
+        if storedStage == "license" {
+            return .trust
         }
 
         return storedStage == "parakeet" ? .model : .permissions
@@ -136,19 +131,11 @@ final class OnboardingCoordinator: ObservableObject {
             return OnboardingStage.baseStepCount + activeExperienceSteps.count + contextAwarenessStepCount + 1
         }
 
-        if stage == .license {
-            return OnboardingStage.baseStepCount + activeExperienceSteps.count + contextAwarenessStepCount + 2
-        }
-
         return stage.stepNumber
     }
 
     var totalStepCount: Int {
-        #if LOCAL_BUILD
-            OnboardingStage.baseStepCount + activeExperienceSteps.count + contextAwarenessStepCount + 1
-        #else
-            OnboardingStage.baseStepCount + activeExperienceSteps.count + contextAwarenessStepCount + 2
-        #endif
+        OnboardingStage.baseStepCount + activeExperienceSteps.count + contextAwarenessStepCount + 1
     }
 
     var experienceStep: OnboardingExperienceStep {
@@ -235,12 +222,10 @@ final class OnboardingCoordinator: ObservableObject {
     var onboardingProviderOptions: [AIProvider] {
         let preferredOrder: [AIProvider] = [
             .groq,
-            .cerebras,
             .gemini,
             .openAI,
             .openRouter,
             .anthropic,
-            .mistral,
         ]
 
         let supportedProviders = AIProvider.allCases.filter { provider in
@@ -265,8 +250,7 @@ final class OnboardingCoordinator: ObservableObject {
 
     var onboardingTranscriptionProviderOptions: [any CloudProvider] {
         let preferredOrder = [
-            "AssemblyAI", "Cartesia", "Deepgram", "ElevenLabs", "Soniox",
-            "Speechmatics", "xAI", "Mistral", "Groq", "Gemini",
+            "Cartesia", "Deepgram", "ElevenLabs", "Soniox", "xAI", "Groq", "Gemini",
         ]
 
         return CloudProviderRegistry.allProviders.sorted { first, second in
@@ -284,7 +268,7 @@ final class OnboardingCoordinator: ObservableObject {
             return storedProvider
         }
 
-        return recommendedOnboardingTranscriptionProvider ?? onboardingTranscriptionProviderOptions.first
+        return onboardingTranscriptionProviderOptions.first
     }
 
     var selectedOnboardingTranscriptionModel: (any TranscriptionModel)? {
@@ -309,12 +293,6 @@ final class OnboardingCoordinator: ObservableObject {
     var selectedOnboardingTranscriptionLanguage: String {
         guard let model = selectedOnboardingTranscriptionModel else { return "auto" }
         return TranscriptionLanguageSupport.validLanguageOrFallback("auto", for: model)
-    }
-
-    var recommendedOnboardingTranscriptionProvider: (any CloudProvider)? {
-        onboardingTranscriptionProviderOptions.first {
-            $0.providerKey.caseInsensitiveCompare("AssemblyAI") == .orderedSame
-        }
     }
 
     var activeExperienceSteps: [OnboardingExperienceStep] {

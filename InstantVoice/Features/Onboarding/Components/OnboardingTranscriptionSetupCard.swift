@@ -504,16 +504,10 @@ private struct TranscriptionProviderChoiceButton: View {
                     iconSize: 15
                 )
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(provider.providerKey)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(AppTheme.Text.primary)
-                        .lineLimit(1)
-
-                    if isRecommended {
-                        RecommendedTranscriptionProviderPill()
-                    }
-                }
+                Text(provider.providerKey)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(AppTheme.Text.primary)
+                    .lineLimit(1)
 
                 Spacer(minLength: 0)
 
@@ -539,26 +533,5 @@ private struct TranscriptionProviderChoiceButton: View {
             aiProvider: nil,
             cloudProvider: provider
         )
-    }
-
-    private var isRecommended: Bool {
-        provider.providerKey.caseInsensitiveCompare("AssemblyAI") == .orderedSame
-    }
-}
-
-private struct RecommendedTranscriptionProviderPill: View {
-    var body: some View {
-        Text("Recommended")
-            .font(.system(size: 9, weight: .semibold))
-            .foregroundColor(AppTheme.Text.muted)
-            .lineLimit(1)
-            .fixedSize(horizontal: true, vertical: false)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(Capsule().fill(AppTheme.Surface.control.opacity(0.55)))
-            .overlay(
-                Capsule()
-                    .stroke(AppTheme.Border.control.opacity(0.28), lineWidth: 1)
-            )
     }
 }

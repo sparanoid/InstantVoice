@@ -22,7 +22,6 @@ struct InstantVoiceApp: App {
     @StateObject private var mainWindowNavigation = MainWindowNavigation.shared
     @StateObject private var aiService = AIService()
     @StateObject private var enhancementService: AIEnhancementService
-    @StateObject private var licenseViewModel = LicenseViewModel.shared
     @StateObject private var activeWindowService = ActiveWindowService.shared
     @AppStorage(OnboardingSettings.completedV2Key) private var hasCompletedOnboardingV2 = false
     @AppStorage("enableAnnouncements") private var enableAnnouncements = true
@@ -329,8 +328,6 @@ struct InstantVoiceApp: App {
                                 showLaunchRemindersIfNeeded()
                             }
 
-                            GitHubStarPromptCoordinator.shared.scheduleIfNeeded(modelContainer: container)
-
                             // Run due audio-only cleanup and schedule future checks when transcript cleanup is not managing retention.
                             if !UserDefaults.standard.bool(forKey: CleanupSettingsKeys.isTranscriptionCleanupEnabled)
                                 && UserDefaults.standard.bool(forKey: CleanupSettingsKeys.isAudioCleanupEnabled)
@@ -379,14 +376,6 @@ struct InstantVoiceApp: App {
                                 WindowManager.shared.configureWindow(window)
                             })
                 }
-            }
-            .confettiCelebrationPresenter()
-            .onReceive(
-                LifecycleObserver.shared.publisher(
-                    for: [.applicationDidBecomeActive, .systemDidWake]
-                )
-            ) { _ in
-                licenseViewModel.refreshLicenseState()
             }
         }
         .windowStyle(.hiddenTitleBar)
