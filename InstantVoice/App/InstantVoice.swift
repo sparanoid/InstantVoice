@@ -308,25 +308,11 @@ struct InstantVoiceApp: App {
                         .environmentObject(aiService)
                         .environmentObject(enhancementService)
                         .modelContainer(container)
-                        .lazyChangeLogPresenter { isPresenting in
-                            if isPresenting {
-                                if enableAnnouncements {
-                                    AnnouncementsService.shared.stop()
-                                }
-                            } else {
-                                if enableAnnouncements {
-                                    AnnouncementsService.shared.start()
-                                }
-                                showLaunchRemindersIfNeeded()
-                            }
-                        }
                         .onAppear {
-                            if !ChangeLogManager.needsPresentation() {
-                                if enableAnnouncements {
-                                    AnnouncementsService.shared.start()
-                                }
-                                showLaunchRemindersIfNeeded()
+                            if enableAnnouncements {
+                                AnnouncementsService.shared.start()
                             }
+                            showLaunchRemindersIfNeeded()
 
                             // Run due audio-only cleanup and schedule future checks when transcript cleanup is not managing retention.
                             if !UserDefaults.standard.bool(forKey: CleanupSettingsKeys.isTranscriptionCleanupEnabled)
