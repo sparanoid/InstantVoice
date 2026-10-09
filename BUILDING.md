@@ -17,7 +17,7 @@ open ~/Downloads/InstantVoice.app
 
 `make local` prepares `whisper.xcframework` in `~/InstantVoice-Dependencies`, builds Release in `.local-build`, and copies `InstantVoice.app` to `~/Downloads`.
 
-It uses `LocalBuild.xcconfig`, `VoiceInk.local.entitlements`, and the `LOCAL_BUILD` Swift flag. Without an override, it uses the only available Apple Development identity or falls back to ad-hoc signing when none or multiple are found.
+It uses `LocalBuild.xcconfig`, `InstantVoice.local.entitlements`, and the `LOCAL_BUILD` Swift flag. Without an override, it uses the only available Apple Development identity or falls back to ad-hoc signing when none or multiple are found.
 
 Choose an identity explicitly:
 
@@ -49,12 +49,20 @@ Local builds do not include iCloud dictionary sync or automatic updates. Ad-hoc 
 
 ```bash
 make setup
-open VoiceInk.xcodeproj
+open InstantVoice.xcodeproj
 ```
 
-Select the `VoiceInk` scheme. Run builds `InstantVoice Dev.app`; Archive uses Release. `LOCAL_BUILD` applies only through `make local`.
+Select the `InstantVoice` scheme. Run builds `InstantVoice Dev.app`; Archive uses Release. `LOCAL_BUILD` applies only through `make local`.
 
-The Xcode project, scheme, targets, Swift module, and source folders keep their upstream `VoiceInk` names so changes from [VoiceInk](https://github.com/Beingpax/VoiceInk) keep merging cleanly. Everything that ships is named InstantVoice.
+## Merging Upstream
+
+[VoiceInk](https://github.com/Beingpax/VoiceInk) names its project, folders, and types `VoiceInk`. Git's rename detection applies most upstream edits to the renamed files.
+
+- Run `git config merge.directoryRenames true` once so new upstream files in existing folders land under `InstantVoice/`.
+- Files in new upstream folders, and edits to files Git can't match to their renamed copy (reported as modify/delete conflicts), stay under `VoiceInk/`. Move or port them into `InstantVoice/`; Xcode doesn't compile `VoiceInk/`.
+- Rename any new `VoiceInk` identifiers to `InstantVoice`.
+
+UserDefaults and keychain keys keep their `VoiceInk` names on purpose.
 
 ## Troubleshooting
 

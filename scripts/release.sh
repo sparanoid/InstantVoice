@@ -6,8 +6,8 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-PROJECT_PATH="$REPO_ROOT/VoiceInk.xcodeproj"
-SCHEME="VoiceInk"
+PROJECT_PATH="$REPO_ROOT/InstantVoice.xcodeproj"
+SCHEME="InstantVoice"
 EXPORT_OPTIONS="$REPO_ROOT/release/ExportOptions.plist"
 DMG_ASSET_DIR="$REPO_ROOT/release/dmg"
 DMG_LAYOUT="$DMG_ASSET_DIR/layout.conf"
@@ -99,7 +99,7 @@ find_sparkle_tools() {
 
     local candidate
     candidate="$(find "$HOME/Library/Developer/Xcode/DerivedData" \
-        -path '*/VoiceInk-*/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_appcast' \
+        -path '*/InstantVoice-*/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_appcast' \
         -type f -perm -111 -print -quit 2>/dev/null || true)"
     if [[ -z "$candidate" ]]; then
         candidate="$(find "$HOME/Library/Developer/Xcode/DerivedData" \
@@ -285,7 +285,7 @@ MINIMUM_SYSTEM_VERSION="$(read_plist_value "$INFO_PLIST" LSMinimumSystemVersion)
 BUNDLE_ID="$(read_plist_value "$INFO_PLIST" CFBundleIdentifier)"
 FEED_URL="$(read_plist_value "$INFO_PLIST" SUFeedURL)"
 APP_PUBLIC_KEY="$(read_plist_value "$INFO_PLIST" SUPublicEDKey 2>/dev/null)" \
-    || fail "SUPublicEDKey is missing. Run '$GENERATE_KEYS --account $SPARKLE_ACCOUNT' and add the printed key to VoiceInk/Info.plist"
+    || fail "SUPublicEDKey is missing. Run '$GENERATE_KEYS --account $SPARKLE_ACCOUNT' and add the printed key to InstantVoice/Info.plist"
 RELEASE_TAG="v$SHORT_VERSION"
 DOWNLOAD_URL="$RELEASE_BASE_URL/$RELEASE_TAG/InstantVoice.dmg"
 

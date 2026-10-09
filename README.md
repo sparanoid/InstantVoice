@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="VoiceInk/Assets.xcassets/AppIcon.appiconset/256-mac.png" width="180" height="180" />
+  <img src="InstantVoice/Assets.xcassets/AppIcon.appiconset/256-mac.png" width="180" height="180" />
   <h1>InstantVoice</h1>
   <p>Voice to text app for macOS to transcribe what you say to text almost instantly</p>
 

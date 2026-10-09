@@ -45,7 +45,7 @@ setup: whisper
 	@echo "Please ensure your Xcode project references the framework from this new location."
 
 build: setup
-	xcodebuild -project VoiceInk.xcodeproj -scheme VoiceInk -configuration Debug CODE_SIGN_IDENTITY="" \
+	xcodebuild -project InstantVoice.xcodeproj -scheme InstantVoice -configuration Debug CODE_SIGN_IDENTITY="" \
 		-skipPackagePluginValidation \
 		-skipMacroValidation \
 		build
@@ -72,14 +72,14 @@ local: check setup
 		SIGNING_REQUIRED=NO; \
 		echo "Using ad-hoc signing (permissions may need approval after rebuilds)"; \
 	fi; \
-	xcodebuild -project VoiceInk.xcodeproj -scheme VoiceInk -configuration Release \
+	xcodebuild -project InstantVoice.xcodeproj -scheme InstantVoice -configuration Release \
 		-derivedDataPath "$(LOCAL_DERIVED_DATA)" \
 		-xcconfig LocalBuild.xcconfig \
 		CODE_SIGN_IDENTITY="$$SIGNING_IDENTITY" \
 		CODE_SIGNING_REQUIRED="$$SIGNING_REQUIRED" \
 		CODE_SIGNING_ALLOWED=YES \
 		DEVELOPMENT_TEAM="" \
-		CODE_SIGN_ENTITLEMENTS="$(CURDIR)/VoiceInk/VoiceInk.local.entitlements" \
+		CODE_SIGN_ENTITLEMENTS="$(CURDIR)/InstantVoice/InstantVoice.local.entitlements" \
 		SWIFT_ACTIVE_COMPILATION_CONDITIONS='$$(inherited) LOCAL_BUILD' \
 		-skipPackagePluginValidation \
 		-skipMacroValidation \
