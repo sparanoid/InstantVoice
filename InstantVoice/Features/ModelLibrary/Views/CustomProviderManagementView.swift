@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct CustomProviderManagementView: View {
@@ -170,11 +171,14 @@ private struct CustomEnhancementModelRow: View {
     }
 }
 
+/// Adds or edits a custom transcription model. Edits to an existing model save as soon as they're valid; a new
+/// model is added with the toolbar's Add Model button.
 struct CustomTranscriptionModelEditorPanel: View {
     let editingModel: CustomCloudModel?
     @ObservedObject var customModelManager: CustomCloudModelManager
-    let onClose: () -> Void
-    let onSave: () -> Void
+    let onAdded: () -> Void
+    var onUpdated: () -> Void = {}
+    var onDelete: (() -> Void)? = nil
 
     @State private var displayName = ""
     @State private var apiEndpoint = ""
@@ -185,6 +189,8 @@ struct CustomTranscriptionModelEditorPanel: View {
     @State private var isSaving = false
     @State private var connectionTest: ConnectionTestState = .idle
     @State private var connectionTestTask: Task<Void, Never>?
+    @State private var saveTask: Task<Void, Never>?
+    @State private var isShowingDeleteConfirmation = false
 
     private var isEditing: Bool {
         editingModel != nil
@@ -223,57 +229,99 @@ struct CustomTranscriptionModelEditorPanel: View {
     }
 
     var body: some View {
-        QuickPanelScaffold {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    CustomModelEditorSection(title: "Details") {
-                        VStack(spacing: 10) {
-                            CustomModelTextField(
-                                label: "Display Name", placeholder: String(localized: "My Custom Model"),
-                                text: $displayName)
-                            CustomModelTextField(
-                                label: "API Endpoint", placeholder: "https://api.openai.com/v1/audio/transcriptions",
-                                text: $apiEndpoint)
-                            CustomModelTextField(
-                                label: "API Key", placeholder: String(localized: "Paste API key"), text: $apiKey,
-                                isSecure: true)
-                            CustomModelTextField(
-                                label: "Model Name", placeholder: "gpt-4o-mini-transcribe", text: $modelName)
-                            CustomModelToggleRow(title: "Multilingual Model", isOn: $isMultilingual)
-                            ConnectionTestRow(
-                                state: connectionTest, isDisabled: !canTestConnection, action: runConnectionTest)
-                        }
-                    }
+        Form {
+            CustomModelErrorSection(messages: validationErrors)
 
-                    ConnectionTestResultBox(state: connectionTest)
-
-                    if !validationErrors.isEmpty {
-                        CustomModelErrorBox(messages: validationErrors)
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 76)
-                .padding(.bottom, 72)
+            Section {
+                TextField("Display Name", text: $displayName, prompt: Text("My Custom Model"))
+                TextField(
+                    "API Endpoint", text: $apiEndpoint,
+                    prompt: Text(verbatim: "https://api.openai.com/v1/audio/transcriptions"))
+                SecureField("API Key", text: $apiKey, prompt: Text("Paste API key"))
+                TextField("Model Name", text: $modelName, prompt: Text(verbatim: "gpt-4o-mini-transcribe"))
+                Toggle("Multilingual Model", isOn: $isMultilingual)
+                ConnectionTestRow(state: connectionTest, isDisabled: !canTestConnection, action: runConnectionTest)
+            } header: {
+                Text("Details")
+            } footer: {
+                CustomModelEditorFooter(
+                    connectionTest: connectionTest,
+                    onDelete: isEditing && onDelete != nil ? { isShowingDeleteConfirmation = true } : nil
+                )
             }
-        } header: {
-            editorHeader(
-                title: isEditing
-                    ? "Edit Custom Transcription Model" : "Add Custom Transcription Model"
-            )
-        } footer: {
-            editorFooter(
-                primaryTitle: isSaving ? "Saving" : isEditing ? "Save Changes" : "Add Model",
-                isPrimaryDisabled: !canSave || isSaving,
-                primaryAction: saveModel
+        }
+        .formStyle(.grouped)
+        .navigationTitle(
+            isEditing
+                ? Text(verbatim: editingModel?.displayName ?? "") : Text("Add Custom Transcription Model")
+        )
+        .toolbar {
+            if !isEditing {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Add Model", action: saveModel)
+                        .buttonStyle(.glassProminent)
+                        .disabled(!canSave || isSaving)
+                        .keyboardShortcut(.return, modifiers: .command)
+                }
+            }
+        }
+        .confirmationDialog(
+            "Delete Custom Model",
+            isPresented: $isShowingDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                saveTask?.cancel()
+                onDelete?()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(
+                String(
+                    format: String(localized: "Are you sure you want to delete the custom model '%@'?"),
+                    editingModel?.displayName ?? displayName
+                )
             )
         }
         .onAppear(perform: loadModel)
+        .onDisappear {
+            if saveTask != nil {
+                saveModel()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+            if saveTask != nil {
+                saveModel()
+            }
+        }
         .onChange(of: editingModel?.id) { _, _ in
             loadModel()
         }
-        .onChange(of: apiEndpoint) { _, _ in resetConnectionTest() }
-        .onChange(of: apiKey) { _, _ in resetConnectionTest() }
-        .onChange(of: modelName) { _, _ in resetConnectionTest() }
+        .onChange(of: apiEndpoint) { _, _ in
+            resetConnectionTest()
+            scheduleLiveSave()
+        }
+        .onChange(of: apiKey) { _, _ in
+            resetConnectionTest()
+            scheduleLiveSave()
+        }
+        .onChange(of: modelName) { _, _ in
+            resetConnectionTest()
+            scheduleLiveSave()
+        }
+        .onChange(of: displayName) { _, _ in scheduleLiveSave() }
+        .onChange(of: isMultilingual) { _, _ in scheduleLiveSave() }
+    }
+
+    /// Existing models save shortly after each edit; new ones wait for Add Model.
+    private func scheduleLiveSave() {
+        guard isEditing else { return }
+        saveTask?.cancel()
+        saveTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(500))
+            guard !Task.isCancelled else { return }
+            saveModel()
+        }
     }
 
     private var canSave: Bool {
@@ -304,11 +352,25 @@ struct CustomTranscriptionModelEditorPanel: View {
     }
 
     private func saveModel() {
+        saveTask?.cancel()
+        saveTask = nil
+
         let trimmedDisplayName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedEndpoint = apiEndpoint.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedModelName = modelName.trimmingCharacters(in: .whitespacesAndNewlines)
         let generatedName = trimmedDisplayName.lowercased().replacingOccurrences(of: " ", with: "-")
+
+        if let editingModel,
+            editingModel.displayName == trimmedDisplayName,
+            editingModel.apiEndpoint == trimmedEndpoint,
+            editingModel.modelName == trimmedModelName,
+            editingModel.isMultilingualModel == isMultilingual,
+            (APIKeyManager.shared.getCustomModelAPIKey(forModelId: editingModel.id) ?? "") == trimmedKey
+        {
+            validationErrors = []
+            return
+        }
 
         validationErrors = customModelManager.validateModelDetails(
             name: generatedName,
@@ -341,6 +403,10 @@ struct CustomTranscriptionModelEditorPanel: View {
                 isSaving = false
                 return
             }
+
+            isSaving = false
+            onUpdated()
+            return
         } else {
             let customModel = CustomCloudModel(
                 name: generatedName,
@@ -359,30 +425,16 @@ struct CustomTranscriptionModelEditorPanel: View {
         }
 
         isSaving = false
-        onSave()
-    }
-
-    private func editorHeader(title: LocalizedStringKey) -> some View {
-        CustomModelEditorHeader(title: title, onClose: onClose)
-    }
-
-    private func editorFooter(
-        primaryTitle: LocalizedStringKey, isPrimaryDisabled: Bool, primaryAction: @escaping () -> Void
-    ) -> some View {
-        CustomModelEditorFooter(
-            primaryTitle: primaryTitle,
-            isPrimaryDisabled: isPrimaryDisabled,
-            onCancel: onClose,
-            onPrimary: primaryAction
-        )
+        onAdded()
     }
 }
 
+/// Adds or edits a custom enhancement model, saving edits to an existing one as soon as they're valid.
 struct CustomEnhancementModelEditorPanel: View {
     let editingProvider: CustomAIProviderConfig?
     @ObservedObject var manager: CustomAIProviderManager
-    let onClose: () -> Void
-    let onSave: () -> Void
+    let onAdded: () -> Void
+    var onDelete: (() -> Void)? = nil
 
     @State private var displayName = ""
     @State private var baseURL = ""
@@ -392,6 +444,8 @@ struct CustomEnhancementModelEditorPanel: View {
     @State private var isSaving = false
     @State private var connectionTest: ConnectionTestState = .idle
     @State private var connectionTestTask: Task<Void, Never>?
+    @State private var saveTask: Task<Void, Never>?
+    @State private var isShowingDeleteConfirmation = false
 
     private var isEditing: Bool {
         editingProvider != nil
@@ -430,57 +484,96 @@ struct CustomEnhancementModelEditorPanel: View {
     }
 
     var body: some View {
-        QuickPanelScaffold {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    CustomModelEditorSection(title: "Details") {
-                        VStack(spacing: 10) {
-                            CustomModelTextField(
-                                label: "Display Name", placeholder: String(localized: "My Enhancement Model"),
-                                text: $displayName)
-                            CustomModelTextField(
-                                label: "Base URL", placeholder: "https://api.openai.com/v1/chat/completions",
-                                text: $baseURL)
-                            CustomModelTextField(
-                                label: "API Key", placeholder: String(localized: "Paste API key"), text: $apiKey,
-                                isSecure: true)
-                            CustomModelTextField(label: "Model Name", placeholder: "gpt-5.5", text: $modelName)
-                            ConnectionTestRow(
-                                state: connectionTest, isDisabled: !canTestConnection, action: runConnectionTest)
-                        }
-                    }
+        Form {
+            CustomModelErrorSection(messages: errorMessage.map { [$0] } ?? [])
 
-                    ConnectionTestResultBox(state: connectionTest)
-
-                    if let errorMessage {
-                        CustomModelErrorBox(messages: [errorMessage])
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 76)
-                .padding(.bottom, 72)
+            Section {
+                TextField("Display Name", text: $displayName, prompt: Text("My Enhancement Model"))
+                TextField(
+                    "Base URL", text: $baseURL,
+                    prompt: Text(verbatim: "https://api.openai.com/v1/chat/completions"))
+                SecureField("API Key", text: $apiKey, prompt: Text("Paste API key"))
+                TextField("Model Name", text: $modelName, prompt: Text(verbatim: "gpt-5.5"))
+                ConnectionTestRow(state: connectionTest, isDisabled: !canTestConnection, action: runConnectionTest)
+            } header: {
+                Text("Details")
+            } footer: {
+                CustomModelEditorFooter(
+                    connectionTest: connectionTest,
+                    onDelete: isEditing && onDelete != nil ? { isShowingDeleteConfirmation = true } : nil
+                )
             }
-        } header: {
-            CustomModelEditorHeader(
-                title: isEditing
-                    ? "Edit Custom Enhancement Model" : "Add Custom Enhancement Model",
-                onClose: onClose
-            )
-        } footer: {
-            CustomModelEditorFooter(
-                primaryTitle: primaryButtonTitle,
-                isPrimaryDisabled: !canSave || isSaving,
-                onCancel: onClose,
-                onPrimary: saveProvider
+        }
+        .formStyle(.grouped)
+        .navigationTitle(
+            isEditing ? Text(verbatim: editingProvider?.name ?? "") : Text("Add Custom Enhancement Model")
+        )
+        .toolbar {
+            if !isEditing {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Add Model", action: saveProvider)
+                        .buttonStyle(.glassProminent)
+                        .disabled(!canSave || isSaving)
+                        .keyboardShortcut(.return, modifiers: .command)
+                }
+            }
+        }
+        .confirmationDialog(
+            "Delete Custom Enhancement Model",
+            isPresented: $isShowingDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                saveTask?.cancel()
+                onDelete?()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(
+                String(
+                    format: String(localized: "Are you sure you want to delete the custom enhancement model '%@'?"),
+                    editingProvider?.name ?? displayName
+                )
             )
         }
         .onAppear(perform: loadProvider)
+        .onDisappear {
+            if saveTask != nil {
+                saveProvider()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+            if saveTask != nil {
+                saveProvider()
+            }
+        }
         .onChange(of: editingProvider?.id) { _, _ in
             loadProvider()
         }
-        .onChange(of: baseURL) { _, _ in resetConnectionTest() }
-        .onChange(of: apiKey) { _, _ in resetConnectionTest() }
-        .onChange(of: modelName) { _, _ in resetConnectionTest() }
+        .onChange(of: baseURL) { _, _ in
+            resetConnectionTest()
+            scheduleLiveSave()
+        }
+        .onChange(of: apiKey) { _, _ in
+            resetConnectionTest()
+            scheduleLiveSave()
+        }
+        .onChange(of: modelName) { _, _ in
+            resetConnectionTest()
+            scheduleLiveSave()
+        }
+        .onChange(of: displayName) { _, _ in scheduleLiveSave() }
+    }
+
+    /// Existing models save shortly after each edit; new ones wait for Add Model.
+    private func scheduleLiveSave() {
+        guard isEditing else { return }
+        saveTask?.cancel()
+        saveTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(500))
+            guard !Task.isCancelled else { return }
+            saveProvider()
+        }
     }
 
     private var canSave: Bool {
@@ -508,19 +601,24 @@ struct CustomEnhancementModelEditorPanel: View {
         resetConnectionTest()
     }
 
-    private var primaryButtonTitle: LocalizedStringKey {
-        if isSaving {
-            return "Saving"
-        }
-
-        return isEditing ? "Save Changes" : "Add Model"
-    }
-
     private func saveProvider() {
+        saveTask?.cancel()
+        saveTask = nil
+
         let trimmedName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedURL = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedModelName = modelName.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let editingProvider,
+            editingProvider.name == trimmedName,
+            editingProvider.baseURL == trimmedURL,
+            editingProvider.modelName == trimmedModelName,
+            (APIKeyManager.shared.getCustomAIProviderAPIKey(forProviderId: editingProvider.id) ?? "") == trimmedKey
+        {
+            errorMessage = nil
+            return
+        }
 
         var validationErrors = manager.validateProvider(
             name: trimmedName,
@@ -553,9 +651,7 @@ struct CustomEnhancementModelEditorPanel: View {
             let didSave = manager.updateProvider(provider, apiKey: trimmedKey)
             isSaving = false
 
-            if didSave {
-                onSave()
-            } else {
+            if !didSave {
                 errorMessage = String(localized: "Failed to save custom enhancement model")
             }
             return
@@ -566,68 +662,10 @@ struct CustomEnhancementModelEditorPanel: View {
         isSaving = false
 
         if didSave {
-            onSave()
+            onAdded()
         } else {
             errorMessage = String(localized: "Failed to save API key securely")
         }
-    }
-}
-
-private enum CustomModelEditorMetrics {
-    static let labelWidth: CGFloat = 112
-    static let fieldMaxWidth: CGFloat = 220
-}
-
-private struct CustomModelEditorSection<Content: View>: View {
-    let title: LocalizedStringKey
-    let content: () -> Content
-
-    init(title: LocalizedStringKey, @ViewBuilder content: @escaping () -> Content) {
-        self.title = title
-        self.content = content
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.secondary)
-
-            VStack(spacing: 0) {
-                content()
-            }
-            .padding(12)
-            .background(ProviderSurface(cornerRadius: 10))
-        }
-    }
-}
-
-private struct CustomModelTextField: View {
-    let label: LocalizedStringKey
-    let placeholder: String
-    @Binding var text: String
-    var isSecure = false
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Text(label)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .frame(width: CustomModelEditorMetrics.labelWidth, alignment: .leading)
-
-            Group {
-                if isSecure {
-                    SecureField(placeholder, text: $text)
-                } else {
-                    TextField("", text: $text, prompt: Text(verbatim: placeholder))
-                }
-            }
-            .textFieldStyle(.roundedBorder)
-            .font(.system(size: 12))
-            .frame(maxWidth: CustomModelEditorMetrics.fieldMaxWidth, alignment: .trailing)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -651,34 +689,21 @@ private enum ConnectionTestState: Equatable {
     }
 }
 
+/// The Connection row: progress or success on the left of the Test button, like a System Settings row.
 private struct ConnectionTestRow: View {
     let state: ConnectionTestState
     let isDisabled: Bool
     let action: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            Text("Connection")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .frame(width: CustomModelEditorMetrics.labelWidth, alignment: .leading)
+        LabeledContent("Connection") {
+            HStack(spacing: 8) {
+                inlineStatus
 
-            Button(action: action) {
-                HStack(spacing: 5) {
-                    Image(systemName: "wifi")
-                        .font(.system(size: 11))
-                    Text("Test")
-                        .font(.system(size: 12))
-                }
+                Button("Test", action: action)
+                    .disabled(isDisabled || state.isTesting)
             }
-            .disabled(isDisabled || state.isTesting)
-
-            inlineStatus
-
-            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder
@@ -692,223 +717,71 @@ private struct ConnectionTestRow: View {
                     .controlSize(.small)
                 Text("Testing…")
             }
-            .font(.system(size: 12))
-            .foregroundStyle(AppTheme.Text.secondary)
+            .foregroundStyle(.secondary)
         case .success:
             Label("Test successful", systemImage: "checkmark.circle")
-                .font(.system(size: 12))
                 .foregroundStyle(AppTheme.Status.positive)
                 .lineLimit(1)
         }
     }
 }
 
-private struct ConnectionTestResultBox: View {
-    let state: ConnectionTestState
-
-    @ViewBuilder
-    var body: some View {
-        switch state {
-        case .idle, .testing, .success:
-            EmptyView()
-        case .failure(let message):
-            CustomModelErrorBox(messages: [message])
-        }
-    }
-}
-
-private struct CustomModelToggleRow: View {
-    let title: LocalizedStringKey
-    @Binding var isOn: Bool
+/// Below the details: a failed connection test, then the delete button outside the section's box.
+private struct CustomModelEditorFooter: View {
+    let connectionTest: ConnectionTestState
+    let onDelete: (() -> Void)?
 
     var body: some View {
-        HStack(spacing: 12) {
-            Text(title)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.primary)
-                .frame(width: CustomModelEditorMetrics.labelWidth, alignment: .leading)
-
-            Toggle("", isOn: $isOn)
-                .labelsHidden()
-
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-private struct CustomModelErrorBox: View {
-    let messages: [String]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            ForEach(messages, id: \.self) { message in
+        VStack(alignment: .leading, spacing: 8) {
+            if case .failure(let message) = connectionTest {
                 Text(message)
-                    .font(.caption)
                     .foregroundStyle(AppTheme.Status.error)
                     .fixedSize(horizontal: false, vertical: true)
             }
+
+            if let onDelete {
+                HStack {
+                    Spacer()
+                    Button("Delete Model…", role: .destructive, action: onDelete)
+                }
+                .padding(.top, 8)
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(ProviderSurface(cornerRadius: 10))
     }
 }
 
-private struct CustomModelEditorHeader: View {
-    let title: LocalizedStringKey
-    let onClose: () -> Void
+/// Problems that kept the model from saving, shown above the form like the mode page's validation.
+private struct CustomModelErrorSection: View {
+    let messages: [String]
 
     var body: some View {
-        HStack(spacing: 12) {
-            Text(title)
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
-
-            Spacer()
-
-            AppIconButton(
-                systemName: "xmark",
-                help: "Close",
-                size: 28,
-                iconSize: 14,
-                cornerRadius: AppTheme.Radius.control,
-                action: onClose
-            )
+        if !messages.isEmpty {
+            Section {
+                ForEach(messages, id: \.self) { message in
+                    Label {
+                        Text(message)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .symbolRenderingMode(.multicolor)
+                    }
+                }
+            }
         }
-        .padding(.horizontal, 20)
-        .frame(height: QuickPanelMetrics.headerHeight)
-    }
-}
-
-private struct CustomModelEditorFooter: View {
-    let primaryTitle: LocalizedStringKey
-    let isPrimaryDisabled: Bool
-    let onCancel: () -> Void
-    let onPrimary: () -> Void
-
-    var body: some View {
-        HStack {
-            AppActionButton("Cancel", action: onCancel)
-                .keyboardShortcut(.cancelAction)
-
-            Spacer()
-
-            AppActionButton(primaryTitle, kind: .primary, action: onPrimary)
-                .disabled(isPrimaryDisabled)
-        }
-        .padding(.horizontal, 20)
-        .frame(height: QuickPanelMetrics.footerHeight)
     }
 }
 
 #if DEBUG
-    private enum CustomModelsPreviewPanel {
-        case transcription
-        case enhancement
-    }
-
-    private struct CustomModelsSidePanelPreview: View {
-        @State private var activePanel: CustomModelsPreviewPanel? = .transcription
-
-        private var isPanelOpen: Binding<Bool> {
-            Binding(
-                get: { activePanel != nil },
-                set: { if !$0 { activePanel = nil } }
-            )
-        }
-
-        var body: some View {
-            NavigationStack {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        customSectionHeader(
-                            title: "Custom Transcription Models",
-                            subtitle: "Supports any provider that uses the same API format as OpenAI transcription.",
-                            action: { activePanel = .transcription }
-                        )
-
-                        CustomModelCardView(
-                            model: Self.sampleTranscriptionModel,
-                            deleteAction: {},
-                            editAction: { _ in activePanel = .transcription }
-                        )
-
-                        customSectionHeader(
-                            title: "Custom Enhancement Models",
-                            subtitle: "Supports any provider that uses the same API format as OpenAI chat completion.",
-                            action: { activePanel = .enhancement }
-                        )
-
-                        CustomEnhancementModelRow(
-                            provider: Self.sampleEnhancementProvider,
-                            onEdit: { activePanel = .enhancement },
-                            onDelete: {}
-                        )
-                    }
-                    .padding(24)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-                }
-                .navigationTitle("Model Catalog")
-                .toolbar {
-                    Button {
-                        activePanel = .transcription
-                    } label: {
-                        Label("Add custom model", systemImage: "plus")
-                    }
-                }
-            }
-            .frame(width: 920, height: 640)
-            .sidePanel(isPresented: isPanelOpen) {
-                panelContent
-            }
-        }
-
-        @ViewBuilder
-        private var panelContent: some View {
-            switch activePanel {
-            case .transcription:
-                CustomTranscriptionModelEditorPanel(
-                    editingModel: Self.sampleTranscriptionModel,
-                    customModelManager: .shared,
-                    onClose: { activePanel = nil },
-                    onSave: { activePanel = nil }
-                )
-            case .enhancement:
-                CustomEnhancementModelEditorPanel(
-                    editingProvider: Self.sampleEnhancementProvider,
-                    manager: .shared,
-                    onClose: { activePanel = nil },
-                    onSave: { activePanel = nil }
-                )
-            case nil:
-                EmptyView()
-            }
-        }
-
-        private func customSectionHeader(
-            title: LocalizedStringKey, subtitle: LocalizedStringKey, action: @escaping () -> Void
-        ) -> some View {
-            HStack(alignment: .top, spacing: 12) {
-                ProviderSectionHeader(title: title, subtitle: subtitle)
-
-                Spacer()
-
-                AddIconButton(helpText: "Add model", action: action)
-            }
-        }
-
-        private static let sampleTranscriptionModel = CustomCloudModel(
+    private enum CustomModelPreviewSamples {
+        static let transcriptionModel = CustomCloudModel(
             name: "acme-transcribe",
             displayName: "Acme Transcribe",
-            description: "OpenAI-compatible transcription endpoint for previewing custom model cards.",
+            description: "OpenAI-compatible transcription endpoint for previewing custom model pages.",
             apiEndpoint: "https://api.example.com/v1/audio/transcriptions",
             modelName: "acme-transcribe-large",
             isMultilingual: true
         )
 
-        private static let sampleEnhancementProvider = CustomAIProviderConfig(
+        static let enhancementProvider = CustomAIProviderConfig(
             name: "Acme Enhance",
             baseURL: "https://api.example.com/v1/chat/completions",
             models: ["acme-enhance-pro"],
@@ -916,7 +789,103 @@ private struct CustomModelEditorFooter: View {
         )
     }
 
-    #Preview("Custom AI Models - Side Panel") {
-        CustomModelsSidePanelPreview()
+    #Preview("Custom Transcription Model Page") {
+        NavigationStack {
+            CustomTranscriptionModelEditorPanel(
+                editingModel: CustomModelPreviewSamples.transcriptionModel,
+                customModelManager: .shared,
+                onAdded: {}
+            )
+        }
+        .frame(width: 760, height: 520)
+    }
+
+    #Preview("Custom Enhancement Model Page") {
+        NavigationStack {
+            CustomEnhancementModelEditorPanel(
+                editingProvider: CustomModelPreviewSamples.enhancementProvider,
+                manager: .shared,
+                onAdded: {}
+            )
+        }
+        .frame(width: 760, height: 520)
     }
 #endif
+
+/// Page for adding (`nil` ID) or editing a custom transcription model.
+struct CustomTranscriptionModelPage: View {
+    let modelID: UUID?
+
+    @ObservedObject private var customModelManager = CustomCloudModelManager.shared
+    @EnvironmentObject private var transcriptionModelManager: TranscriptionModelManager
+    @EnvironmentObject private var navigation: MainWindowNavigation
+
+    var body: some View {
+        if let modelID {
+            if let model = customModelManager.customModels.first(where: { $0.id == modelID }) {
+                CustomTranscriptionModelEditorPanel(
+                    editingModel: model,
+                    customModelManager: customModelManager,
+                    onAdded: {},
+                    onUpdated: transcriptionModelManager.refreshAllAvailableModels,
+                    onDelete: {
+                        customModelManager.removeCustomModel(withId: modelID)
+                        transcriptionModelManager.refreshAllAvailableModels()
+                        navigation.dismissPage(.customTranscriptionModel(modelID))
+                    }
+                )
+            } else {
+                ContentUnavailableView {
+                    Label("Model Not Found", systemImage: "waveform")
+                } description: {
+                    Text("This model was deleted.")
+                }
+            }
+        } else {
+            CustomTranscriptionModelEditorPanel(
+                editingModel: nil,
+                customModelManager: customModelManager,
+                onAdded: {
+                    transcriptionModelManager.refreshAllAvailableModels()
+                    navigation.dismissPage(.customTranscriptionModel(nil))
+                }
+            )
+        }
+    }
+}
+
+/// Page for adding (`nil` ID) or editing a custom enhancement model.
+struct CustomEnhancementModelPage: View {
+    let providerID: UUID?
+
+    @ObservedObject private var manager = CustomAIProviderManager.shared
+    @EnvironmentObject private var navigation: MainWindowNavigation
+
+    var body: some View {
+        if let providerID {
+            if let provider = manager.providers.first(where: { $0.id == providerID }) {
+                CustomEnhancementModelEditorPanel(
+                    editingProvider: provider,
+                    manager: manager,
+                    onAdded: {},
+                    onDelete: {
+                        manager.deleteProvider(provider)
+                        navigation.dismissPage(.customEnhancementModel(providerID))
+                    }
+                )
+            } else {
+                ContentUnavailableView {
+                    Label("Model Not Found", systemImage: "sparkles")
+                } description: {
+                    Text("This model was deleted.")
+                }
+            }
+        } else {
+            CustomEnhancementModelEditorPanel(
+                editingProvider: nil,
+                manager: manager,
+                onAdded: { navigation.dismissPage(.customEnhancementModel(nil)) }
+            )
+        }
+    }
+}

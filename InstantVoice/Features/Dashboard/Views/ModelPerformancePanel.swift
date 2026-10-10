@@ -2,18 +2,28 @@ import SwiftUI
 
 struct ModelPerformancePanel: View {
     let summaries: [ModelPerformanceSummary]
-    let onClose: () -> Void
 
     var body: some View {
-        QuickPanelScaffold {
-            ModelPerformancePanelContent(summaries: summaries)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } header: {
-            ModelInsightPanelHeader(title: "AI Model Performance", onClose: onClose)
-        } footer: {
-            RecommendedModelsFooter()
-        }
-        .background(AppTheme.Insights.page)
+        ModelPerformancePanelContent(summaries: summaries)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .safeAreaInset(edge: .bottom) {
+                RecommendedModelsFooter()
+            }
+            .navigationTitle("AI Model Performance")
+    }
+}
+
+/// AI Model Performance for an Insights period, read from the latest dashboard statistics.
+struct ModelPerformancePage: View {
+    let period: DashboardInsightPeriod
+    @State private var summary = DashboardStatsCache.shared.currentSummary() ?? .empty
+
+    var body: some View {
+        ModelPerformancePanel(summaries: summary.modelPerformance(for: period))
+            .navigationSubtitle(Text(period.pickerTitle))
+            .onReceive(NotificationCenter.default.publisher(for: .dashboardStatsDidUpdate)) { _ in
+                summary = DashboardStatsCache.shared.currentSummary() ?? summary
+            }
     }
 }
 
@@ -69,9 +79,8 @@ private struct ModelPerformancePanelContent: View {
                         ModelPerformanceDetailRow(row: row, valueColumnWidth: columnWidth)
                     }
                 }
-                .padding(.horizontal, 18)
-                .padding(.top, 76)
-                .padding(.bottom, 72)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
             }
         }
     }

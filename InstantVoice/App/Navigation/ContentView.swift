@@ -14,43 +14,29 @@ enum ViewType: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-final class MainWindowNavigation: ObservableObject {
-    static let shared = MainWindowNavigation()
-
-    @Published var selectedView: ViewType = .dashboard
-
-    private init() {}
-
-    func navigate(to destination: String) {
-        guard let viewType = ViewType(rawValue: destination) else {
-            return
-        }
-
-        navigate(to: viewType)
-    }
-
-    func navigate(to destination: ViewType) {
-        selectedView = destination
-    }
-}
-
 struct ContentView: View {
     private let logger = Logger(subsystem: "com.sparanoid.instantvoice", category: "ContentView")
     @EnvironmentObject private var navigation: MainWindowNavigation
 
     var body: some View {
         NavigationSplitView {
-            AppSidebar(selection: $navigation.selectedView)
+            AppSidebar(selection: sidebarSelection)
                 .navigationSplitViewColumnWidth(
                     min: AppWindowLayout.sidebarMinimumWidth,
                     ideal: AppWindowLayout.sidebarIdealWidth,
                     max: AppWindowLayout.sidebarMaximumWidth
                 )
         } detail: {
-            // A fresh stack per destination resets any drill-down when switching sections.
-            NavigationStack {
+            // One stack per section; its path comes from the window's back and forward history.
+            NavigationStack(path: pathBinding) {
                 detailView(for: navigation.selectedView)
                     .navigationTitle(navigation.selectedView.title)
+                    .historyNavigationToolbar()
+                    .navigationDestination(for: MainWindowRoute.self) { route in
+                        MainWindowRouteView(route: route)
+                            .navigationBarBackButtonHidden(true)
+                            .historyNavigationToolbar()
+                    }
             }
             .id(navigation.selectedView)
         }
@@ -67,6 +53,20 @@ struct ContentView: View {
                 navigation.navigate(to: destination)
             }
         }
+    }
+
+    private var sidebarSelection: Binding<ViewType> {
+        Binding(
+            get: { navigation.selectedView },
+            set: { navigation.navigate(to: $0) }
+        )
+    }
+
+    private var pathBinding: Binding<[MainWindowRoute]> {
+        Binding(
+            get: { navigation.path },
+            set: { navigation.updatePath($0) }
+        )
     }
 
     @ViewBuilder
@@ -89,5 +89,37 @@ struct ContentView: View {
         case .settings:
             SettingsView()
         }
+    }
+}
+
+private extension View {
+    /// Each page declares the control itself, since a pushed page replaces the toolbar items above it.
+    func historyNavigationToolbar() -> some View {
+        toolbar {
+            ToolbarItemGroup(placement: .navigation) {
+                HistoryNavigationButtons()
+            }
+        }
+    }
+}
+
+/// The back and forward buttons that lead the toolbar, like System Settings.
+private struct HistoryNavigationButtons: View {
+    @EnvironmentObject private var navigation: MainWindowNavigation
+
+    var body: some View {
+        Button(action: navigation.goBack) {
+            Label("Back", systemImage: "chevron.left")
+        }
+        .disabled(!navigation.canGoBack)
+        .keyboardShortcut("[", modifiers: .command)
+        .help("Show the previous page")
+
+        Button(action: navigation.goForward) {
+            Label("Forward", systemImage: "chevron.right")
+        }
+        .disabled(!navigation.canGoForward)
+        .keyboardShortcut("]", modifiers: .command)
+        .help("Show the next page")
     }
 }

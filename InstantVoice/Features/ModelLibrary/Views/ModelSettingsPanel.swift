@@ -1,12 +1,12 @@
+import AppKit
 import SwiftUI
 
+/// The Model Settings page, with Transcription and Enhancement switched from the toolbar.
 struct ModelSettingsPanel: View {
     @State private var selectedTab: ModelSettingsTab = .transcription
 
     var body: some View {
-        VStack(spacing: 0) {
-            ModelSettingsTabBar(selection: $selectedTab)
-
+        Group {
             switch selectedTab {
             case .transcription:
                 TranscriptionModelSettingsView()
@@ -15,6 +15,20 @@ struct ModelSettingsPanel: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .navigationTitle("Model Settings")
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Picker("Model Settings", selection: $selectedTab) {
+                    ForEach(ModelSettingsTab.allCases) { tab in
+                        Text(LocalizedStringKey(tab.rawValue))
+                            .tag(tab)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .fixedSize()
+            }
+        }
     }
 }
 
@@ -34,42 +48,6 @@ private enum ModelSettingsTab: String, CaseIterable, Identifiable {
     }
 }
 
-private struct ModelSettingsTabBar: View {
-    @Binding var selection: ModelSettingsTab
-
-    var body: some View {
-        HStack(spacing: 10) {
-            ForEach(ModelSettingsTab.allCases) { tab in
-                Button {
-                    withAnimation(.easeInOut(duration: 0.16)) {
-                        selection = tab
-                    }
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: tab.systemImage)
-                            .font(.system(size: 13, weight: .semibold))
-                            .symbolRenderingMode(.hierarchical)
-
-                        Text(LocalizedStringKey(tab.rawValue))
-                            .font(.system(size: 14, weight: selection == tab ? .semibold : .medium))
-                    }
-                    .foregroundStyle(selection == tab ? Color.primary : Color.secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 9)
-                    .background(
-                        AppMaterialCardBackground(isSelected: selection == tab, cornerRadius: 22)
-                    )
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-    }
-}
-
 private struct TranscriptionModelSettingsView: View {
     @EnvironmentObject private var whisperModelManager: WhisperModelManager
 
@@ -82,16 +60,16 @@ private struct TranscriptionModelSettingsView: View {
             AdvancedModelSettingsSection()
         }
         .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
+/// The Whisper prompt for each language. Edits save as you type, like the rest of the window.
 private struct WhisperPromptSettingsSection: View {
     @ObservedObject var whisperPrompt: WhisperPrompt
     @State private var promptLanguage = "en"
     @State private var draftPrompt = ""
-    @State private var isEditing = false
+    @State private var saveTask: Task<Void, Never>?
 
     private var supportedLanguages: [String: String] {
         LanguageDictionary.forProvider(isMultilingual: true, provider: .whisper)
@@ -103,61 +81,27 @@ private struct WhisperPromptSettingsSection: View {
 
     var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: 10) {
-                Picker("Language", selection: $promptLanguage) {
-                    ForEach(sortedLanguages, id: \.key) { code, name in
-                        Text(name).tag(code)
-                    }
-                }
-                .pickerStyle(.menu)
-                .labelsHidden()
-                .accessibilityLabel("Language")
-                .disabled(isEditing)
-
-                if promptLanguage != "auto", isEditing {
-                    TextEditor(text: $draftPrompt)
-                        .font(.body)
-                        .padding(6)
-                        .frame(height: 72)
-                        .scrollContentBackground(.hidden)
-                        .background(AppTheme.Surface.control)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(Color.secondary.opacity(0.18))
-                        }
-                        .accessibilityLabel("Whisper Prompt")
-
-                    HStack(spacing: 10) {
-                        Spacer()
-
-                        Button("Cancel", role: .cancel) {
-                            draftPrompt = savedPrompt
-                            isEditing = false
-                        }
-
-                        Button("Save") {
-                            whisperPrompt.setCustomPrompt(draftPrompt, for: promptLanguage)
-                            isEditing = false
-                        }
-                        .keyboardShortcut(.defaultAction)
-                    }
-                    .controlSize(.small)
-                } else if promptLanguage != "auto" {
-                    if !savedPrompt.isEmpty {
-                        Text(savedPrompt)
-                            .foregroundStyle(.secondary)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-
-                    Button("Edit") {
-                        draftPrompt = savedPrompt
-                        isEditing = true
-                    }
+            Picker("Language", selection: $promptLanguage) {
+                ForEach(sortedLanguages, id: \.key) { code, name in
+                    Text(name).tag(code)
                 }
             }
-            .padding(.vertical, 2)
+            .pickerStyle(.menu)
+
+            if promptLanguage != "auto" {
+                TextEditor(text: $draftPrompt)
+                    .font(.body)
+                    .padding(6)
+                    .frame(height: 72)
+                    .scrollContentBackground(.hidden)
+                    .background(AppTheme.Surface.control)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(Color.secondary.opacity(0.18))
+                    }
+                    .accessibilityLabel("Whisper Prompt")
+            }
         } header: {
             HStack(spacing: 4) {
                 Text("Whisper Prompt")
@@ -170,12 +114,41 @@ private struct WhisperPromptSettingsSection: View {
             }
         }
         .onAppear {
+            // Load the current language's prompt before switching languages, so the switch can't save an empty draft.
+            draftPrompt = savedPrompt
             selectCurrentTranscriptionLanguage()
         }
-        .onChange(of: promptLanguage) { _, _ in
+        .onChange(of: promptLanguage) { previousLanguage, _ in
+            savePrompt(for: previousLanguage)
             draftPrompt = savedPrompt
-            isEditing = false
         }
+        .onChange(of: draftPrompt) { _, _ in
+            scheduleSave()
+        }
+        .onDisappear {
+            savePrompt(for: promptLanguage)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+            savePrompt(for: promptLanguage)
+        }
+    }
+
+    private func scheduleSave() {
+        let language = promptLanguage
+        saveTask?.cancel()
+        saveTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled else { return }
+            savePrompt(for: language)
+        }
+    }
+
+    /// Saves the draft as the prompt for `language`. Clearing it brings back the built-in prompt.
+    private func savePrompt(for language: String) {
+        saveTask?.cancel()
+        saveTask = nil
+        guard language != "auto", whisperPrompt.getLanguagePrompt(for: language) != draftPrompt else { return }
+        whisperPrompt.setCustomPrompt(draftPrompt, for: language)
     }
 
     private var sortedLanguages: [(key: String, value: String)] {
@@ -249,7 +222,6 @@ private struct EnhancementModelSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

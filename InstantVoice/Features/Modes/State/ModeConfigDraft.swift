@@ -145,13 +145,11 @@ struct ModeConfigDraft {
         )
     }
 
+    /// A Respond mode is never saved as the default (see `makeConfig`), but the draft keeps `isDefault` so
+    /// switching back from Respond while editing restores the default instead of leaving none.
     mutating func applyOutputRules(canRespond: Bool) {
         if outputMode == .respond && !canRespond {
             outputMode = .paste
-        }
-
-        if outputMode == .respond {
-            isDefault = false
         }
     }
 
@@ -186,29 +184,38 @@ struct ModeConfigDraft {
             )
 
         case .edit(let config):
-            var updatedConfig = sourceConfig ?? config
-            updatedConfig.name = name
-            updatedConfig.icon = icon
-            updatedConfig.appConfigs = appConfigs.isEmpty ? nil : appConfigs
-            updatedConfig.urlConfigs = websiteConfigs.isEmpty ? nil : websiteConfigs
-            updatedConfig.triggerGroups = triggerGroups.isEmpty ? nil : triggerGroups
-            updatedConfig.triggerWords = ModeConfig.normalizedTriggerWords(triggerWords)
-            updatedConfig.isAIEnhancementEnabled = isAIEnhancementEnabled
-            updatedConfig.selectedPrompt = selectedPromptId?.uuidString
-            updatedConfig.selectedTranscriptionModelName = selectedTranscriptionModelName
-            updatedConfig.isRealtimeTranscriptionEnabled = isRealtimeTranscriptionEnabled
-            updatedConfig.selectedLanguage = selectedLanguage
-            updatedConfig.isTextFormattingEnabled = isTextFormattingEnabled
-            updatedConfig.useClipboardContext = useClipboardContext
-            updatedConfig.useSelectedTextContext = useSelectedTextContext
-            updatedConfig.useScreenCapture = useScreenCapture
-            updatedConfig.selectedAIProvider = selectedAIProvider
-            updatedConfig.selectedAIModel = selectedAIModel
-            updatedConfig.outputMode = outputMode
-            updatedConfig.customCommand = savedCustomCommand
-            updatedConfig.isDefault = savedIsDefault
-            return updatedConfig
+            return makeConfig(basedOn: sourceConfig ?? config)
         }
+    }
+
+    /// Applies the draft's fields to a stored mode, keeping fields the draft doesn't edit, such as whether it's
+    /// enabled. Live editing passes the latest stored mode so a toggle made elsewhere isn't overwritten.
+    func makeConfig(basedOn base: ModeConfig) -> ModeConfig {
+        let savedIsDefault = outputMode == .respond ? false : isDefault
+        let savedCustomCommand = makeCustomCommand()
+
+        var updatedConfig = base
+        updatedConfig.name = name
+        updatedConfig.icon = icon
+        updatedConfig.appConfigs = appConfigs.isEmpty ? nil : appConfigs
+        updatedConfig.urlConfigs = websiteConfigs.isEmpty ? nil : websiteConfigs
+        updatedConfig.triggerGroups = triggerGroups.isEmpty ? nil : triggerGroups
+        updatedConfig.triggerWords = ModeConfig.normalizedTriggerWords(triggerWords)
+        updatedConfig.isAIEnhancementEnabled = isAIEnhancementEnabled
+        updatedConfig.selectedPrompt = selectedPromptId?.uuidString
+        updatedConfig.selectedTranscriptionModelName = selectedTranscriptionModelName
+        updatedConfig.isRealtimeTranscriptionEnabled = isRealtimeTranscriptionEnabled
+        updatedConfig.selectedLanguage = selectedLanguage
+        updatedConfig.isTextFormattingEnabled = isTextFormattingEnabled
+        updatedConfig.useClipboardContext = useClipboardContext
+        updatedConfig.useSelectedTextContext = useSelectedTextContext
+        updatedConfig.useScreenCapture = useScreenCapture
+        updatedConfig.selectedAIProvider = selectedAIProvider
+        updatedConfig.selectedAIModel = selectedAIModel
+        updatedConfig.outputMode = outputMode
+        updatedConfig.customCommand = savedCustomCommand
+        updatedConfig.isDefault = savedIsDefault
+        return updatedConfig
     }
 
     private func makeCustomCommand() -> ModeCustomCommand? {

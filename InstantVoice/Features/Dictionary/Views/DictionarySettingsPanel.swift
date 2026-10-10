@@ -9,7 +9,6 @@ private struct DictionaryTransferAlert: Identifiable {
 struct DictionarySettingsPanel: View {
     @Environment(\.modelContext) private var modelContext
 
-    let onDismiss: () -> Void
     let onReviewNow: () -> Void
     @AppStorage(AutoLearnSettings.isEnabledKey) private var isAutoLearnDictionaryEnabled = true
     @AppStorage(AutoLearnSettings.reviewScheduleKey)
@@ -19,87 +18,83 @@ struct DictionarySettingsPanel: View {
     @State private var transferAlert: DictionaryTransferAlert?
 
     var body: some View {
-        QuickPanelScaffold {
-            Form {
-                Section {
-                    LabeledContent("Quick Add to Dictionary") {
-                        ShortcutRecorder(action: .quickAddToDictionary)
-                            .controlSize(.small)
-                    }
-                } header: {
-                    Text("Shortcut")
+        Form {
+            Section {
+                LabeledContent("Quick Add to Dictionary") {
+                    ShortcutRecorder(action: .quickAddToDictionary)
+                        .controlSize(.small)
                 }
+            } header: {
+                Text("Shortcut")
+            }
 
-                Section {
-                    Toggle("Auto-Learn Dictionary", isOn: $isAutoLearnDictionaryEnabled)
-                        .onChange(of: isAutoLearnDictionaryEnabled) { _, isEnabled in
+            Section {
+                Toggle("Auto-Learn Dictionary", isOn: $isAutoLearnDictionaryEnabled)
+                    .onChange(of: isAutoLearnDictionaryEnabled) { _, isEnabled in
+                        Task {
+                            await AutoLearnService.shared.settingDidChange(isEnabled: isEnabled)
+                        }
+                    }
+
+                if isAutoLearnDictionaryEnabled {
+                    AutoLearnModelSelectionView()
+
+                    LabeledContent {
+                        Picker("", selection: $reviewScheduleRawValue) {
+                            ForEach(AutoLearnReviewSchedule.allCases) { schedule in
+                                Text(schedule.title).tag(schedule.rawValue)
+                            }
+                        }
+                        .labelsHidden()
+                        .onChange(of: reviewScheduleRawValue) { _, _ in
                             Task {
-                                await AutoLearnService.shared.settingDidChange(isEnabled: isEnabled)
+                                await AutoLearnService.shared.reviewScheduleDidChange()
                             }
                         }
-
-                    if isAutoLearnDictionaryEnabled {
-                        AutoLearnModelSelectionView()
-
-                        LabeledContent {
-                            Picker("", selection: $reviewScheduleRawValue) {
-                                ForEach(AutoLearnReviewSchedule.allCases) { schedule in
-                                    Text(schedule.title).tag(schedule.rawValue)
-                                }
-                            }
-                            .labelsHidden()
-                            .onChange(of: reviewScheduleRawValue) { _, _ in
-                                Task {
-                                    await AutoLearnService.shared.reviewScheduleDidChange()
-                                }
-                            }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Text("Review corrections")
-                                InfoTip(
-                                    "Choose when saved corrections are sent to your AI provider. Manual review keeps them local until you select Review Now."
-                                )
-                            }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Review corrections")
+                            InfoTip(
+                                "Choose when saved corrections are sent to your AI provider. Manual review keeps them local until you select Review Now."
+                            )
                         }
+                    }
 
-                        LabeledContent("Corrections to review") {
+                    LabeledContent("Corrections to review") {
+                        HStack(spacing: 10) {
                             Text("\(pendingCorrectionCount)")
                                 .foregroundStyle(.secondary)
-                        }
 
-                        Button("Review Now") {
-                            onReviewNow()
+                            Button("Review Now") {
+                                onReviewNow()
+                            }
+                            .disabled(pendingCorrectionCount == 0)
                         }
-                        .disabled(pendingCorrectionCount == 0)
                     }
-                } header: {
-                    AutoLearnSectionHeader()
                 }
-
-                Section {
-                    LabeledContent("Export Dictionary") {
-                        Button("Export") {
-                            exportDictionary()
-                        }
-                    }
-
-                    LabeledContent("Import Dictionary") {
-                        Button("Import") {
-                            chooseDictionaryFile()
-                        }
-                    }
-                } header: {
-                    Text("Dictionary Data")
-                }
+            } header: {
+                AutoLearnSectionHeader()
             }
-            .formStyle(.grouped)
-            .scrollContentBackground(.hidden)
-            .contentMargins(.top, 68, for: .scrollContent)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } header: {
-            panelHeader
+
+            Section {
+                LabeledContent("Export Dictionary") {
+                    Button("Export") {
+                        exportDictionary()
+                    }
+                }
+
+                LabeledContent("Import Dictionary") {
+                    Button("Import") {
+                        chooseDictionaryFile()
+                    }
+                }
+            } header: {
+                Text("Dictionary Data")
+            }
         }
+        .formStyle(.grouped)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .navigationTitle("Dictionary Settings")
         .task {
             await refreshPendingCorrectionCount()
         }
@@ -133,27 +128,6 @@ struct DictionarySettingsPanel: View {
                 dismissButton: .cancel(Text("OK"))
             )
         }
-    }
-
-    private var panelHeader: some View {
-        HStack(spacing: 12) {
-            Text("Dictionary Settings")
-                .font(.headline)
-                .fontWeight(.semibold)
-
-            Spacer()
-
-            AppIconButton(
-                systemName: "xmark",
-                help: "Close",
-                size: 28,
-                iconSize: 14,
-                cornerRadius: AppTheme.Radius.control,
-                action: onDismiss
-            )
-        }
-        .padding(.horizontal, 20)
-        .frame(height: QuickPanelMetrics.headerHeight)
     }
 
     @MainActor

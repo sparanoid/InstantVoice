@@ -16,8 +16,6 @@ struct AutoLearnReviewPanel: View {
         }
     }
 
-    let onClose: () -> Void
-
     @State private var proposals: [AutoLearnReviewProposal] = []
     @State private var selections: [UUID: Set<ReviewComponent>] = [:]
     @State private var drafts: [UUID: ReviewDraft] = [:]
@@ -26,13 +24,36 @@ struct AutoLearnReviewPanel: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        QuickPanelScaffold {
-            reviewContent
-        } header: {
-            floatingHeader
-        } footer: {
-            footer
-        }
+        reviewContent
+            .navigationTitle("Review Corrections")
+            .toolbar {
+                ToolbarItemGroup(placement: .primaryAction) {
+                    ScreenInfoButton(
+                        title: "Info",
+                        message: "The arrow icon refers to Word Replacement. The book icon refers to Vocabulary."
+                    )
+
+                    if !proposals.isEmpty {
+                        Button("Dismiss All", role: .destructive) {
+                            dismiss(Set(proposals.map(\.id)))
+                        }
+                        .disabled(isApplying || isReviewing)
+                    }
+                }
+
+                if !proposals.isEmpty {
+                    ToolbarSpacer(.fixed, placement: .primaryAction)
+
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(applyButtonTitle) {
+                            applySelections()
+                        }
+                        .buttonStyle(.glassProminent)
+                        .disabled(selectedProposalCount == 0 || hasInvalidSelection || isApplying || isReviewing)
+                        .help(firstValidationIssue ?? String(localized: "Apply the selected corrections"))
+                    }
+                }
+            }
         .task {
             await loadAndReview()
         }
@@ -50,37 +71,6 @@ struct AutoLearnReviewPanel: View {
         } else {
             reviewList
         }
-    }
-
-    private var floatingHeader: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 4) {
-                Text("Review Corrections")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(AppTheme.Text.primary)
-
-                InfoTip(
-                    message: "The arrow icon refers to Word Replacement. The book icon refers to Vocabulary.",
-                    iconSize: .small,
-                    iconColor: .secondary,
-                    width: 320
-                )
-            }
-
-            Spacer()
-
-            AppIconButton(
-                systemName: "xmark",
-                help: "Close",
-                size: 28,
-                iconSize: 14,
-                cornerRadius: AppTheme.Radius.control,
-                action: onClose
-            )
-        }
-        .padding(.horizontal, 20)
-        .frame(height: QuickPanelMetrics.headerHeight)
     }
 
     private var reviewList: some View {
@@ -131,11 +121,9 @@ struct AutoLearnReviewPanel: View {
                     )
                 }
             }
-            .padding(16)
-            .padding(.top, 68)
-            .padding(.bottom, 58)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
         }
-        .scrollIndicators(.never)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -145,31 +133,7 @@ struct AutoLearnReviewPanel: View {
         } description: {
             Text(errorMessage ?? "New manual-review suggestions will appear here.")
         }
-        .padding(.top, 68)
-        .padding(.bottom, 58)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    @ViewBuilder
-    private var footer: some View {
-        if !proposals.isEmpty {
-            HStack(spacing: 10) {
-                AppActionButton("Dismiss All", kind: .destructive) {
-                    dismiss(Set(proposals.map(\.id)))
-                }
-                .disabled(isApplying || isReviewing)
-
-                Spacer()
-
-                AppActionButton(applyButtonTitle, kind: .primary) {
-                    applySelections()
-                }
-                .disabled(selectedProposalCount == 0 || hasInvalidSelection || isApplying || isReviewing)
-                .help(firstValidationIssue ?? "Apply the selected corrections")
-            }
-            .padding(.horizontal, 20)
-            .frame(height: QuickPanelMetrics.footerHeight)
-        }
     }
 
     private var applyButtonTitle: LocalizedStringKey {

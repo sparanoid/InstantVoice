@@ -3,7 +3,6 @@ import SwiftUI
 
 struct ProviderDetailPanel: View {
     let descriptor: ProviderDescriptor
-    let onClose: () -> Void
 
     @EnvironmentObject private var aiService: AIService
     @EnvironmentObject private var transcriptionModelManager: TranscriptionModelManager
@@ -28,26 +27,25 @@ struct ProviderDetailPanel: View {
     }
 
     var body: some View {
-        QuickPanelScaffold {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    apiKeySection
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                header
+                apiKeySection
 
-                    if descriptor.hasTranscription {
-                        transcriptionModelsSection
-                    }
-
-                    if descriptor.hasEnhancement {
-                        enhancementModelsSection
-                    }
+                if descriptor.hasTranscription {
+                    transcriptionModelsSection
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 76)
-                .padding(.bottom, 20)
+
+                if descriptor.hasEnhancement {
+                    enhancementModelsSection
+                }
             }
-        } header: {
-            header
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 28)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .navigationTitle(Text(verbatim: descriptor.displayName))
         .onAppear(perform: loadSavedAPIKey)
         .onChange(of: descriptor.id) { _, _ in
             resetProviderState()
@@ -60,27 +58,22 @@ struct ProviderDetailPanel: View {
                 descriptor: descriptor,
                 fallbackSystemImage: iconName,
                 isSelected: false,
-                size: 38,
-                iconSize: 18
+                size: 48,
+                iconSize: 22
             )
 
-            Text(descriptor.displayName)
-                .font(.headline)
-                .fontWeight(.semibold)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(descriptor.displayName)
+                    .font(.title2.weight(.semibold))
+
+                ProviderStatusBadge(
+                    title: isConfigured ? "Connected" : "Not connected",
+                    color: isConfigured ? AppTheme.Status.positive : Color.secondary
+                )
+            }
 
             Spacer()
-
-            AppIconButton(
-                systemName: "xmark",
-                help: "Close",
-                size: 28,
-                iconSize: 14,
-                cornerRadius: AppTheme.Radius.control,
-                action: onClose
-            )
         }
-        .padding(.horizontal, 20)
-        .frame(height: QuickPanelMetrics.headerHeight)
     }
 
     private var apiKeySection: some View {
@@ -524,4 +517,22 @@ struct ProviderDetailPanel: View {
         }
     }
 
+}
+
+/// A cloud provider's page: its API key and the models it offers.
+struct CloudProviderPage: View {
+    let providerID: String
+
+    var body: some View {
+        if let descriptor = ProviderDescriptor.cloudProvider(withID: providerID) {
+            ProviderDetailPanel(descriptor: descriptor)
+                .id(descriptor.id)
+        } else {
+            ContentUnavailableView {
+                Label("Provider Not Found", systemImage: "cloud")
+            } description: {
+                Text("This provider is no longer available.")
+            }
+        }
+    }
 }

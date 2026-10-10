@@ -521,6 +521,11 @@ final class DashboardStatsCache: @unchecked Sendable {
         self.isStale = false
         lock.unlock()
 
+        // Pages that show these statistics outside the dashboard, such as Insights, refresh from this.
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .dashboardStatsDidUpdate, object: nil)
+        }
+
         return metadata
     }
 

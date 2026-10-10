@@ -1,30 +1,5 @@
 import SwiftUI
 
-struct ModelInsightPanelHeader: View {
-    let title: LocalizedStringKey
-    let onClose: () -> Void
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Text(title)
-                .font(.headline.weight(.semibold))
-
-            Spacer()
-
-            Button(action: onClose) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 12, weight: .semibold))
-                    .frame(width: 30, height: 30)
-            }
-            .buttonStyle(DashboardInsightButtonStyle())
-            .help("Close")
-            .accessibilityLabel("Close")
-        }
-        .padding(.horizontal, 20)
-        .frame(height: QuickPanelMetrics.headerHeight)
-    }
-}
-
 struct RecommendedModelsFooter: View {
     var body: some View {
         HStack {

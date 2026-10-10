@@ -1,13 +1,10 @@
 import SwiftUI
 
 struct ModeConfigFormView: View {
-    let mode: ConfigurationMode
+    let modeID: UUID
     let modeManager: ModeManager
     @Binding var draft: ModeConfigDraft
-    @Binding var validationErrors: [ModeValidationError]
-    @Binding var showValidationAlert: Bool
-    let onDismiss: () -> Void
-    let onSave: () -> Void
+    let validationErrors: [ModeValidationError]
     let onDelete: () -> ModeRemovalResult
     let openPromptEditor: (PromptEditorView.Mode) -> Void
 
@@ -22,6 +19,19 @@ struct ModeConfigFormView: View {
 
     private var isDeletingDefaultMode: Bool {
         modeManager.getConfiguration(with: draft.id)?.isDefault == true
+    }
+
+    private var isEnabled: Binding<Bool> {
+        Binding(
+            get: { modeManager.getConfiguration(with: modeID)?.isEnabled ?? true },
+            set: { isOn in
+                if isOn {
+                    modeManager.enableConfiguration(with: modeID)
+                } else {
+                    modeManager.disableConfiguration(with: modeID)
+                }
+            }
+        )
     }
 
     private var effectiveModelName: String? {
@@ -62,75 +72,97 @@ struct ModeConfigFormView: View {
     }
 
     var body: some View {
-        QuickPanelScaffold {
-            formContent
-        } header: {
-            header
-        } footer: {
-            footer
-        }
-        .onAppear {
-            applyInstantVoiceRefineRulesIfNeeded()
-            applyOutputRules()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                isNameFieldFocused = true
+        formContent
+            .onAppear {
+                applyInstantVoiceRefineRulesIfNeeded()
+                applyOutputRules()
+                if ModeEditorFocus.consumeNameFocusRequest(for: modeID) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        isNameFieldFocused = true
+                    }
+                }
             }
-        }
-        .onChange(of: draft.isAIEnhancementEnabled) { _, _ in
-            applyOutputRules()
-        }
-        .onChange(of: draft.selectedPromptId) { _, _ in
-            applyOutputRules()
-        }
-        .onChange(of: draft.selectedAIProvider) { _, _ in
-            applyOutputRules()
-        }
-        .onChange(of: draft.selectedAIModel) { _, _ in
-            applyOutputRules()
+            .onChange(of: draft.isAIEnhancementEnabled) { _, _ in
+                applyOutputRules()
+            }
+            .onChange(of: draft.selectedPromptId) { _, _ in
+                applyOutputRules()
+            }
+            .onChange(of: draft.selectedAIProvider) { _, _ in
+                applyOutputRules()
+            }
+            .onChange(of: draft.selectedAIModel) { _, _ in
+                applyOutputRules()
+            }
+    }
+
+    @ViewBuilder
+    private var validationSection: some View {
+        if !validationErrors.isEmpty {
+            Section {
+                ForEach(validationErrors) { error in
+                    Label {
+                        Text(error.localizedDescription)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .symbolRenderingMode(.multicolor)
+                    }
+                }
+            }
         }
     }
 
-    private var header: some View {
-        HStack(spacing: 12) {
-            Button {
-                isShowingIconPicker.toggle()
-            } label: {
-                ModeIconView(icon: draft.icon, size: draft.icon.kind == .emoji ? 22 : 18)
-                    .frame(width: 36, height: 36)
-                    .background(
-                        AppCardBackground(isSelected: false, cornerRadius: 18)
+    private var identitySection: some View {
+        Section {
+            HStack(spacing: 12) {
+                Button {
+                    isShowingIconPicker.toggle()
+                } label: {
+                    ModeIconTile(icon: draft.icon, seed: modeID, size: 40)
+                }
+                .buttonStyle(.plain)
+                .help("Choose an icon")
+                .popover(isPresented: $isShowingIconPicker, arrowEdge: .bottom) {
+                    ModeIconPickerView(
+                        selectedIcon: $draft.icon,
+                        isPresented: $isShowingIconPicker
                     )
+                }
+
+                TextField("Mode name", text: $draft.name, prompt: Text("Mode name"))
+                    .labelsHidden()
+                    .textFieldStyle(.plain)
+                    .multilineTextAlignment(.leading)
+                    .font(.title3.weight(.semibold))
+                    .focused($isNameFieldFocused)
             }
-            .buttonStyle(.plain)
-            .popover(isPresented: $isShowingIconPicker, arrowEdge: .bottom) {
-                ModeIconPickerView(
-                    selectedIcon: $draft.icon,
-                    isPresented: $isShowingIconPicker
-                )
+            .padding(.vertical, 2)
+
+            if !isDeletingDefaultMode {
+                Toggle("Enabled", isOn: isEnabled)
             }
-
-            TextField("Mode name", text: $draft.name)
-                .textFieldStyle(.plain)
-                .font(.system(size: 16, weight: .semibold))
-                .focused($isNameFieldFocused)
-
-            Spacer()
-
-            AppIconButton(
-                systemName: "xmark",
-                help: "Close",
-                size: 28,
-                iconSize: 14,
-                cornerRadius: AppTheme.Radius.control,
-                action: onDismiss
-            )
         }
-        .padding(.horizontal, 20)
-        .frame(height: QuickPanelMetrics.headerHeight)
+    }
+
+    /// Sits below the last section, outside its box, like the delete buttons on System Settings pages.
+    private var deleteButton: some View {
+        HStack {
+            Spacer()
+            Button("Delete Mode…", role: .destructive) {
+                if isDeletingDefaultMode {
+                    isShowingDefaultModeDeleteAlert = true
+                } else {
+                    isShowingDeleteConfirmation = true
+                }
+            }
+        }
+        .padding(.top, 8)
     }
 
     private var formContent: some View {
         Form {
+            validationSection
+            identitySection
             ModeTriggerSection(
                 appConfigs: $draft.appConfigs,
                 websiteConfigs: $draft.websiteConfigs,
@@ -144,20 +176,15 @@ struct ModeConfigFormView: View {
             advancedSection
         }
         .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
-        .contentMargins(.top, 68, for: .scrollContent)
-        .contentMargins(.bottom, 58, for: .scrollContent)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .confirmationDialog(
             "Delete Mode?",
             isPresented: $isShowingDeleteConfirmation,
             titleVisibility: .visible
         ) {
-            if case .edit = mode {
-                Button("Delete", role: .destructive) {
-                    if case .blockedDefault = onDelete() {
-                        isShowingDefaultModeDeleteAlert = true
-                    }
+            Button("Delete", role: .destructive) {
+                if case .blockedDefault = onDelete() {
+                    isShowingDefaultModeDeleteAlert = true
                 }
             }
             Button("Cancel", role: .cancel) {}
@@ -184,7 +211,6 @@ struct ModeConfigFormView: View {
                 )
             }
         )
-        .modeValidationAlert(errors: validationErrors, isPresented: $showValidationAlert)
     }
 
     private var transcriptionSection: some View {
@@ -604,7 +630,7 @@ struct ModeConfigFormView: View {
     }
 
     private var advancedSection: some View {
-        Section("Advanced") {
+        Section {
             Picker("Output", selection: $draft.outputMode) {
                 ForEach(outputChoices, id: \.self) { outputMode in
                     Label(outputMode.displayName, systemImage: outputMode.iconName)
@@ -627,6 +653,10 @@ struct ModeConfigFormView: View {
             if draft.outputMode == .customCommand {
                 customCommandControls
             }
+        } header: {
+            Text("Advanced")
+        } footer: {
+            deleteButton
         }
     }
 
@@ -666,33 +696,6 @@ struct ModeConfigFormView: View {
                 )
 
         }
-    }
-
-    private var footer: some View {
-        HStack {
-            if case .edit = mode {
-                AppActionButton("Delete", kind: .destructive) {
-                    if isDeletingDefaultMode {
-                        isShowingDefaultModeDeleteAlert = true
-                    } else {
-                        isShowingDeleteConfirmation = true
-                    }
-                }
-            } else {
-                AppActionButton("Cancel") { onDismiss() }
-                    .keyboardShortcut(.escape, modifiers: [])
-            }
-
-            Spacer()
-
-            AppActionButton("Save Changes", kind: .primary, minWidth: 100) {
-                onSave()
-            }
-            .disabled(!draft.canSave)
-            .keyboardShortcut(.return, modifiers: .command)
-        }
-        .padding(.horizontal, 20)
-        .frame(height: QuickPanelMetrics.footerHeight)
     }
 
     private func availableLanguages(for model: any TranscriptionModel) -> [String: String] {

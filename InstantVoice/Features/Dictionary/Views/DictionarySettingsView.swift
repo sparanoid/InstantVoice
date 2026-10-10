@@ -2,8 +2,7 @@ import SwiftUI
 
 struct DictionarySettingsView: View {
     @State private var selectedSection: DictionarySection = .replacements
-    @State private var activePanel: DictionaryPanel?
-    @State private var isAutoLearnReviewPresented = false
+    @EnvironmentObject private var navigation: MainWindowNavigation
     @AppStorage(AutoLearnSettings.hasFailureKey) private var hasAutoLearnFailure = false
     private let dictionaryInfoMessage: LocalizedStringKey =
         "Word Replacements run after transcription. Vocabulary helps supported transcription models and AI enhancement recognize names, technical terms, and unique spellings."
@@ -37,11 +36,6 @@ struct DictionarySettingsView: View {
         }
     }
 
-    private enum DictionaryPanel: Equatable {
-        case settings
-        case autoLearnFailure
-    }
-
     var body: some View {
         ScrollView(.vertical) {
             selectedSectionForm
@@ -59,7 +53,7 @@ struct DictionarySettingsView: View {
             ToolbarItemGroup(placement: .primaryAction) {
                 if hasAutoLearnFailure {
                     Button {
-                        activePanel = .autoLearnFailure
+                        navigation.push(.autoLearnFailure)
                     } label: {
                         Label("Dictionary Auto Learn failed", systemImage: "exclamationmark.triangle.fill")
                     }
@@ -74,38 +68,11 @@ struct DictionarySettingsView: View {
                 )
 
                 Button {
-                    activePanel = activePanel == .settings ? nil : .settings
+                    navigation.push(.dictionarySettings)
                 } label: {
                     Label("Dictionary Settings", systemImage: "gearshape")
                 }
                 .help("Dictionary Settings")
-            }
-        }
-        .sidePanel(
-            isPresented: Binding(
-                get: { activePanel != nil },
-                set: { if !$0 { activePanel = nil } }
-            )
-        ) {
-            switch activePanel {
-            case .settings:
-                DictionarySettingsPanel {
-                    activePanel = nil
-                } onReviewNow: {
-                    activePanel = nil
-                    isAutoLearnReviewPresented = true
-                }
-            case .autoLearnFailure:
-                AutoLearnFailurePanel {
-                    activePanel = nil
-                }
-            case nil:
-                EmptyView()
-            }
-        }
-        .sidePanel(isPresented: $isAutoLearnReviewPresented) {
-            AutoLearnReviewPanel {
-                isAutoLearnReviewPresented = false
             }
         }
     }

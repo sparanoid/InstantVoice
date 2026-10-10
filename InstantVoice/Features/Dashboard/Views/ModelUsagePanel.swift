@@ -2,18 +2,28 @@ import SwiftUI
 
 struct ModelUsagePanel: View {
     let summary: ModelUsageSummary
-    let onClose: () -> Void
 
     var body: some View {
-        QuickPanelScaffold {
-            ModelUsagePanelContent(summary: summary)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } header: {
-            ModelInsightPanelHeader(title: "AI Model Usage", onClose: onClose)
-        } footer: {
-            RecommendedModelsFooter()
-        }
-        .background(AppTheme.Insights.page)
+        ModelUsagePanelContent(summary: summary)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .safeAreaInset(edge: .bottom) {
+                RecommendedModelsFooter()
+            }
+            .navigationTitle("AI Model Usage")
+    }
+}
+
+/// AI Model Usage for an Insights period, read from the latest dashboard statistics.
+struct ModelUsagePage: View {
+    let period: DashboardInsightPeriod
+    @State private var summary = DashboardStatsCache.shared.currentSummary() ?? .empty
+
+    var body: some View {
+        ModelUsagePanel(summary: summary.modelUsage(for: period))
+            .navigationSubtitle(Text(period.pickerTitle))
+            .onReceive(NotificationCenter.default.publisher(for: .dashboardStatsDidUpdate)) { _ in
+                summary = DashboardStatsCache.shared.currentSummary() ?? summary
+            }
     }
 }
 
@@ -56,9 +66,8 @@ private struct ModelUsagePanelContent: View {
                         }
                     )
                 }
-                .padding(.horizontal, 18)
-                .padding(.top, 76)
-                .padding(.bottom, 72)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
             }
         } else {
             ModelInsightPanelEmptyState(title: "No model usage for this period")

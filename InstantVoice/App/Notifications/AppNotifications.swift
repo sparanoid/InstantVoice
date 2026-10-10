@@ -18,6 +18,8 @@ extension Notification.Name {
     static let transcriptionCompleted = Notification.Name("transcriptionCompleted")
     static let transcriptionDeleted = Notification.Name("transcriptionDeleted")
     static let sessionMetricsDidChange = Notification.Name("sessionMetricsDidChange")
+    /// Posted on the main thread after `DashboardStatsCache` stores newly computed statistics.
+    static let dashboardStatsDidUpdate = Notification.Name("dashboardStatsDidUpdate")
     static let wordReplacementsDidChange = Notification.Name("wordReplacementsDidChange")
     static let autoLearnQueueDidChange = Notification.Name("autoLearnQueueDidChange")
     static let autoLearnReviewProposalsDidChange = Notification.Name("autoLearnReviewProposalsDidChange")

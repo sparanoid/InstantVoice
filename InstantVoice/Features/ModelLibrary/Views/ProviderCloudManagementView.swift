@@ -6,6 +6,39 @@ struct CloudProviderManagementView: View {
     let onSelectProvider: (ProviderDescriptor) -> Void
 
     private var providerDescriptors: [ProviderDescriptor] {
+        ProviderDescriptor.cloudProviders
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Cloud Providers")
+                    .font(.title3.weight(.semibold))
+                    .accessibilityAddTraits(.isHeader)
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text("Cloud providers process audio and text under their own privacy policies.")
+                        .foregroundStyle(.secondary)
+                    Link("Learn more", destination: URL(string: "https://tryvoiceink.com/privacy")!)
+                }
+                .font(.subheadline)
+            }
+
+            ForEach(providerDescriptors) { descriptor in
+                ProviderListRow(
+                    descriptor: descriptor,
+                    isSelected: selectedProviderID == descriptor.id,
+                    onSelect: {
+                        onSelectProvider(descriptor)
+                    }
+                )
+            }
+        }
+    }
+
+}
+
+extension ProviderDescriptor {
+    static var cloudProviders: [ProviderDescriptor] {
         let enhancementProviders: [AIProvider] = [
             .openAI,
             .openRouter,
@@ -52,33 +85,11 @@ struct CloudProviderManagementView: View {
         }
     }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Cloud Providers")
-                    .font(.title3.weight(.semibold))
-                    .accessibilityAddTraits(.isHeader)
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("Cloud providers process audio and text under their own privacy policies.")
-                        .foregroundStyle(.secondary)
-                    Link("Learn more", destination: URL(string: "https://tryvoiceink.com/privacy")!)
-                }
-                .font(.subheadline)
-            }
-
-            ForEach(providerDescriptors) { descriptor in
-                ProviderListRow(
-                    descriptor: descriptor,
-                    isSelected: selectedProviderID == descriptor.id,
-                    onSelect: {
-                        onSelectProvider(descriptor)
-                    }
-                )
-            }
-        }
+    static func cloudProvider(withID id: String) -> ProviderDescriptor? {
+        cloudProviders.first { $0.id == id }
     }
 
-    private func matchingCloudProvider(for aiProvider: AIProvider) -> (any CloudProvider)? {
+    private static func matchingCloudProvider(for aiProvider: AIProvider) -> (any CloudProvider)? {
         CloudProviderRegistry.allProviders.first {
             $0.providerKey.caseInsensitiveCompare(aiProvider.rawValue) == .orderedSame
         }

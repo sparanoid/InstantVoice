@@ -9,37 +9,41 @@ struct AutoLearnFailurePanel: View {
     @State private var pendingCount: Int?
 
     var body: some View {
-        VStack(spacing: 0) {
-            AppPanelHeader(title: "Auto-Learn Failed", onClose: onClose)
-
-            Form {
-                Section {
-                    AutoLearnModelSelectionView(retriesOnChange: false)
-                } header: {
-                    AutoLearnSectionHeader()
-                }
-
-                Section("What Happened") {
-                    Label {
-                        Text(errorDescription)
-                    } icon: {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                    }
-                }
-
-                Section("How to Fix It") {
-                    Text(retryGuidance)
-                        .foregroundStyle(.secondary)
+        Form {
+            Section("What Happened") {
+                Label {
+                    Text(errorDescription)
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
                 }
             }
-            .formStyle(.grouped)
-            .scrollContentBackground(.hidden)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            footer
+            Section {
+                AutoLearnModelSelectionView(retriesOnChange: false)
+            } header: {
+                AutoLearnSectionHeader()
+            }
+
+            Section("How to Fix It") {
+                Text(retryGuidance)
+                    .foregroundStyle(.secondary)
+            }
         }
+        .formStyle(.grouped)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .navigationTitle("Auto-Learn Failed")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Retry") {
+                    Task {
+                        await AutoLearnService.shared.retryPendingReviews()
+                    }
+                }
+                .buttonStyle(.glassProminent)
+                .disabled(!isAutoLearnEnabled)
+            }
+        }
         .onChange(of: hasFailure) { _, failed in
             if !failed {
                 onClose()
@@ -73,24 +77,5 @@ struct AutoLearnFailurePanel: View {
         failureMessage.isEmpty
             ? String(localized: "The selected provider or model could not review the pending corrections.")
             : failureMessage
-    }
-
-    private var footer: some View {
-        HStack {
-            AppActionButton("Close", action: onClose)
-                .keyboardShortcut(.cancelAction)
-
-            Spacer()
-
-            AppActionButton("Retry", kind: .primary) {
-                Task {
-                    await AutoLearnService.shared.retryPendingReviews()
-                }
-            }
-            .disabled(!isAutoLearnEnabled)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
-        .overlay(Divider().opacity(0.5), alignment: .top)
     }
 }

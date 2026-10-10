@@ -12,7 +12,6 @@ struct DashboardContent: View {
     private static let displayNameMaxWidth: CGFloat = 280
     private static let displayNameHorizontalPadding: CGFloat = 8
     private static let insightsUnlockDuration: TimeInterval = 30 * 60
-    private static let peakHoursUnlockDuration: TimeInterval = 30 * 60
     private static let reviewBacklogActionThreshold = 50
     // Above this count, skip live auto-refresh (full reload is expensive); tab reopen still refreshes.
     private static let automaticStatsRefreshMetricLimit = 2_000
@@ -25,17 +24,11 @@ struct DashboardContent: View {
     @State private var isDashboardStatsRefreshing = false
     @State private var dashboardStatsTask: Task<Void, Never>?
     @State private var dashboardStatsLoadGeneration = 0
-    @State private var isModelPerformancePanelPresented = false
-    @State private var isModelUsagePanelPresented = false
-    @State private var isAutoLearnFailurePanelPresented = false
-    @State private var isAutoLearnReviewPanelPresented = false
     @State private var autoLearnReviewBacklogCount = 0
     @State private var autoLearnBacklogRefreshGeneration = 0
-    @State private var autoLearnFailurePresentationTask: Task<Void, Never>?
-    @State private var isInsightsViewPresented = false
-    @State private var selectedInsightPeriod: DashboardInsightPeriod = .allTime
     @State private var isAccessibilityEnabled = AXIsProcessTrusted()
     @EnvironmentObject private var updaterViewModel: UpdaterViewModel
+    @EnvironmentObject private var navigation: MainWindowNavigation
     @ObservedObject private var modeManager = ModeManager.shared
     @State private var isEditingDisplayName = false
     @State private var displayNameDraft = ""
@@ -108,9 +101,6 @@ struct DashboardContent: View {
                 }
             }
         }
-        .navigationDestination(isPresented: $isInsightsViewPresented) {
-            insightsPage
-        }
         .task {
             scheduleDashboardStatsRefresh(allowSkipWhenFresh: hasLoadedStatsSnapshot)
         }
@@ -120,23 +110,6 @@ struct DashboardContent: View {
         .onAppear {
             refreshAccessibilityStatus()
             updaterViewModel.checkForUpdatesIfDue()
-            if shouldAutomaticallyPresentAutoLearnFailure {
-                scheduleAutoLearnFailurePresentation()
-            }
-        }
-        .onChange(of: hasAutoLearnFailure) { _, _ in
-            updateAutoLearnFailurePresentation()
-        }
-        .onChange(of: isAutoLearnEnabled) { _, _ in
-            updateAutoLearnFailurePresentation()
-        }
-        .onChange(of: isAutoLearnFailureAcknowledged) { _, _ in
-            updateAutoLearnFailurePresentation()
-        }
-        .onChange(of: isAutoLearnFailurePanelPresented) { wasPresented, isPresented in
-            if wasPresented, !isPresented, hasAutoLearnFailure, isAutoLearnEnabled {
-                AutoLearnSettings.acknowledgeCurrentFailure()
-            }
         }
         .onReceive(LifecycleObserver.shared.publisher(for: .applicationDidBecomeActive)) { _ in
             refreshAccessibilityStatus()
@@ -157,38 +130,16 @@ struct DashboardContent: View {
             scheduleAutoLearnReviewBacklogRefresh()
         }
         .onDisappear {
-            // Pushing Insights also hides the dashboard root; keep its refresh running for that page.
-            guard !isInsightsViewPresented else { return }
+            // Pushing a page such as Insights also hides the dashboard; keep its refresh running for that page.
+            guard navigation.selectedView != .dashboard || navigation.path.isEmpty else { return }
             dashboardStatsTask?.cancel()
             dashboardStatsTask = nil
             dashboardStatsLoadGeneration += 1
             isDashboardStatsRefreshing = false
-            autoLearnFailurePresentationTask?.cancel()
-            autoLearnFailurePresentationTask = nil
-        }
-        .sidePanel(isPresented: $isAutoLearnFailurePanelPresented) {
-            AutoLearnFailurePanel {
-                isAutoLearnFailurePanelPresented = false
-            }
-        }
-        .sidePanel(isPresented: $isAutoLearnReviewPanelPresented) {
-            AutoLearnReviewPanel {
-                isAutoLearnReviewPanelPresented = false
-            }
         }
     }
 
-    private func scheduleAutoLearnFailurePresentation() {
-        autoLearnFailurePresentationTask?.cancel()
-        autoLearnFailurePresentationTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 2_500_000_000)
-            guard !Task.isCancelled, shouldAutomaticallyPresentAutoLearnFailure else { return }
-            isAutoLearnFailurePanelPresented = true
-            autoLearnFailurePresentationTask = nil
-        }
-    }
-
-    private var shouldAutomaticallyPresentAutoLearnFailure: Bool {
+    private var shouldShowAutoLearnFailure: Bool {
         hasAutoLearnFailure && isAutoLearnEnabled && !isAutoLearnFailureAcknowledged
     }
 
@@ -215,16 +166,6 @@ struct DashboardContent: View {
         Task { await refreshAutoLearnReviewBacklogCount() }
     }
 
-    private func updateAutoLearnFailurePresentation() {
-        if shouldAutomaticallyPresentAutoLearnFailure {
-            scheduleAutoLearnFailurePresentation()
-        } else {
-            autoLearnFailurePresentationTask?.cancel()
-            autoLearnFailurePresentationTask = nil
-            isAutoLearnFailurePanelPresented = false
-        }
-    }
-
     private var dashboardSections: some View {
         VStack(alignment: .leading, spacing: DashboardLayout.sectionSpacing) {
             if !isAccessibilityEnabled {
@@ -236,6 +177,18 @@ struct DashboardContent: View {
                     actionTitle: "Open Settings",
                     actionHelp: "Open Accessibility settings",
                     action: openAccessibilitySettings
+                )
+            }
+
+            if shouldShowAutoLearnFailure {
+                DashboardCallout(
+                    systemImage: "exclamationmark.triangle.fill",
+                    tint: AppTheme.Status.warningStrong,
+                    title: "Auto-Learn Failed",
+                    message: "The selected provider or model could not review the pending corrections.",
+                    actionTitle: "Review",
+                    actionHelp: "Review the Auto-Learn failure",
+                    action: { navigation.push(.autoLearnFailure) }
                 )
             }
 
@@ -284,48 +237,12 @@ struct DashboardContent: View {
         return text.range(of: "Transcription Failed:", options: [.caseInsensitive, .anchored]) == nil
     }
 
-    private var selectedDailyActivityPoints: [DashboardProductivityPoint] {
-        statsSummary.dailyActivity(for: selectedInsightPeriod)
-    }
-
-    private var selectedModelPerformance: [ModelPerformanceSummary] {
-        statsSummary.modelPerformance(for: selectedInsightPeriod)
-    }
-
-    private var selectedModelUsage: ModelUsageSummary {
-        statsSummary.modelUsage(for: selectedInsightPeriod)
-    }
-
-    private var selectedPeakHours: DashboardPeakHoursSummary {
-        statsSummary.peakHours(for: selectedInsightPeriod)
-    }
-
-    private var selectedTotals: DashboardMetricTotals {
-        statsSummary.totals(for: selectedInsightPeriod)
-    }
-
-    private var selectedTimeSavedSummary: DashboardTimeSavedSummary {
-        return DashboardTimeSavedSummary(
-            timeSaved: DashboardTimeSaving.timeSaved(words: selectedTotals.words, duration: selectedTotals.duration),
-            wordCount: selectedTotals.words,
-            sessionCount: selectedTotals.count
-        )
-    }
-
     private var canViewInsights: Bool {
         hasLoadedStatsSnapshot && statsSummary.totalDuration >= Self.insightsUnlockDuration
     }
 
     private var shouldShowLockedInsightsState: Bool {
         hasLoadedStatsSnapshot && !canViewInsights
-    }
-
-    private var canViewPeakHours: Bool {
-        hasLoadedStatsSnapshot && selectedTotals.duration >= Self.peakHoursUnlockDuration && selectedPeakHours.hasData
-    }
-
-    private var shouldLockPeakHours: Bool {
-        hasLoadedStatsSnapshot && !canViewPeakHours
     }
 
     private var shouldRefreshStatsAfterMetricChange: Bool {
@@ -427,19 +344,11 @@ struct DashboardContent: View {
             return
         }
 
-        isInsightsViewPresented = true
-    }
-
-    private func openModelPerformancePanel() {
-        isModelPerformancePanelPresented = true
-    }
-
-    private func openModelUsagePanel() {
-        isModelUsagePanelPresented = true
+        navigation.push(.insights)
     }
 
     private func openAutoLearnReviewPanel() {
-        isAutoLearnReviewPanelPresented = true
+        navigation.push(.autoLearnReview)
     }
 
     @MainActor
@@ -542,55 +451,6 @@ struct DashboardContent: View {
     }
 
     // MARK: - Sections
-
-    private var insightsPage: some View {
-        ScrollView {
-            DashboardInsightsView(
-                dailyActivityPoints: selectedDailyActivityPoints,
-                allTimeDailyActivityPoints: statsSummary.allTimeDailyActivity,
-                peakHoursSummary: selectedPeakHours,
-                isPeakHoursLocked: shouldLockPeakHours,
-                timeSavedSummary: selectedTimeSavedSummary,
-                modelUsage: selectedModelUsage,
-                modelPerformanceSummaries: selectedModelPerformance,
-                onViewModelUsage: openModelUsagePanel,
-                onViewModelPerformance: openModelPerformancePanel
-            )
-            .frame(maxWidth: DashboardLayout.contentMaxWidth, alignment: .topLeading)
-            .padding(.horizontal, DashboardLayout.pageHorizontalPadding)
-            .padding(.top, 12)
-            .padding(.bottom, DashboardLayout.pageVerticalPadding)
-            .frame(maxWidth: .infinity, alignment: .top)
-        }
-        .navigationTitle("Insights")
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Picker("Insights period", selection: $selectedInsightPeriod.animation(.smooth)) {
-                    ForEach(DashboardInsightPeriod.allCases) { period in
-                        Text(period.pickerTitle)
-                            .tag(period)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .fixedSize()
-            }
-        }
-        .sidePanel(isPresented: $isModelPerformancePanelPresented) {
-            ModelPerformancePanel(
-                summaries: selectedModelPerformance
-            ) {
-                isModelPerformancePanelPresented = false
-            }
-        }
-        .sidePanel(isPresented: $isModelUsagePanelPresented) {
-            ModelUsagePanel(
-                summary: selectedModelUsage
-            ) {
-                isModelUsagePanelPresented = false
-            }
-        }
-    }
 
     private var heroSection: some View {
         DashboardHero(

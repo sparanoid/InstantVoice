@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct PromptEditorView: View {
@@ -26,10 +27,8 @@ struct PromptEditorView: View {
     @State private var promptText: String
     @State private var useSystemInstructions: Bool
     @State private var showDeleteConfirmation = false
-
-    private var saveButtonTitle: LocalizedStringKey {
-        mode == .add ? "Create & Select" : "Save & Select"
-    }
+    @State private var saveTask: Task<Void, Never>?
+    @State private var isDeleted = false
 
     private var editingPrompt: CustomPrompt? {
         if case .edit(let prompt) = mode {
@@ -74,24 +73,61 @@ struct PromptEditorView: View {
     }
 
     var body: some View {
-        QuickPanelScaffold {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    if case .add = mode {
-                        templateMenu
-                    }
+        Form {
+            Section {
+                TextField("Prompt name", text: $title, prompt: Text("Prompt name"))
+                    .labelsHidden()
+                    .textFieldStyle(.plain)
+                    .multilineTextAlignment(.leading)
+                    .font(.title3.weight(.semibold))
 
-                    instructionsEditor
-                    systemTemplateToggle
+                if case .add = mode {
+                    templateMenu
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 76)
-                .padding(.bottom, 72)
             }
-        } header: {
-            header
-        } footer: {
-            footer
+
+            Section("Instructions") {
+                instructionsEditor
+            }
+
+            Section {
+                systemTemplateToggle
+            } footer: {
+                if canDeletePrompt {
+                    HStack {
+                        Spacer()
+                        Button("Delete Prompt…", role: .destructive) {
+                            showDeleteConfirmation = true
+                        }
+                    }
+                    .padding(.top, 8)
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .navigationTitle(navigationTitle)
+        .toolbar {
+            if case .add = mode {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Create Prompt") {
+                        if let savedPrompt = save() {
+                            onSave(savedPrompt)
+                        }
+                        dismissPanel()
+                    }
+                    .buttonStyle(.glassProminent)
+                    .disabled(isSaveDisabled)
+                    .keyboardShortcut(.return, modifiers: .command)
+                    .help("Save this prompt and use it in this mode.")
+                }
+            }
+        }
+        .onChange(of: title) { _, _ in scheduleLiveSave() }
+        .onChange(of: promptText) { _, _ in scheduleLiveSave() }
+        .onChange(of: useSystemInstructions) { _, _ in scheduleLiveSave() }
+        .onDisappear(perform: saveEditsNow)
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+            saveEditsNow()
         }
         .confirmationDialog(
             "Delete Prompt?",
@@ -110,30 +146,33 @@ struct PromptEditorView: View {
         }
     }
 
-    private var header: some View {
-        HStack(spacing: 12) {
-            Button {
-                dismissPanel()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.secondary)
-                    .frame(width: 28, height: 28)
-                    .background(AppTheme.Surface.card)
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .keyboardShortcut(.escape, modifiers: [])
-            .help("Back")
-
-            TextField("Prompt name", text: $title)
-                .textFieldStyle(.plain)
-                .font(.system(size: 16, weight: .semibold))
-
-            Spacer()
+    private var navigationTitle: Text {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if case .add = mode, trimmedTitle.isEmpty {
+            return Text("New Prompt")
         }
-        .padding(.horizontal, 20)
-        .frame(height: QuickPanelMetrics.headerHeight)
+        return Text(verbatim: trimmedTitle.isEmpty ? (editingPrompt?.title ?? "") : trimmedTitle)
+    }
+
+    /// Existing prompts save as you edit, once both the name and instructions are filled in.
+    private func scheduleLiveSave() {
+        guard editingPrompt != nil else { return }
+        saveTask?.cancel()
+        saveTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled else { return }
+            saveEditsNow()
+        }
+    }
+
+    private func saveEditsNow() {
+        saveTask?.cancel()
+        saveTask = nil
+        guard let prompt = editingPrompt, !isDeleted, !isSaveDisabled else { return }
+        guard prompt.title != title || prompt.promptText != promptText
+            || prompt.useSystemInstructions != useSystemInstructions
+        else { return }
+        _ = save()
     }
 
     private var systemTemplateToggle: some View {
@@ -164,12 +203,8 @@ struct PromptEditorView: View {
                 }
             }
         } label: {
-            Label("Template", systemImage: "sparkles")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.secondary)
+            Label("Start from a Template", systemImage: "sparkles")
         }
-        .menuStyle(.borderlessButton)
-        .buttonStyle(.plain)
         .help("Start with a template")
     }
 
@@ -177,54 +212,24 @@ struct PromptEditorView: View {
         ZStack(alignment: .topLeading) {
             TextEditor(text: $promptText)
                 .font(.system(.body, design: .monospaced))
-                .frame(height: 440)
+                .frame(minHeight: 320)
                 .scrollContentBackground(.hidden)
-                .padding(8)
-                .background(AppCardBackground(cornerRadius: 8))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
 
             if promptText.isEmpty {
                 Text("Write prompt instructions")
                     .font(.system(.body, design: .monospaced))
                     .foregroundStyle(.tertiary)
-                    .padding(.horizontal, 14)
-                    .padding(.top, 10)
+                    .padding(.horizontal, 5)
                     .allowsHitTesting(false)
             }
         }
     }
 
-    private var footer: some View {
-        HStack {
-            if canDeletePrompt {
-                AppActionButton("Delete", kind: .destructive, minWidth: 90) {
-                    showDeleteConfirmation = true
-                }
-            } else {
-                AppActionButton("Cancel") {
-                    dismissPanel()
-                }
-                .keyboardShortcut(.escape, modifiers: [])
-            }
-
-            Spacer()
-
-            AppActionButton(saveButtonTitle, kind: .primary, minWidth: 108) {
-                if let savedPrompt = save() {
-                    onSave(savedPrompt)
-                }
-                dismissPanel()
-            }
-            .disabled(isSaveDisabled)
-            .keyboardShortcut(.return, modifiers: .command)
-            .help("Save this prompt and select it.")
-        }
-        .padding(.horizontal, 20)
-        .frame(height: QuickPanelMetrics.footerHeight)
-    }
-
     private func deletePrompt() {
         guard let prompt = editingPrompt, canDeletePrompt else { return }
+        saveTask?.cancel()
+        saveTask = nil
+        isDeleted = true
         onDelete?(prompt)
         dismissPanel()
     }
@@ -246,6 +251,59 @@ struct PromptEditorView: View {
             )
             enhancementService.updatePrompt(updatedPrompt)
             return updatedPrompt
+        }
+    }
+}
+
+/// The prompt editor opened from a mode's AI Enhancement settings. Creating a prompt selects it for that mode.
+struct PromptEditorPage: View {
+    let modeID: UUID
+    let promptID: UUID?
+
+    @EnvironmentObject private var enhancementService: AIEnhancementService
+    @EnvironmentObject private var navigation: MainWindowNavigation
+    @ObservedObject private var modeManager = ModeManager.shared
+
+    private var route: MainWindowRoute {
+        .prompt(modeID: modeID, promptID: promptID)
+    }
+
+    var body: some View {
+        if let promptID {
+            if let prompt = enhancementService.allPrompts.first(where: { $0.id == promptID }) {
+                PromptEditorView(
+                    mode: .edit(prompt),
+                    onDismiss: { navigation.dismissPage(route) },
+                    onSave: selectForMode,
+                    onDelete: delete
+                )
+            } else {
+                ContentUnavailableView {
+                    Label("Prompt Not Found", systemImage: "text.badge.xmark")
+                } description: {
+                    Text("This prompt was deleted.")
+                }
+            }
+        } else {
+            PromptEditorView(
+                mode: .add,
+                onDismiss: { navigation.dismissPage(route) },
+                onSave: selectForMode
+            )
+        }
+    }
+
+    private func selectForMode(_ prompt: CustomPrompt) {
+        guard var config = modeManager.getConfiguration(with: modeID) else { return }
+        config.selectedPrompt = prompt.id.uuidString
+        modeManager.updateConfiguration(config)
+    }
+
+    private func delete(_ prompt: CustomPrompt) {
+        enhancementService.deletePrompt(prompt)
+        if var config = modeManager.getConfiguration(with: modeID), config.selectedPrompt == prompt.id.uuidString {
+            config.selectedPrompt = enhancementService.allPrompts.first?.id.uuidString
+            modeManager.updateConfiguration(config)
         }
     }
 }

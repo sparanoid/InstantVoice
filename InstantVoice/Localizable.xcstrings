@@ -23,28 +23,6 @@
         }
       }
     },
-    " (drag to reorder)" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " (zum Neuordnen ziehen)"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " (faites glisser pour réorganiser)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "（拖动以重新排序）"
-          }
-        }
-      }
-    },
     "'%@' already exists in word replacements" : {
       "localizations" : {
         "de" : {
@@ -594,76 +572,6 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld apps"
-                }
-              }
-            }
-          }
-        },
-        "fr" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld application"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld applications"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld 个应用"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "%lld Apps" : {
-      "localizations" : {
-        "de" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld App"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld Apps"
-                }
-              }
-            }
-          }
-        },
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld App"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld Apps"
                 }
               }
             }
@@ -1789,76 +1697,6 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld websites"
-                }
-              }
-            }
-          }
-        },
-        "fr" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld site Web"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld sites Web"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld 个网站"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "%lld Websites" : {
-      "localizations" : {
-        "de" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld Website"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld Websites"
-                }
-              }
-            }
-          }
-        },
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld Website"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld Websites"
                 }
               }
             }
@@ -5168,6 +5006,28 @@
         }
       }
     },
+    "Apply the selected corrections" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausgewählte Korrekturen übernehmen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appliquer les corrections sélectionnées"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用所选更正"
+          }
+        }
+      }
+    },
     "Are you sure you want to delete '%@' prompt? This action cannot be undone." : {
       "localizations" : {
         "de" : {
@@ -6016,7 +5876,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dos"
+            "value" : "Retour"
           }
         },
         "zh-Hans" : {
@@ -6618,6 +6478,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选取一个快捷键以开始。"
+          }
+        }
+      }
+    },
+    "Choose an icon" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Symbol auswählen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir une icône"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择图标"
           }
         }
       }
@@ -7974,24 +7856,24 @@
         }
       }
     },
-    "Create & Select" : {
+    "Create Prompt" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erstellen & auswählen"
+            "value" : "Prompt erstellen"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Créer et sélectionner"
+            "value" : "Créer l'invite"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建并选择"
+            "value" : "创建提示词"
           }
         }
       }
@@ -8829,6 +8711,28 @@
         }
       }
     },
+    "Delete Mode…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modus löschen …"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer le mode…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除模式…"
+          }
+        }
+      }
+    },
     "Delete Model" : {
       "localizations" : {
         "de" : {
@@ -8847,6 +8751,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "删除模型"
+          }
+        }
+      }
+    },
+    "Delete Model…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell löschen …"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer le modèle…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除模型…"
           }
         }
       }
@@ -8897,6 +8823,28 @@
         }
       }
     },
+    "Delete Prompt…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prompt löschen …"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer l'invite…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除提示词…"
+          }
+        }
+      }
+    },
     "Delete Selected Items?" : {
       "localizations" : {
         "de" : {
@@ -8939,6 +8887,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在保留期后删除转写历史记录和相关音频文件。"
+          }
+        }
+      }
+    },
+    "Delete…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Löschen …"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除…"
           }
         }
       }
@@ -9466,50 +9436,6 @@
         }
       }
     },
-    "Disable mode" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modus deaktivieren"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Désactiver le mode"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "停用模式"
-          }
-        }
-      }
-    },
-    "Disabled" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deaktiviert"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Désactivé"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已停用"
-          }
-        }
-      }
-    },
     "Disconnected" : {
       "localizations" : {
         "de" : {
@@ -9618,28 +9544,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "关闭录音器"
-          }
-        }
-      }
-    },
-    "Dismiss shortcut tip" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tastenkürzel-Hinweis schließen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ignorer le conseil de raccourci"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关闭快捷键提示"
           }
         }
       }
@@ -9794,6 +9698,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下载"
+          }
+        }
+      }
+    },
+    "Download a local model or connect a cloud provider in AI Models before adding a mode." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lade ein lokales Modell herunter oder verbinde einen Cloud-Anbieter unter „KI-Modelle“, bevor du einen Modus hinzufügst."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Téléchargez un modèle local ou connectez un fournisseur cloud dans Modèles d'IA avant d'ajouter un mode."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加模式前，请先在「AI 模型」中下载本地模型或连接云端提供商。"
           }
         }
       }
@@ -10130,24 +10056,24 @@
         }
       }
     },
-    "During recording, press Option + 1-9 to switch modes quickly." : {
+    "During recording, press Option + 1-9 to switch modes in the order listed. Drag modes to reorder them." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drücke während der Aufnahme Option + 1-9, um schnell den Modus zu wechseln."
+            "value" : "Drücke während der Aufnahme Option + 1-9, um in der angezeigten Reihenfolge den Modus zu wechseln. Ziehe Modi, um sie neu anzuordnen."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pendant l'enregistrement, appuyez sur Option + 1-9 pour changer de mode rapidement."
+            "value" : "Pendant l'enregistrement, appuyez sur Option + 1-9 pour changer de mode dans l'ordre de la liste. Faites glisser les modes pour les réorganiser."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "录音时，按 Option + 1-9 可快速切换模式。"
+            "value" : "录音时，按 Option + 1-9 可按列表顺序切换模式。拖动模式可重新排序。"
           }
         }
       }
@@ -10280,72 +10206,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "编辑"
-          }
-        }
-      }
-    },
-    "Edit Custom Enhancement Model" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eigenes Verbesserungsmodell bearbeiten"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modifier le modèle d'amélioration personnalisé"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "编辑自定润色模型"
-          }
-        }
-      }
-    },
-    "Edit Custom Transcription Model" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eigenes Transkriptionsmodell bearbeiten"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modifier le modèle de transcription personnalisé"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "编辑自定转写模型"
-          }
-        }
-      }
-    },
-    "Edit mode" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modus bearbeiten"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mode édition"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "编辑模式"
           }
         }
       }
@@ -10591,28 +10451,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请先启用自动学习，然后再重试待审核的更正。"
-          }
-        }
-      }
-    },
-    "Enable mode" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modus aktivieren"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activer le mode"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "启用模式"
           }
         }
       }
@@ -12400,6 +12238,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在完成模型设置…"
+          }
+        }
+      }
+    },
+    "Forward" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorwärts"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suivant"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前进"
           }
         }
       }
@@ -14418,6 +14278,28 @@
         }
       }
     },
+    "Instructions" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anweisungen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instructions"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令"
+          }
+        }
+      }
+    },
     "Interface" : {
       "localizations" : {
         "de" : {
@@ -15868,6 +15750,28 @@
         }
       }
     },
+    "Mode Not Found" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modus nicht gefunden"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode introuvable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到模式"
+          }
+        }
+      }
+    },
     "Mode shortcut: %@" : {
       "comment" : "A label that describes the shortcut for a given mode.",
       "isCommentAutoGenerated" : true,
@@ -15888,28 +15792,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "模式快捷键：%@"
-          }
-        }
-      }
-    },
-    "Mode shortcuts" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modus-Tastenkürzel"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Raccourcis de mode"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模式快捷键"
           }
         }
       }
@@ -16116,6 +15998,28 @@
         }
       }
     },
+    "Model Not Found" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell nicht gefunden"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèle introuvable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到模型"
+          }
+        }
+      }
+    },
     "Model Settings" : {
       "localizations" : {
         "de" : {
@@ -16224,28 +16128,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "模式可帮助你针对不同的写作任务、工作流程和使用场景来设置 InstantVoice。"
-          }
-        }
-      }
-    },
-    "Modes Settings" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modi-Einstellungen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paramètres des modes"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模式设置"
           }
         }
       }
@@ -16414,6 +16296,28 @@
         }
       }
     },
+    "Move Down" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach unten"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déplacer vers le bas"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下移"
+          }
+        }
+      }
+    },
     "Move up" : {
       "localizations" : {
         "de" : {
@@ -16426,6 +16330,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Monter"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上移"
+          }
+        }
+      }
+    },
+    "Move Up" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach oben"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déplacer vers le haut"
           }
         },
         "zh-Hans" : {
@@ -16704,6 +16630,50 @@
         }
       }
     },
+    "New Mode" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuer Modus"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouveau mode"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新模式"
+          }
+        }
+      }
+    },
+    "New Prompt" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuer Prompt"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouvelle invite"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新提示词"
+          }
+        }
+      }
+    },
     "Next" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16752,28 +16722,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "尚未记录活动"
-          }
-        }
-      }
-    },
-    "No Apps" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine Apps"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune application"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无 App"
           }
         }
       }
@@ -17721,6 +17669,28 @@
         }
       }
     },
+    "No Transcription Model" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Transkriptionsmodell"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun modèle de transcription"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有转写模型"
+          }
+        }
+      }
+    },
     "No transcription model is selected for the '%@' mode" : {
       "comment" : "A notification title when a mode has no saved transcription model. The argument is the mode name.",
       "isCommentAutoGenerated" : true,
@@ -18009,28 +17979,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "没有可导入的有效条目。"
-          }
-        }
-      }
-    },
-    "No Websites" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine Websites"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun site Web"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无网站"
           }
         }
       }
@@ -18363,6 +18311,28 @@
         }
       }
     },
+    "Off" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivé"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        }
+      }
+    },
     "OK" : {
       "localizations" : {
         "de" : {
@@ -18557,6 +18527,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打开辅助功能设置"
+          }
+        }
+      }
+    },
+    "Open AI Models" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KI-Modelle öffnen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir Modèles d'IA"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 AI 模型"
           }
         }
       }
@@ -19944,6 +19936,28 @@
         }
       }
     },
+    "Prompt Not Found" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prompt nicht gefunden"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invite introuvable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到提示词"
+          }
+        }
+      }
+    },
     "Provider" : {
       "localizations" : {
         "de" : {
@@ -19984,6 +19998,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不支持该提供商"
+          }
+        }
+      }
+    },
+    "Provider Not Found" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anbieter nicht gefunden"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fournisseur introuvable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到提供商"
           }
         }
       }
@@ -20929,28 +20965,6 @@
         }
       }
     },
-    "Reorder Modes" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modi neu anordnen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modes de réorganisation"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重新排序模式"
-          }
-        }
-      }
-    },
     "Replace" : {
       "localizations" : {
         "de" : {
@@ -21591,6 +21605,28 @@
         }
       }
     },
+    "Review" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ansehen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consulter"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看"
+          }
+        }
+      }
+    },
     "Review %lld pending corrections" : {
       "comment" : "A help message for the \"Review Corrections\" button. The argument is the number of corrections.",
       "isCommentAutoGenerated" : true,
@@ -21706,6 +21742,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "立即审核"
+          }
+        }
+      }
+    },
+    "Review the Auto-Learn failure" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim automatischen Lernen ansehen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consulter l'échec de l'apprentissage automatique"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看自动学习失败详情"
           }
         }
       }
@@ -21846,28 +21904,6 @@
         }
       }
     },
-    "Save & Select" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Speichern & auswählen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enregistrer et sélectionner"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "存储并选择"
-          }
-        }
-      }
-    },
     "Save as MD" : {
       "localizations" : {
         "de" : {
@@ -21912,46 +21948,24 @@
         }
       }
     },
-    "Save Changes" : {
+    "Save this prompt and use it in this mode." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Änderungen speichern"
+            "value" : "Diesen Prompt speichern und in diesem Modus verwenden."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enregistrer les modifications"
+            "value" : "Enregistrer cette invite et l'utiliser dans ce mode."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "存储更改"
-          }
-        }
-      }
-    },
-    "Save this prompt and select it." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diesen Prompt speichern und auswählen."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enregistrez cette invite et sélectionnez-la."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "存储并选择此提示词。"
+            "value" : "保存此提示词并在此模式中使用。"
           }
         }
       }
@@ -21996,28 +22010,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "存储转写内容"
-          }
-        }
-      }
-    },
-    "Saving" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wird gespeichert"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Économie"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在存储"
           }
         }
       }
@@ -23354,6 +23346,50 @@
         }
       }
     },
+    "Show the next page" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächste Seite anzeigen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher la page suivante"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示下一页"
+          }
+        }
+      }
+    },
+    "Show the previous page" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorherige Seite anzeigen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher la page précédente"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示上一页"
+          }
+        }
+      }
+    },
     "Show transcription info" : {
       "comment" : "A label for a button that shows transcription information.",
       "isCommentAutoGenerated" : true,
@@ -23721,6 +23757,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "开始"
+          }
+        }
+      }
+    },
+    "Start from a Template" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit einer Vorlage beginnen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partir d'un modèle"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从模板开始"
           }
         }
       }
@@ -25677,6 +25735,94 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这是针对英语优化的模型，仅支持英语转写。"
+          }
+        }
+      }
+    },
+    "This mode was deleted." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Modus wurde gelöscht."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce mode a été supprimé."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此模式已被删除。"
+          }
+        }
+      }
+    },
+    "This model was deleted." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses Modell wurde gelöscht."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce modèle a été supprimé."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此模型已被删除。"
+          }
+        }
+      }
+    },
+    "This prompt was deleted." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Prompt wurde gelöscht."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette invite a été supprimée."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此提示词已被删除。"
+          }
+        }
+      }
+    },
+    "This provider is no longer available." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Anbieter ist nicht mehr verfügbar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce fournisseur n'est plus disponible."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此提供商已不可用。"
           }
         }
       }

@@ -1,50 +1,21 @@
+import SwiftData
 import SwiftUI
 
 struct HistoryAnalysisPanelView: View {
     let transcriptions: [Transcription]
-    let onClose: () -> Void
 
     private let analysis: HistoryPerformanceAnalysis
 
-    init(transcriptions: [Transcription], onClose: @escaping () -> Void) {
+    init(transcriptions: [Transcription]) {
         self.transcriptions = transcriptions
-        self.onClose = onClose
         self.analysis = HistoryPerformanceAnalysis(transcriptions: transcriptions)
     }
 
     var body: some View {
-        QuickPanelScaffold {
-            content
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } header: {
-            header
-        }
-    }
-
-    private var header: some View {
-        HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Performance Analysis")
-                    .font(.headline.weight(.semibold))
-
-                Text(String(localized: "\(analysis.totalTranscripts) selected transcripts"))
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(AppTheme.Text.secondary)
-            }
-
-            Spacer()
-
-            AppIconButton(
-                systemName: "xmark",
-                help: "Close",
-                size: 28,
-                iconSize: 14,
-                cornerRadius: AppTheme.Radius.control,
-                action: onClose
-            )
-        }
-        .padding(.horizontal, 20)
-        .frame(height: QuickPanelMetrics.headerHeight)
+        content
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .navigationTitle("Performance Analysis")
+            .navigationSubtitle(Text(String(localized: "\(analysis.totalTranscripts) selected transcripts")))
     }
 
     @ViewBuilder
@@ -70,9 +41,8 @@ struct HistoryAnalysisPanelView: View {
                         rows: analysis.enhancementRows
                     )
                 }
-                .padding(.horizontal, 18)
-                .padding(.top, QuickPanelMetrics.topEdgeHeight + 4)
-                .padding(.bottom, 24)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
             }
         }
     }
@@ -309,5 +279,24 @@ private struct HistoryPerformanceEmptyRow: View {
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity, minHeight: 58, alignment: .topLeading)
+    }
+}
+
+/// Performance analysis for transcriptions selected in History, resolved from their IDs.
+struct HistoryAnalysisPage: View {
+    let transcriptionIDs: [UUID]
+    @Environment(\.modelContext) private var modelContext
+
+    var body: some View {
+        HistoryAnalysisPanelView(transcriptions: transcriptions)
+    }
+
+    private var transcriptions: [Transcription] {
+        let ids = transcriptionIDs
+        let descriptor = FetchDescriptor<Transcription>(
+            predicate: #Predicate<Transcription> { ids.contains($0.id) },
+            sortBy: [SortDescriptor(\Transcription.timestamp, order: .reverse)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 }

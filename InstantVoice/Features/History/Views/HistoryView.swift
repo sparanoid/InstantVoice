@@ -8,15 +8,14 @@ struct HistoryView: View {
     }
 
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var navigation: MainWindowNavigation
     @State private var searchText = ""
     @State private var selection: Set<UUID> = []
-    @State private var selectedTranscriptions: [Transcription] = []
     @State private var updatedTranscription: Transcription?
     /// Keeps the detail pane on a selected row that a reload or search pushed out of the loaded pages.
     @State private var focusedFallback: Transcription?
     @State private var showDeleteConfirmation = false
     @State private var isShowingInfo = false
-    @State private var activePanel: HistoryPanel?
     @State private var displayedTranscriptions: [Transcription] = []
     @State private var isLoading = false
     @State private var hasLoadedInitialContent = false
@@ -124,27 +123,16 @@ struct HistoryView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    activePanel = activePanel == .settings ? nil : .settings
+                    navigation.push(.historySettings)
                 } label: {
                     Label("History Settings", systemImage: "gearshape")
                 }
                 .help("History settings")
             }
         }
-        .sidePanel(
-            isPresented: .init(
-                get: { activePanel != nil },
-                set: { if !$0 { activePanel = nil } }
-            ),
-            dismissOnExitCommand: false
-        ) {
-            panelContent
-        }
         .onExitCommand {
             if isShowingInfo {
                 isShowingInfo = false
-            } else if activePanel != nil {
-                activePanel = nil
             } else if !selection.isEmpty {
                 selection.removeAll()
             }
@@ -163,7 +151,8 @@ struct HistoryView: View {
         }
         .onAppear {
             isViewCurrentlyVisible = true
-            Task { await loadInitialContent() }
+            // Returning from a pushed page reloads in place, keeping the loaded pages and scroll position.
+            Task { await loadInitialContent(minimumCount: displayedTranscriptions.count) }
         }
         .onDisappear {
             isViewCurrentlyVisible = false
@@ -300,24 +289,6 @@ struct HistoryView: View {
         }
     }
 
-    // MARK: - Side Panel
-
-    @ViewBuilder
-    private var panelContent: some View {
-        if let activePanel {
-            switch activePanel {
-            case .analysis:
-                HistoryAnalysisPanelView(
-                    transcriptions: selectedTranscriptions,
-                    onClose: { self.activePanel = nil }
-                )
-                .id(selectedTranscriptions.count)
-            case .settings:
-                HistorySettingsPanel(onClose: { self.activePanel = nil })
-            }
-        }
-    }
-
     // MARK: - Actions
 
     private func copyText(of ids: Set<UUID>) {
@@ -333,8 +304,7 @@ struct HistoryView: View {
     }
 
     private func analyzeTranscriptions(_ ids: Set<UUID>) {
-        selectedTranscriptions = transcriptions(for: ids)
-        activePanel = .analysis
+        navigation.push(.historyAnalysis(transcriptions(for: ids).map(\.id)))
     }
 
     /// Resolves selected IDs to models, including rows beyond the loaded pages after Select All.
@@ -453,7 +423,6 @@ struct HistoryView: View {
             performDeletion(for: transcription)
         }
         selection.removeAll()
-        selectedTranscriptions.removeAll()
         updatedTranscription = nil
         focusedFallback = nil
         isShowingInfo = false
@@ -490,9 +459,4 @@ struct HistoryView: View {
             print("Error selecting all transcriptions: \(error)")
         }
     }
-}
-
-private enum HistoryPanel {
-    case analysis
-    case settings
 }

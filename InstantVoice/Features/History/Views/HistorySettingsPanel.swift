@@ -4,8 +4,6 @@ import SwiftUI
 struct HistorySettingsPanel: View {
     @Environment(\.modelContext) private var modelContext
 
-    let onClose: () -> Void
-
     @AppStorage(CleanupSettingsKeys.isTranscriptionCleanupEnabled) private var isTranscriptionCleanupEnabled = false
     @AppStorage(CleanupSettingsKeys.transcriptionRetentionMinutes) private var transcriptionRetentionMinutes = 24 * 60
     @AppStorage(CleanupSettingsKeys.isAudioCleanupEnabled) private var isAudioCleanupEnabled = false
@@ -19,84 +17,80 @@ struct HistorySettingsPanel: View {
     @State private var showTranscriptCleanupResult = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            AppPanelHeader(title: "History Settings", onClose: onClose)
+        Form {
+            Section {
+                LabeledContent("Open Quick History") {
+                    ShortcutRecorder(action: .openQuickHistory)
+                        .controlSize(.small)
+                }
+            } header: {
+                sectionHeader(
+                    "Quick History",
+                    tip:
+                        "Open recent transcriptions without opening the main InstantVoice window. Search, select, and press Return to paste into your current app."
+                )
+            }
 
-            Form {
+            Section {
+                Toggle("Auto-delete Transcript History", isOn: $isTranscriptionCleanupEnabled)
+
+                if isTranscriptionCleanupEnabled {
+                    Picker("Delete After", selection: $transcriptionRetentionMinutes) {
+                        Text("Immediately").tag(0)
+                        Text("1 hour").tag(60)
+                        Text("1 day").tag(24 * 60)
+                        Text("3 days").tag(3 * 24 * 60)
+                        Text("7 days").tag(7 * 24 * 60)
+                    }
+
+                    Button("Run Cleanup Now") {
+                        Task {
+                            await TranscriptionAutoCleanupService.shared.runManualCleanup(
+                                modelContext: modelContext)
+                            await MainActor.run {
+                                showTranscriptCleanupResult = true
+                            }
+                        }
+                    }
+                }
+            } header: {
+                sectionHeader(
+                    "Transcript History",
+                    tip: "Delete transcript history and related audio files after the retention period."
+                )
+            }
+
+            if !isTranscriptionCleanupEnabled {
                 Section {
-                    LabeledContent("Open Quick History") {
-                        ShortcutRecorder(action: .openQuickHistory)
-                            .controlSize(.small)
+                    Toggle("Auto-delete Audio Files", isOn: $isAudioCleanupEnabled)
+
+                    if isAudioCleanupEnabled {
+                        Picker("Keep Audio For", selection: $audioRetentionPeriod) {
+                            Text("1 day").tag(1)
+                            Text("3 days").tag(3)
+                            Text("7 days").tag(7)
+                            Text("14 days").tag(14)
+                            Text("30 days").tag(30)
+                        }
+
+                        Button {
+                            analyzeAudioCleanup()
+                        } label: {
+                            Text(isPerformingAudioCleanup ? "Analyzing..." : "Run Cleanup Now")
+                        }
+                        .disabled(isPerformingAudioCleanup)
                     }
                 } header: {
                     sectionHeader(
-                        "Quick History",
-                        tip:
-                            "Open recent transcriptions without opening the main InstantVoice window. Search, select, and press Return to paste into your current app."
+                        "Audio Files",
+                        tip: "Delete old recordings while keeping transcript history."
                     )
-                }
-
-                Section {
-                    Toggle("Auto-delete Transcript History", isOn: $isTranscriptionCleanupEnabled)
-
-                    if isTranscriptionCleanupEnabled {
-                        Picker("Delete After", selection: $transcriptionRetentionMinutes) {
-                            Text("Immediately").tag(0)
-                            Text("1 hour").tag(60)
-                            Text("1 day").tag(24 * 60)
-                            Text("3 days").tag(3 * 24 * 60)
-                            Text("7 days").tag(7 * 24 * 60)
-                        }
-
-                        Button("Run Cleanup Now") {
-                            Task {
-                                await TranscriptionAutoCleanupService.shared.runManualCleanup(
-                                    modelContext: modelContext)
-                                await MainActor.run {
-                                    showTranscriptCleanupResult = true
-                                }
-                            }
-                        }
-                    }
-                } header: {
-                    sectionHeader(
-                        "Transcript History",
-                        tip: "Delete transcript history and related audio files after the retention period."
-                    )
-                }
-
-                if !isTranscriptionCleanupEnabled {
-                    Section {
-                        Toggle("Auto-delete Audio Files", isOn: $isAudioCleanupEnabled)
-
-                        if isAudioCleanupEnabled {
-                            Picker("Keep Audio For", selection: $audioRetentionPeriod) {
-                                Text("1 day").tag(1)
-                                Text("3 days").tag(3)
-                                Text("7 days").tag(7)
-                                Text("14 days").tag(14)
-                                Text("30 days").tag(30)
-                            }
-
-                            Button {
-                                analyzeAudioCleanup()
-                            } label: {
-                                Text(isPerformingAudioCleanup ? "Analyzing..." : "Run Cleanup Now")
-                            }
-                            .disabled(isPerformingAudioCleanup)
-                        }
-                    } header: {
-                        sectionHeader(
-                            "Audio Files",
-                            tip: "Delete old recordings while keeping transcript history."
-                        )
-                    }
                 }
             }
-            .formStyle(.grouped)
-            .scrollContentBackground(.hidden)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .formStyle(.grouped)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .navigationTitle("History Settings")
         .alert("Transcript Cleanup", isPresented: $showTranscriptCleanupResult) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -162,7 +156,7 @@ struct HistorySettingsPanel: View {
         HStack(spacing: 4) {
             Text(title)
 
-            InfoTip(message: tip, iconSize: .small, iconColor: .secondary, width: 260)
+            InfoTip(message: tip, width: 260)
         }
     }
 

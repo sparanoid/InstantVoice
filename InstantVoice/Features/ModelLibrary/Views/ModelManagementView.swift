@@ -30,56 +30,13 @@ struct ModelManagementView: View {
     @ObservedObject private var warmupCoordinator = WhisperModelWarmupCoordinator.shared
     private let instantVoiceRefineService = InstantVoiceRefineService.shared
 
+    @EnvironmentObject private var navigation: MainWindowNavigation
     @State private var selectedFilter: ModelFilter = .local
-    @State private var activePanel: ModelManagementPanel?
 
     @State private var isShowingDeleteAlert = false
     @State private var alertTitle = ""
     @State private var alertMessage = ""
     @State private var deleteActionClosure: () -> Void = {}
-
-    private enum ModelManagementPanel {
-        case settings
-        case cloudProvider(ProviderDescriptor)
-        case customTranscriptionModel(CustomCloudModel?)
-        case customEnhancementModel(CustomAIProviderConfig?)
-    }
-
-    private var isSettingsPanelOpen: Bool {
-        if case .settings? = activePanel { return true }
-        return false
-    }
-
-    private var isPanelOpen: Bool {
-        activePanel != nil
-    }
-
-    private var selectedCloudProviderID: String? {
-        if case .cloudProvider(let descriptor)? = activePanel {
-            return descriptor.id
-        }
-        return nil
-    }
-
-    private func closePanel() {
-        activePanel = nil
-    }
-
-    private func toggleSettingsPanel() {
-        activePanel = isSettingsPanelOpen ? nil : .settings
-    }
-
-    private func openCloudProviderPanel(_ descriptor: ProviderDescriptor) {
-        activePanel = .cloudProvider(descriptor)
-    }
-
-    private func openCustomTranscriptionModelPanel(_ model: CustomCloudModel? = nil) {
-        activePanel = .customTranscriptionModel(model)
-    }
-
-    private func openCustomEnhancementModelPanel(_ provider: CustomAIProviderConfig? = nil) {
-        activePanel = .customEnhancementModel(provider)
-    }
 
     var body: some View {
         ScrollView {
@@ -102,19 +59,13 @@ struct ModelManagementView: View {
             }
 
             ToolbarItem(placement: .primaryAction) {
-                Button(action: toggleSettingsPanel) {
+                Button {
+                    navigation.push(.modelSettings)
+                } label: {
                     Label("Model Settings", systemImage: "gearshape")
                 }
                 .help("Model Settings")
             }
-        }
-        .sidePanel(
-            isPresented: .init(
-                get: { isPanelOpen },
-                set: { if !$0 { closePanel() } }
-            )
-        ) {
-            modelPanelContent
         }
         .alert(isPresented: $isShowingDeleteAlert) {
             Alert(
@@ -126,46 +77,6 @@ struct ModelManagementView: View {
         }
     }
 
-    @ViewBuilder
-    private var modelPanelContent: some View {
-        switch activePanel {
-        case .settings:
-            settingsPanelContent
-        case .cloudProvider(let descriptor):
-            ProviderDetailPanel(descriptor: descriptor, onClose: closePanel)
-                .environmentObject(aiService)
-                .environmentObject(transcriptionModelManager)
-                .id(descriptor.id)
-        case .customTranscriptionModel(let model):
-            CustomTranscriptionModelEditorPanel(
-                editingModel: model,
-                customModelManager: customModelManager,
-                onClose: closePanel,
-                onSave: {
-                    transcriptionModelManager.refreshAllAvailableModels()
-                    closePanel()
-                }
-            )
-        case .customEnhancementModel(let provider):
-            CustomEnhancementModelEditorPanel(
-                editingProvider: provider,
-                manager: customAIProviderManager,
-                onClose: closePanel,
-                onSave: closePanel
-            )
-        case nil:
-            EmptyView()
-        }
-    }
-
-    private var settingsPanelContent: some View {
-        VStack(spacing: 0) {
-            AppPanelHeader(title: "Model Settings", onClose: closePanel)
-
-            ModelSettingsPanel()
-        }
-    }
-
     private var availableModelsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             switch selectedFilter {
@@ -173,8 +84,10 @@ struct ModelManagementView: View {
                 localModelsSection
             case .cloud:
                 CloudProviderManagementView(
-                    selectedProviderID: selectedCloudProviderID,
-                    onSelectProvider: openCloudProviderPanel
+                    selectedProviderID: nil,
+                    onSelectProvider: { descriptor in
+                        navigation.push(.cloudProvider(descriptor.id))
+                    }
                 )
                 .environmentObject(aiService)
                 .environmentObject(transcriptionModelManager)
@@ -183,19 +96,19 @@ struct ModelManagementView: View {
                     customModelManager: customModelManager,
                     customAIProviderManager: customAIProviderManager,
                     onAddTranscriptionModel: {
-                        openCustomTranscriptionModelPanel()
+                        navigation.push(.customTranscriptionModel(nil))
                     },
                     onEditTranscriptionModel: { model in
-                        openCustomTranscriptionModelPanel(model)
+                        navigation.push(.customTranscriptionModel(model.id))
                     },
                     onDeleteTranscriptionModel: { model in
                         confirmDeleteCustomModel(model)
                     },
                     onAddEnhancementModel: {
-                        openCustomEnhancementModelPanel()
+                        navigation.push(.customEnhancementModel(nil))
                     },
                     onEditEnhancementModel: { provider in
-                        openCustomEnhancementModelPanel(provider)
+                        navigation.push(.customEnhancementModel(provider.id))
                     },
                     onDeleteEnhancementModel: { provider in
                         confirmDeleteCustomEnhancementModel(provider)
@@ -225,7 +138,6 @@ struct ModelManagementView: View {
                 withAnimation(.smooth(duration: 0.25)) {
                     selectedFilter = newValue
                 }
-                activePanel = nil
             }
         )
     }
@@ -375,6 +287,7 @@ struct ModelManagementView: View {
         deleteActionClosure = {
             customModelManager.removeCustomModel(withId: model.id)
             transcriptionModelManager.refreshAllAvailableModels()
+            navigation.removeFromHistory(.customTranscriptionModel(model.id))
         }
         isShowingDeleteAlert = true
     }
@@ -393,6 +306,7 @@ struct ModelManagementView: View {
         )
         deleteActionClosure = {
             customAIProviderManager.deleteProvider(provider)
+            navigation.removeFromHistory(.customEnhancementModel(provider.id))
         }
         isShowingDeleteAlert = true
     }
