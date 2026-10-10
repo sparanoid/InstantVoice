@@ -209,8 +209,8 @@ public struct SonioxClient: Sendable {
                 switch status.status.lowercased() {
                 case "completed":
                     return
-                case "failed":
-                    throw LLMKitError.httpError(statusCode: 500, message: "Soniox transcription job failed.")
+                case "error", "failed":
+                    throw LLMKitError.httpError(statusCode: 500, message: status.errorMessage ?? "Soniox transcription job failed.")
                 default:
                     break
                 }
@@ -274,5 +274,13 @@ extension SonioxClient {
 
 private struct FileUploadResponse: Decodable, Sendable { let id: String }
 private struct CreateTranscriptionResponse: Decodable, Sendable { let id: String }
-private struct TranscriptionStatusResponse: Decodable, Sendable { let status: String }
+private struct TranscriptionStatusResponse: Decodable, Sendable {
+    let status: String
+    let errorMessage: String?
+
+    enum CodingKeys: String, CodingKey {
+        case status
+        case errorMessage = "error_message"
+    }
+}
 private struct TranscriptResponse: Decodable, Sendable { let text: String }

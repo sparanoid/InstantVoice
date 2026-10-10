@@ -1,6 +1,6 @@
 # LLMkit
 
-A lightweight Swift package that provides stateless API clients for cloud transcription, LLM chat completion, and real-time streaming transcription services. Built for [VoiceInk](https://github.com/anthropics/VoiceInk), but usable in any Swift project.
+A lightweight Swift package that provides stateless API clients for cloud transcription, LLM chat completion, and real-time streaming transcription services. Built for [VoiceInk](https://github.com/Beingpax/VoiceInk), but usable in any Swift project.
 
 ## What It Does
 

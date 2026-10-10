@@ -57,6 +57,13 @@ public final class GeminiStreamingClient: StreamingTranscriptionProvider, @unche
             throw LLMKitError.invalidURL(Self.endpoint)
         }
 
+        // Transcribe models stream through their `-live` counterpart, e.g. `gemini-3.5-transcribe-live`.
+        let requestedModel = model.lowercased()
+        guard requestedModel.hasPrefix("gemini-"), requestedModel.contains("-transcribe") else {
+            throw LLMKitError.unsupportedModel(model)
+        }
+        let liveModel = requestedModel.hasSuffix("-live") ? requestedModel : "\(requestedModel)-live"
+
         stateLock.withLock {
             setupComplete = false
             setupError = nil
@@ -75,12 +82,6 @@ public final class GeminiStreamingClient: StreamingTranscriptionProvider, @unche
             await self?.receiveLoop()
         }
 
-        // Transcribe models stream through their `-live` counterpart, e.g. `gemini-3.5-transcribe-live`.
-        let requestedModel = model.lowercased()
-        guard requestedModel.hasPrefix("gemini-"), requestedModel.contains("-transcribe") else {
-            throw LLMKitError.unsupportedModel(model)
-        }
-        let liveModel = requestedModel.hasSuffix("-live") ? requestedModel : "\(requestedModel)-live"
         let languageCodes: [String]
         if let language, !language.isEmpty, language.lowercased() != "auto" {
             languageCodes = [language]
@@ -99,8 +100,18 @@ public final class GeminiStreamingClient: StreamingTranscriptionProvider, @unche
                 )
             )
         )
-        try await sendJSON(setup)
-        try await waitForSetup()
+        do {
+            try await sendJSON(setup)
+            try await waitForSetup()
+        } catch {
+            receiveTask?.cancel()
+            receiveTask = nil
+            task.cancel(with: .normalClosure, reason: nil)
+            session.invalidateAndCancel()
+            webSocketTask = nil
+            urlSession = nil
+            throw error
+        }
     }
 
     public func sendAudioChunk(_ data: Data) async throws {
