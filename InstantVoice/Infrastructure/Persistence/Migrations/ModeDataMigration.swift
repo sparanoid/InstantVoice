@@ -69,6 +69,13 @@ extension ModeManager {
             saveConfigurations()
         }
         if migratesRawModelNames {
+            // The default model is saved the same way. It has no Real-time switch, so only renamed models
+            // such as `nova-3` change.
+            if let modelName = UserDefaults.standard.string(forKey: "CurrentTranscriptionModel"),
+                let rawName = Self.rawModelName(for: modelName, realtime: false)
+            {
+                UserDefaults.standard.set(rawName, forKey: "CurrentTranscriptionModel")
+            }
             UserDefaults.standard.set(true, forKey: Self.rawModelNamesMigrationKey)
         }
 
@@ -76,6 +83,18 @@ extension ModeManager {
     }
 
     private static let rawModelNamesMigrationKey = "didMigrateModesToRawModelNames"
+
+    /// Applies the launch migration's model renames to modes it never saw, such as an older backup's.
+    static func withRawModelNames(_ configs: [ModeConfig]) -> [ModeConfig] {
+        configs.map { config in
+            guard let modelName = config.selectedTranscriptionModelName,
+                let rawName = rawModelName(for: modelName, realtime: config.isRealtimeTranscriptionEnabled)
+            else { return config }
+            var config = config
+            config.selectedTranscriptionModelName = rawName
+            return config
+        }
+    }
 
     /// Cloud models used to merge a provider's file and real-time models into one entry, with the Real-time
     /// switch picking between them. Modes now name the model they use, so real-time modes move to the

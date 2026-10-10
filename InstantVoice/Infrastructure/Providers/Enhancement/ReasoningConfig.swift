@@ -70,6 +70,20 @@ struct ReasoningConfig {
         return nil
     }
 
+    // OpenAI's reasoning models, the o-series and GPT-5 onward, reject `temperature` unless reasoning
+    // effort is "none". Older GPT models take it.
+    static func acceptsTemperature(for provider: AIProvider, modelName: String) -> Bool {
+        guard provider == .openAI, getReasoningParameter(for: provider, modelName: modelName) != "none" else {
+            return true
+        }
+        let name = modelName.lowercased()
+        if name.range(of: #"^o\d"#, options: .regularExpression) != nil { return false }
+        guard name.hasPrefix("gpt-"), let version = Int(name.dropFirst("gpt-".count).prefix(while: \.isNumber)) else {
+            return true
+        }
+        return version < 5
+    }
+
     // Provider-specific body params for hiding reasoning.
     static func getExtraBodyParameters(for provider: AIProvider, modelName: String) -> [String: Any]? {
         if provider == .groq && (modelName == "openai/gpt-oss-120b" || modelName == "openai/gpt-oss-20b") {

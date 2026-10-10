@@ -18,6 +18,7 @@ final class ProviderModelCatalog: @unchecked Sendable {
     }
 
     private let lock = NSLock()
+    private let storageQueue = DispatchQueue(label: "com.sparanoid.instantvoice.providerModelCatalog.storage")
     private let defaults = UserDefaults.standard
     private let storageKey = "providerModelCatalogs"
     private var entries: [String: Entry] = [:]
@@ -136,12 +137,16 @@ final class ProviderModelCatalog: @unchecked Sendable {
 
     private func save(_ models: [ListedModel], for providerKey: String) {
         lock.lock()
+        defer { lock.unlock() }
         entries[providerKey] = Entry(models: models, fetchedAt: Date())
         let snapshot = entries
-        lock.unlock()
 
-        if let data = try? JSONEncoder().encode(snapshot) {
-            defaults.set(data, forKey: storageKey)
+        // Queued under the lock, so parallel refreshes write their snapshots in the order they were taken. The
+        // write itself runs outside the lock, which readers on the main thread wait on.
+        storageQueue.async {
+            if let data = try? JSONEncoder().encode(snapshot) {
+                self.defaults.set(data, forKey: self.storageKey)
+            }
         }
     }
 

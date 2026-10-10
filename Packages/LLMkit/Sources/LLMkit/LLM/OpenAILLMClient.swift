@@ -43,7 +43,7 @@ public struct OpenAILLMClient: Sendable {
     ///   - model: Model name (e.g. `"llama-3.3-70b-versatile"`).
     ///   - messages: Array of chat messages.
     ///   - systemPrompt: Optional system prompt. If provided, prepended as a system message.
-    ///   - temperature: Sampling temperature (default 0.3).
+    ///   - temperature: Sampling temperature (default 0.3). Pass `nil` to leave it out, for models that reject it.
     ///   - reasoningEffort: Optional reasoning effort parameter for supported models.
     ///   - extraBody: Optional dictionary of additional parameters to include in the request body (e.g. `["disable_reasoning": true]`).
     ///   - timeout: Request timeout in seconds (default 30).
@@ -54,7 +54,7 @@ public struct OpenAILLMClient: Sendable {
         model: String,
         messages: [ChatMessage],
         systemPrompt: String? = nil,
-        temperature: Double = 0.3,
+        temperature: Double? = 0.3,
         reasoningEffort: String? = nil,
         extraBody: [String: Any]? = nil,
         timeout: TimeInterval = 30
@@ -75,9 +75,12 @@ public struct OpenAILLMClient: Sendable {
         var bodyDict: [String: Any] = [
             "model": model,
             "messages": allMessages.map { ["role": $0.role, "content": $0.content] },
-            "temperature": temperature,
             "stream": false
         ]
+
+        if let temperature {
+            bodyDict["temperature"] = temperature
+        }
 
         if let reasoningEffort {
             bodyDict["reasoning_effort"] = reasoningEffort

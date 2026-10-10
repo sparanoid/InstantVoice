@@ -40,7 +40,9 @@ enum BackupImporter {
                 ShortcutStore.removeShortcutStorage(for: .mode(config.id))
             }
 
-            modeManager.configurations = backup.modeConfigs
+            // Saved modes were converted once at launch, so modes from an older backup are converted here.
+            modeManager.configurations =
+                backup.usesRawModelNames ? backup.modeConfigs : ModeManager.withRawModelNames(backup.modeConfigs)
             let importedModeIds = Set(backup.modeConfigs.map(\.id))
 
             if let shortcuts = backup.modeShortcuts {

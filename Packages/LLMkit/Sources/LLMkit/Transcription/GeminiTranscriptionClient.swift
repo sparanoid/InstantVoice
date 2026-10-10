@@ -8,7 +8,7 @@ public enum GeminiTranscriptionMode: String, Sendable {
     case smart
 }
 
-/// Client for the dedicated `gemini-3.5-transcribe` speech-to-text API.
+/// Client for Gemini's dedicated speech-to-text models, such as `gemini-3.5-transcribe`.
 public struct GeminiTranscriptionClient: Sendable {
 
     /// Transcribes audio data using the Gemini API.
@@ -16,7 +16,8 @@ public struct GeminiTranscriptionClient: Sendable {
     /// - Parameters:
     ///   - audioData: Raw audio bytes.
     ///   - apiKey: Google AI / Gemini API key.
-    ///   - model: Must be `"gemini-3.5-transcribe"`.
+    ///   - model: A dedicated transcription model, such as `"gemini-3.5-transcribe"`. `-live` models only stream;
+    ///     use `GeminiStreamingClient` for them.
     ///   - mimeType: MIME type of the audio (default `"audio/wav"`).
     ///   - fileName: Display name used when uploading to the Gemini Files API.
     ///   - language: Optional BCP-47 language hint. Pass `nil` or `"auto"` for detection.
@@ -37,7 +38,7 @@ public struct GeminiTranscriptionClient: Sendable {
     ) async throws -> String {
         try validateAPIKey(apiKey)
 
-        guard model.lowercased() == "gemini-3.5-transcribe" else {
+        guard acceptsModel(model) else {
             throw LLMKitError.unsupportedModel(model)
         }
 
@@ -52,6 +53,11 @@ public struct GeminiTranscriptionClient: Sendable {
             mode: mode,
             timeout: timeout
         )
+    }
+
+    /// Whether `transcribe` takes a model: any dedicated transcription model Gemini lists, except the `-live` ones.
+    static func acceptsModel(_ model: String) -> Bool {
+        ListedModelKind.isGeminiTranscriptionModel(model) && !model.lowercased().hasSuffix("-live")
     }
 
     /// Verifies that a Gemini API key is valid by making a lightweight models list request.

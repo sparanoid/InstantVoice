@@ -94,10 +94,12 @@ extension CloudModel {
         batchFallbackName: String? = nil
     ) -> CloudModel {
         let known = builtIn.first { $0.name == name }
-        let supportedLanguages = languages ?? known?.supportedLanguages ?? defaultLanguages
+        // A reported list without any language, such as an empty one, says nothing about the model.
+        let reportedLanguages = languages?.keys.contains { $0 != "auto" } == true ? languages : nil
+        let supportedLanguages = reportedLanguages ?? known?.supportedLanguages ?? defaultLanguages
         // Regional variants such as `en-US` and `en-GB` count as one language.
         let baseLanguages = Set(supportedLanguages.keys.filter { $0 != "auto" }.map { $0.prefix { $0 != "-" } })
-        let isMultilingual = languages == nil ? known?.isMultilingualModel : nil
+        let isMultilingual = reportedLanguages == nil ? known?.isMultilingualModel : nil
         return CloudModel(
             name: name,
             displayName: name,
