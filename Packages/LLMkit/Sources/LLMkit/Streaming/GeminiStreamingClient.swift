@@ -62,7 +62,7 @@ public final class GeminiStreamingClient: StreamingTranscriptionProvider, @unche
         guard requestedModel.hasPrefix("gemini-"), requestedModel.contains("-transcribe") else {
             throw LLMKitError.unsupportedModel(model)
         }
-        let liveModel = requestedModel.hasSuffix("-live") ? requestedModel : "\(requestedModel)-live"
+        let liveModel = ListedModelKind.isGeminiLiveModel(requestedModel) ? requestedModel : "\(requestedModel)-live"
 
         stateLock.withLock {
             setupComplete = false

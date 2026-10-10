@@ -196,6 +196,13 @@ struct ModelListingTests {
         #expect(!ListedModelKind.isGeminiTranscriptionModel("gemini-3.8-flash"))
     }
 
+    @Test func geminiLiveModelsHaveALivePart() {
+        #expect(ListedModelKind.isGeminiLiveModel("gemini-3.5-transcribe-live"))
+        #expect(ListedModelKind.isGeminiLiveModel("gemini-3.6-transcribe-live-preview"))
+        #expect(!ListedModelKind.isGeminiLiveModel("gemini-3.5-transcribe"))
+        #expect(!ListedModelKind.isGeminiLiveModel("gemini-3.6-transcribe-preview"))
+    }
+
     private func json(_ text: String) -> Data {
         Data(text.utf8)
     }

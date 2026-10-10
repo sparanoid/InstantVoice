@@ -55,9 +55,9 @@ public struct GeminiTranscriptionClient: Sendable {
         )
     }
 
-    /// Whether `transcribe` takes a model: any dedicated transcription model Gemini lists, except the `-live` ones.
+    /// Whether `transcribe` takes a model: any dedicated transcription model Gemini lists, except the Live ones.
     static func acceptsModel(_ model: String) -> Bool {
-        ListedModelKind.isGeminiTranscriptionModel(model) && !model.lowercased().hasSuffix("-live")
+        ListedModelKind.isGeminiTranscriptionModel(model) && !ListedModelKind.isGeminiLiveModel(model)
     }
 
     /// Verifies that a Gemini API key is valid by making a lightweight models list request.

@@ -389,4 +389,10 @@ public enum ListedModelKind {
         let id = id.lowercased()
         return id.hasPrefix("gemini-") && id.contains("-transcribe")
     }
+
+    /// Gemini Live API models, which only stream. Their IDs have a `live` part, at the end as in
+    /// `gemini-3.5-transcribe-live` or before a suffix as in `gemini-3.6-transcribe-live-preview`.
+    public static func isGeminiLiveModel(_ id: String) -> Bool {
+        id.lowercased().split(separator: "-").contains("live")
+    }
 }

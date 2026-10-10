@@ -10,6 +10,7 @@ struct GeminiTranscriptionClientTests {
 
     @Test func rejectsLiveAndChatModels() {
         #expect(!GeminiTranscriptionClient.acceptsModel("gemini-3.5-transcribe-live"))
+        #expect(!GeminiTranscriptionClient.acceptsModel("gemini-3.6-transcribe-live-preview"))
         #expect(!GeminiTranscriptionClient.acceptsModel("gemini-3.8-flash"))
     }
 }

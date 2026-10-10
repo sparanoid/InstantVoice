@@ -29,14 +29,16 @@ struct GeminiProvider: CloudProvider {
     }
 
     /// Transcribe models from Gemini's fetched list, which also holds its chat models. Live models such as
-    /// `gemini-3.5-transcribe-live` stream; their file counterpart drops the `-live` suffix. A live model named
-    /// otherwise has no known file counterpart.
+    /// `gemini-3.5-transcribe-live` or `gemini-3.6-transcribe-live-preview` stream; their file counterpart drops
+    /// the `live` part. A streaming model whose ID has no `live` part has no known file counterpart.
     private var listedModels: [CloudModel]? {
         guard let listed = ProviderModelCatalog.shared.models(for: providerKey) else { return nil }
         let models = listed
             .filter { ListedModelKind.isGeminiTranscriptionModel($0.id) }
             .map { model in
-                let fileModelName = model.id.hasSuffix("-live") ? String(model.id.dropLast("-live".count)) : nil
+                let fileModelName =
+                    ListedModelKind.isGeminiLiveModel(model.id)
+                    ? model.id.split(separator: "-").filter { $0.lowercased() != "live" }.joined(separator: "-") : nil
                 let isLive = fileModelName != nil || model.capabilities.contains("bidiGenerateContent")
                 return CloudModel.listed(
                     model.id,

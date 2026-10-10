@@ -18,6 +18,8 @@ extension ModeManager {
     func migrateLoadedModeConfigurationsIfNeeded() {
         var didChange = false
         let migratesRawModelNames = !UserDefaults.standard.bool(forKey: Self.rawModelNamesMigrationKey)
+        let customModelNames =
+            migratesRawModelNames ? Set(CustomCloudModelManager.shared.customModels.map(\.name)) : []
 
         for index in configurations.indices {
             var config = configurations[index]
@@ -53,7 +55,8 @@ extension ModeManager {
 
             if migratesRawModelNames,
                 let modelName = config.selectedTranscriptionModelName,
-                let rawName = Self.rawModelName(for: modelName, realtime: config.isRealtimeTranscriptionEnabled)
+                let rawName = Self.rawModelName(
+                    for: modelName, realtime: config.isRealtimeTranscriptionEnabled, customModelNames: customModelNames)
             {
                 config.selectedTranscriptionModelName = rawName
                 changedConfig = true
@@ -72,7 +75,7 @@ extension ModeManager {
             // The default model is saved the same way. It has no Real-time switch, so only renamed models
             // such as `nova-3` change.
             if let modelName = UserDefaults.standard.string(forKey: "CurrentTranscriptionModel"),
-                let rawName = Self.rawModelName(for: modelName, realtime: false)
+                let rawName = Self.rawModelName(for: modelName, realtime: false, customModelNames: customModelNames)
             {
                 UserDefaults.standard.set(rawName, forKey: "CurrentTranscriptionModel")
             }
@@ -85,10 +88,11 @@ extension ModeManager {
     private static let rawModelNamesMigrationKey = "didMigrateModesToRawModelNames"
 
     /// Applies the launch migration's model renames to modes it never saw, such as an older backup's.
-    static func withRawModelNames(_ configs: [ModeConfig]) -> [ModeConfig] {
+    static func withRawModelNames(_ configs: [ModeConfig], customModelNames: Set<String>) -> [ModeConfig] {
         configs.map { config in
             guard let modelName = config.selectedTranscriptionModelName,
-                let rawName = rawModelName(for: modelName, realtime: config.isRealtimeTranscriptionEnabled)
+                let rawName = rawModelName(
+                    for: modelName, realtime: config.isRealtimeTranscriptionEnabled, customModelNames: customModelNames)
             else { return config }
             var config = config
             config.selectedTranscriptionModelName = rawName
@@ -98,8 +102,10 @@ extension ModeManager {
 
     /// Cloud models used to merge a provider's file and real-time models into one entry, with the Real-time
     /// switch picking between them. Modes now name the model they use, so real-time modes move to the
-    /// streaming model, and Deepgram's general models take their canonical names.
-    private static func rawModelName(for modelName: String, realtime: Bool) -> String? {
+    /// streaming model, and Deepgram's general models take their canonical names. Earlier versions also saved a
+    /// custom model by its name, which can look like a provider's model, such as `nova-2`; those names stay.
+    private static func rawModelName(for modelName: String, realtime: Bool, customModelNames: Set<String>) -> String? {
+        guard !customModelNames.contains(modelName) else { return nil }
         if modelName.range(of: #"^nova-\d+$"#, options: .regularExpression) != nil {
             return "\(modelName)-general"
         }
