@@ -397,7 +397,7 @@
 				E1F900032FA6000000000001 /* XCRemoteSwiftPackageReference "swift-transformers" */,
 				E1C0A0002FA8000000000001 /* XCRemoteSwiftPackageReference "Transcribe-cpp-swift" */,
 				E1AF66993031B7AA006D50FA /* XCRemoteSwiftPackageReference "FluidAudio" */,
-				E1701E73305E77220098872B /* XCRemoteSwiftPackageReference "LLMkit" */,
+				E1701E76305E77220098872B /* XCLocalSwiftPackageReference "Packages/LLMkit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E11473B12CBE0F0A00318EE4 /* Products */;
@@ -868,6 +868,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		E1701E76305E77220098872B /* XCLocalSwiftPackageReference "Packages/LLMkit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/LLMkit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		E1342C1D2EB4844800CED8A2 /* XCRemoteSwiftPackageReference "swift-atomics" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -883,14 +890,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.4.1;
-			};
-		};
-		E1701E73305E77220098872B /* XCRemoteSwiftPackageReference "LLMkit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Beingpax/LLMkit.git";
-			requirement = {
-				kind = revision;
-				revision = 37100b22033674f183af0b6e18f81db071ea6320;
 			};
 		};
 		E1ADD45D2CC544F100303ECB /* XCRemoteSwiftPackageReference "Sparkle" */ = {
@@ -982,7 +981,7 @@
 		};
 		E1701E74305E77220098872B /* LLMkit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = E1701E73305E77220098872B /* XCRemoteSwiftPackageReference "LLMkit" */;
+			package = E1701E76305E77220098872B /* XCLocalSwiftPackageReference "Packages/LLMkit" */;
 			productName = LLMkit;
 		};
 		E1ADD45E2CC544F100303ECB /* Sparkle */ = {
