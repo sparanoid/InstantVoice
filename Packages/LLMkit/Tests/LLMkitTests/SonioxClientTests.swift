@@ -40,6 +40,15 @@ struct SonioxClientTests {
         #expect(body["language_hints"] as? [String] == ["en", "zh"])
     }
 
+    @Test func hintsCanSkipStrictMode() {
+        var body: [String: Any] = [:]
+        SonioxClient.addLanguageHints(["en", "zh"], strict: false, to: &body)
+
+        #expect(body["language_hints"] as? [String] == ["en", "zh"])
+        #expect(body["language_hints_strict"] == nil)
+        #expect(body["enable_language_identification"] as? Bool == true)
+    }
+
     @Test func otherFieldsAreKept() {
         var body: [String: Any] = ["model": "stt-rt-v5"]
         SonioxClient.addLanguageHints(["en"], to: &body)

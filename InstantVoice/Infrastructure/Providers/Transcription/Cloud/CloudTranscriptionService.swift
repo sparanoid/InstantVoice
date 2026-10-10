@@ -71,7 +71,7 @@ class CloudTranscriptionService: TranscriptionService {
                 audioData: audioData,
                 fileName: fileName,
                 apiKey: apiKey,
-                model: model.name,
+                model: (model as? CloudModel)?.batchName ?? model.name,
                 languages: context.languages,
                 customVocabulary: getCustomDictionaryTerms(),
                 timeout: timeout

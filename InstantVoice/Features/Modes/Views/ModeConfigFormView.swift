@@ -222,25 +222,32 @@ struct ModeConfigFormView: View {
                 .foregroundColor(.secondary)
             } else {
                 let availableModels = warmupSnapshot.usableTranscriptionModels
-                let openRouterModels = availableModels.filter { $0.provider == .openRouter }
+                let localModels = availableModels.filter { cloudProviderName(for: $0) == nil }
+                let cloudProviderNames = CloudProviderRegistry.allProviders
+                    .filter { provider in availableModels.contains { $0.provider == provider.modelProvider } }
+                    .map(\.providerKey)
 
                 LabeledContent("Model") {
                     Menu {
-                        ForEach(availableModels.filter { $0.provider != .openRouter }, id: \.selectionKey) { model in
+                        ForEach(localModels, id: \.selectionKey) { model in
                             transcriptionModelMenuItem(model)
                         }
 
-                        if !openRouterModels.isEmpty {
-                            Menu("OpenRouter") {
-                                ForEach(openRouterModels, id: \.selectionKey) { model in
+                        // Cloud models are listed per provider under the IDs the provider gives them.
+                        ForEach(cloudProviderNames, id: \.self) { providerName in
+                            Menu(providerName) {
+                                ForEach(
+                                    availableModels.filter { cloudProviderName(for: $0) == providerName },
+                                    id: \.selectionKey
+                                ) { model in
                                     transcriptionModelMenuItem(model)
                                 }
                             }
                         }
                     } label: {
                         Text(
-                            availableModels.first { $0.selectionKey == draft.selectedTranscriptionModelName }?.displayName
-                                ?? String(localized: "Unavailable")
+                            availableModels.first { $0.selectionKey == draft.selectedTranscriptionModelName }
+                                .map(\.providerQualifiedName) ?? String(localized: "Unavailable")
                         )
                             .lineLimit(1)
                     }
@@ -274,6 +281,11 @@ struct ModeConfigFormView: View {
                 }
             }
         }
+    }
+
+    /// The cloud provider a model is listed under, or nil for local and custom models.
+    private func cloudProviderName(for model: any TranscriptionModel) -> String? {
+        CloudProviderRegistry.provider(for: model.provider)?.providerKey
     }
 
     @ViewBuilder
@@ -556,6 +568,11 @@ struct ModeConfigFormView: View {
                 if provider == .openRouter {
                     Button("Refresh Models") {
                         Task { await aiService.fetchOpenRouterModels() }
+                    }
+                    .help("Refresh models")
+                } else if ProviderModelCatalog.supportsListing(provider.rawValue) {
+                    Button("Refresh Models") {
+                        Task { try? await ProviderModelCatalog.shared.refresh(providerKey: provider.rawValue) }
                     }
                     .help("Refresh models")
                 }

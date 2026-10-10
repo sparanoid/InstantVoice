@@ -17,6 +17,7 @@ extension ModeManager {
 
     func migrateLoadedModeConfigurationsIfNeeded() {
         var didChange = false
+        let migratesRawModelNames = !UserDefaults.standard.bool(forKey: Self.rawModelNamesMigrationKey)
 
         for index in configurations.indices {
             var config = configurations[index]
@@ -50,6 +51,14 @@ extension ModeManager {
                 changedConfig = true
             }
 
+            if migratesRawModelNames,
+                let modelName = config.selectedTranscriptionModelName,
+                let rawName = Self.rawModelName(for: modelName, realtime: config.isRealtimeTranscriptionEnabled)
+            {
+                config.selectedTranscriptionModelName = rawName
+                changedConfig = true
+            }
+
             if changedConfig {
                 configurations[index] = config
                 didChange = true
@@ -59,9 +68,35 @@ extension ModeManager {
         if didChange {
             saveConfigurations()
         }
+        if migratesRawModelNames {
+            UserDefaults.standard.set(true, forKey: Self.rawModelNamesMigrationKey)
+        }
 
         migrateLegacyShortcutStorageIfNeeded()
     }
+
+    private static let rawModelNamesMigrationKey = "didMigrateModesToRawModelNames"
+
+    /// Cloud models used to merge a provider's file and real-time models into one entry, with the Real-time
+    /// switch picking between them. Modes now name the model they use, so real-time modes move to the
+    /// streaming model, and Deepgram's general models take their canonical names.
+    private static func rawModelName(for modelName: String, realtime: Bool) -> String? {
+        if modelName.range(of: #"^nova-\d+$"#, options: .regularExpression) != nil {
+            return "\(modelName)-general"
+        }
+        guard realtime else { return nil }
+        if modelName.hasPrefix("stt-async-") {
+            return "stt-rt-" + modelName.dropFirst("stt-async-".count)
+        }
+        if modelName == "scribe_v2" {
+            return "scribe_v2_realtime"
+        }
+        if modelName.hasPrefix("gemini-"), modelName.hasSuffix("-transcribe") {
+            return "\(modelName)-live"
+        }
+        return nil
+    }
+
     private func migrateLegacyShortcutStorageIfNeeded() {
         let defaults = UserDefaults.standard
 

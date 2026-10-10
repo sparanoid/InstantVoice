@@ -36,9 +36,14 @@ public final class SonioxStreamingClient: StreamingTranscriptionProvider, @unche
     /// Connects for speech that may contain any of several languages.
     ///
     /// - Parameters:
-    ///   - languages: Language codes the audio may contain, sent as strict language hints. Pass an empty
-    ///     array for auto-detect.
-    public func connect(apiKey: String, model: String, languages: [String], customVocabulary: [String] = []) async throws {
+    ///   - languages: Language codes the audio may contain, sent as language hints. Pass an empty array for
+    ///     auto-detect.
+    ///   - strictLanguageHints: Whether Soniox must keep to `languages` (default true). Pass false for models
+    ///     whose listing lacks the `language_hints_strict` capability.
+    public func connect(
+        apiKey: String, model: String, languages: [String], strictLanguageHints: Bool = true,
+        customVocabulary: [String] = []
+    ) async throws {
         let urlString = "wss://stt-rt.soniox.com/transcribe-websocket"
         guard let url = URL(string: urlString) else {
             throw LLMKitError.invalidURL(urlString)
@@ -52,7 +57,9 @@ public final class SonioxStreamingClient: StreamingTranscriptionProvider, @unche
         task.resume()
 
         // Send initial configuration (API key is in the config JSON, not HTTP header)
-        try await sendConfiguration(apiKey: apiKey, model: model, languages: languages, customVocabulary: customVocabulary)
+        try await sendConfiguration(
+            apiKey: apiKey, model: model, languages: languages, strictLanguageHints: strictLanguageHints,
+            customVocabulary: customVocabulary)
 
         eventsContinuation?.yield(.sessionStarted)
 
@@ -93,7 +100,9 @@ public final class SonioxStreamingClient: StreamingTranscriptionProvider, @unche
 
     // MARK: - Private
 
-    private func sendConfiguration(apiKey: String, model: String, languages: [String], customVocabulary: [String]) async throws {
+    private func sendConfiguration(
+        apiKey: String, model: String, languages: [String], strictLanguageHints: Bool, customVocabulary: [String]
+    ) async throws {
         guard let task = webSocketTask else {
             throw LLMKitError.networkError("Not connected to Soniox streaming.")
         }
@@ -106,7 +115,7 @@ public final class SonioxStreamingClient: StreamingTranscriptionProvider, @unche
             "num_channels": 1
         ]
 
-        SonioxClient.addLanguageHints(languages, to: &config)
+        SonioxClient.addLanguageHints(languages, strict: strictLanguageHints, to: &config)
 
         if !customVocabulary.isEmpty {
             config["context"] = ["terms": customVocabulary]

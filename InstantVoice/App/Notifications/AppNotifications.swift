@@ -9,6 +9,8 @@ extension Notification.Name {
     static let didChangeModel = Notification.Name("didChangeModel")
     static let transcribeCppModelDeleted = Notification.Name("transcribeCppModelDeleted")
     static let aiProviderKeyChanged = Notification.Name("aiProviderKeyChanged")
+    /// Posted on the main thread after a provider's fetched model list changes. The object is the provider key.
+    static let providerModelCatalogDidChange = Notification.Name("providerModelCatalogDidChange")
     static let navigateToDestination = Notification.Name("navigateToDestination")
     static let showMainWindowRequested = Notification.Name("showMainWindowRequested")
     static let modeConfigurationApplied = Notification.Name("modeConfigurationApplied")

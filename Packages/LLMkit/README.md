@@ -72,6 +72,12 @@ For Soniox speech that mixes known languages, pass `languages: ["en", "zh"]` to 
 `SonioxStreamingClient.connect`. They're sent as strict `language_hints`, so Soniox keeps to those languages.
 An empty array, `language: nil`, or `"auto"` lets Soniox identify the language itself.
 
+`listModels` fetches a provider's current models as `[ListedModel]`. It exists on `OpenAILLMClient` (any
+OpenAI-compatible API, given its root such as `https://api.groq.com/openai/v1`), `AnthropicLLMClient`,
+`GeminiLLMClient`, `DeepgramClient`, and `SonioxClient`. Most list endpoints don't say what a model is for, so
+`ListedModelKind` sorts chat and speech-to-text models by each provider's documented ID conventions. ElevenLabs,
+xAI, and Cartesia don't list their speech-to-text models.
+
 ## Requirements
 
 - Swift 6.2+, macOS 14+, iOS 17+

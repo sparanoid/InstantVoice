@@ -1892,148 +1892,6 @@
         }
       }
     },
-    "+%lld more enhancement models available" : {
-      "comment" : "Number of enhancement models beyond the preview.",
-      "localizations" : {
-        "de" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "+%lld weiteres Verbesserungsmodell verfügbar"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "+%lld weitere Verbesserungsmodelle verfügbar"
-                }
-              }
-            }
-          }
-        },
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "+%lld more enhancement model available"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "+%lld more enhancement models available"
-                }
-              }
-            }
-          }
-        },
-        "fr" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "+%lld autre modèle d’amélioration disponible"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "+%lld autres modèles d’amélioration disponibles"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "另有 %lld 个可用润色模型"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "+%lld more transcription models available" : {
-      "comment" : "Number of transcription models beyond the preview.",
-      "localizations" : {
-        "de" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "+%lld weiteres Transkriptionsmodell verfügbar"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "+%lld weitere Transkriptionsmodelle verfügbar"
-                }
-              }
-            }
-          }
-        },
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "+%lld more transcription model available"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "+%lld more transcription models available"
-                }
-              }
-            }
-          }
-        },
-        "fr" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "+%lld autre modèle de transcription disponible"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "+%lld autres modèles de transcription disponibles"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "另有 %lld 个可用转写模型"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "0s" : {
       "localizations" : {
         "de" : {
@@ -3310,6 +3168,28 @@
         }
       }
     },
+    "Add an API key to fetch the latest models" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Füge einen API-Schlüssel hinzu, um die neuesten Modelle abzurufen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoutez une clé API pour récupérer les derniers modèles"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加 API 密钥以获取最新模型"
+          }
+        }
+      }
+    },
     "Add app or website..." : {
       "localizations" : {
         "de" : {
@@ -4241,6 +4121,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "AI 请求"
+          }
+        }
+      }
+    },
+    "Alias of %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alias von %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alias de %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的别名"
           }
         }
       }
@@ -6103,6 +6005,28 @@
         }
       }
     },
+    "Built-in model list" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Integrierte Modellliste"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liste de modèles intégrée"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内置模型列表"
+          }
+        }
+      }
+    },
     "Calculating %@." : {
       "comment" : "Dashboard momentum headline shown while stats are loading. The placeholder is the highlighted progress label.",
       "isCommentAutoGenerated" : true,
@@ -6455,6 +6379,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选取一个位置来存储你的设置。"
+          }
+        }
+      }
+    },
+    "Choose a model this server lists" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Modell aus der Liste dieses Servers wählen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir un modèle proposé par ce serveur"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从此服务器提供的模型中选择"
           }
         }
       }
@@ -7878,6 +7824,28 @@
         }
       }
     },
+    "Couldn't fetch models: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modelle konnten nicht abgerufen werden: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de récupérer les modèles : %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法获取模型：%@"
+          }
+        }
+      }
+    },
     "Create Prompt" : {
       "localizations" : {
         "de" : {
@@ -8435,6 +8403,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "日期"
+          }
+        }
+      }
+    },
+    "Deepgram speech-to-text model" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deepgram-Spracherkennungsmodell"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèle de transcription Deepgram"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deepgram 语音转文字模型"
           }
         }
       }
@@ -12198,6 +12188,28 @@
         }
       }
     },
+    "Fetch the latest models from %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die neuesten Modelle von %@ abrufen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Récupérer les derniers modèles de %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从 %@ 获取最新模型"
+          }
+        }
+      }
+    },
     "Filler word" : {
       "localizations" : {
         "de" : {
@@ -12488,6 +12500,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "早上好"
+          }
+        }
+      }
+    },
+    "Google's dedicated transcription model" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Googles spezielles Transkriptionsmodell"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèle de transcription dédié de Google"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Google 专用转写模型"
           }
         }
       }
@@ -19056,6 +19090,28 @@
         }
       }
     },
+    "Other Models" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weitere Modelle"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autres modèles"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他模型"
+          }
+        }
+      }
+    },
     "Output" : {
       "localizations" : {
         "de" : {
@@ -20290,6 +20346,28 @@
         }
       }
     },
+    "Real-time only" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur Echtzeit"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temps réel uniquement"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅实时"
+          }
+        }
+      }
+    },
     "Recent activity from your full history. Empty cells indicate days without recorded activity." : {
       "comment" : "A description of the accessibility label for the activity calendar.",
       "isCommentAutoGenerated" : true,
@@ -20445,6 +20523,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "录制快捷键"
+          }
+        }
+      }
+    },
+    "Recorded audio" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahmen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrements"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音"
+          }
+        }
+      }
+    },
+    "Recorded audio and real-time" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahmen und Echtzeit"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrements et temps réel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音和实时"
           }
         }
       }
@@ -23603,6 +23725,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "部分更正无法审核。请检查所选的 AI 提供商后重试。"
+          }
+        }
+      }
+    },
+    "Soniox speech-to-text model" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soniox-Spracherkennungsmodell"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèle de transcription Soniox"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soniox 语音转文字模型"
           }
         }
       }
@@ -27126,6 +27270,28 @@
         }
       }
     },
+    "Updated %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisiert %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mis à jour %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@更新"
+          }
+        }
+      }
+    },
     "Use captured on-screen text as context for this mode." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -27868,6 +28034,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "发生了什么"
+          }
+        }
+      }
+    },
+    "Whisper model with Groq's fast inference" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whisper-Modell mit der schnellen Inferenz von Groq"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèle Whisper avec l'inférence rapide de Groq"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "采用 Groq 高速推理的 Whisper 模型"
           }
         }
       }

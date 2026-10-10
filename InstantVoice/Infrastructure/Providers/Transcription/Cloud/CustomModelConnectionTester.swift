@@ -83,6 +83,28 @@ struct CustomModelConnectionTester {
         return .failure(message: result.errorMessage ?? String(localized: "Could not verify this API key"))
     }
 
+    /// The model IDs the server behind an OpenAI-compatible endpoint lists, sorted. Empty when the server
+    /// doesn't list models, or the endpoint or key isn't usable yet.
+    static func listModels(endpoint: String, apiKey: String) async -> [String] {
+        guard let url = URL(string: endpoint.trimmingCharacters(in: .whitespacesAndNewlines)),
+            isAllowedScheme(url),
+            let root = apiRoot(of: url)
+        else { return [] }
+
+        let models = (try? await OpenAILLMClient.listModels(baseURL: root, apiKey: apiKey, timeout: 10)) ?? []
+        return models.map(\.id).sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+    }
+
+    /// The API root that `/models` hangs off: `https://host/v1/chat/completions` → `https://host/v1`.
+    static func apiRoot(of endpoint: URL) -> URL? {
+        guard var components = URLComponents(url: endpoint, resolvingAgainstBaseURL: false),
+            let suffix = ["/chat/completions", "/audio/transcriptions"].first(where: { components.path.hasSuffix($0) })
+        else { return nil }
+        components.path.removeLast(suffix.count)
+        components.query = nil
+        return components.url
+    }
+
     /// HTTPS everywhere; plain HTTP only toward loopback, matching the app's
     /// existing local-server use cases (e.g. Ollama at http://localhost:11434).
     private static func isAllowedScheme(_ url: URL) -> Bool {

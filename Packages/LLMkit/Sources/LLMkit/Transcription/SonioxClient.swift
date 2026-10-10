@@ -53,8 +53,10 @@ public struct SonioxClient: Sendable {
     ///   - fileName: Name of the audio file (e.g. `"recording.wav"`).
     ///   - apiKey: Soniox API key.
     ///   - model: Model name (e.g. `"stt-async-v4"`).
-    ///   - languages: Language codes the audio may contain, sent as strict language hints. Pass an empty
-    ///     array for auto-detect.
+    ///   - languages: Language codes the audio may contain, sent as language hints. Pass an empty array for
+    ///     auto-detect.
+    ///   - strictLanguageHints: Whether Soniox must keep to `languages` (default true). Pass false for models
+    ///     whose listing lacks the `language_hints_strict` capability.
     ///   - customVocabulary: Optional list of custom terms to boost recognition.
     ///   - maxWaitSeconds: Maximum seconds to wait for transcription completion (default 300).
     ///   - timeout: Per-request timeout in seconds (default 30).
@@ -65,6 +67,7 @@ public struct SonioxClient: Sendable {
         apiKey: String,
         model: String,
         languages: [String],
+        strictLanguageHints: Bool = true,
         customVocabulary: [String] = [],
         maxWaitSeconds: TimeInterval = 300,
         timeout: TimeInterval = 30
@@ -77,6 +80,7 @@ public struct SonioxClient: Sendable {
             apiKey: apiKey,
             model: model,
             languages: languages,
+            strictLanguageHints: strictLanguageHints,
             customVocabulary: customVocabulary,
             timeout: timeout
         )
@@ -149,6 +153,7 @@ public struct SonioxClient: Sendable {
         apiKey: String,
         model: String,
         languages: [String],
+        strictLanguageHints: Bool,
         customVocabulary: [String],
         timeout: TimeInterval
     ) async throws -> String {
@@ -166,7 +171,7 @@ public struct SonioxClient: Sendable {
             payload["context"] = ["terms": customVocabulary]
         }
 
-        addLanguageHints(languages, to: &payload)
+        addLanguageHints(languages, strict: strictLanguageHints, to: &payload)
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -245,8 +250,8 @@ public struct SonioxClient: Sendable {
 extension SonioxClient {
     /// Adds the language fields shared by the async and real-time APIs to a request body.
     ///
-    /// Hints are strict, so Soniox keeps to the given languages. Without hints, it identifies the language itself.
-    static func addLanguageHints(_ languages: [String], to body: inout [String: Any]) {
+    /// Strict hints make Soniox keep to the given languages. Without hints, it identifies the language itself.
+    static func addLanguageHints(_ languages: [String], strict: Bool = true, to body: inout [String: Any]) {
         var hints: [String] = []
         for language in languages {
             let code = language.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -257,7 +262,9 @@ extension SonioxClient {
 
         if !hints.isEmpty {
             body["language_hints"] = hints
-            body["language_hints_strict"] = true
+            if strict {
+                body["language_hints_strict"] = true
+            }
         }
         body["enable_language_identification"] = true
     }

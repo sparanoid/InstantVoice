@@ -75,12 +75,12 @@ public final class GeminiStreamingClient: StreamingTranscriptionProvider, @unche
             await self?.receiveLoop()
         }
 
+        // Transcribe models stream through their `-live` counterpart, e.g. `gemini-3.5-transcribe-live`.
         let requestedModel = model.lowercased()
-        guard requestedModel == "gemini-3.5-transcribe"
-                || requestedModel == "gemini-3.5-transcribe-live" else {
+        guard requestedModel.hasPrefix("gemini-"), requestedModel.contains("-transcribe") else {
             throw LLMKitError.unsupportedModel(model)
         }
-        let liveModel = "gemini-3.5-transcribe-live"
+        let liveModel = requestedModel.hasSuffix("-live") ? requestedModel : "\(requestedModel)-live"
         let languageCodes: [String]
         if let language, !language.isEmpty, language.lowercased() != "auto" {
             languageCodes = [language]

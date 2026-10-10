@@ -35,10 +35,43 @@ struct DeepgramProvider: CloudProvider {
     }
 
     var models: [CloudModel] {
+        listedModels ?? builtInModels
+    }
+
+    /// Every speech-to-text model Deepgram lists, under the canonical name it takes as `model`.
+    private var listedModels: [CloudModel]? {
+        guard let listed = ProviderModelCatalog.shared.models(for: providerKey), !listed.isEmpty else { return nil }
+        return listed.map { model in
+            var languages = LanguageDictionary.forCodes(model.languages ?? [])
+            if Self.usesMultilingualMode(model.id), model.capabilities.contains("multilingual") {
+                languages["auto"] = "Auto"
+            }
+            return CloudModel.listed(
+                model.id,
+                provider: .deepgram,
+                builtIn: builtInModels,
+                defaultDescription: String(localized: "Deepgram speech-to-text model"),
+                languages: languages.isEmpty ? nil : languages,
+                defaultLanguages: Self.nova3SupportedLanguages,
+                supportsBatch: model.capabilities.contains("batch"),
+                supportsStreaming: model.capabilities.contains("streaming")
+            )
+        }
+    }
+
+    /// General Nova models, such as `nova-3-general` (or its short name `nova-3`), transcribe mixed languages
+    /// when asked for `language=multi`.
+    static func usesMultilingualMode(_ modelName: String) -> Bool {
+        let parts = modelName.split(separator: "-")
+        guard parts.count >= 2, parts[0] == "nova", Int(parts[1]) != nil else { return false }
+        return parts.count == 2 || (parts.count == 3 && parts[2] == "general")
+    }
+
+    var builtInModels: [CloudModel] {
         [
             CloudModel(
-                name: "nova-3",
-                displayName: "Nova 3",
+                name: "nova-3-general",
+                displayName: "nova-3-general",
                 description: "Deepgram's latest Nova 3 model for fast, accurate transcription",
                 provider: .deepgram,
                 isMultilingual: true,
@@ -47,7 +80,7 @@ struct DeepgramProvider: CloudProvider {
             ),
             CloudModel(
                 name: "nova-3-medical",
-                displayName: "Nova 3 Medical",
+                displayName: "nova-3-medical",
                 description: "Specialized medical transcription model optimized for clinical environments",
                 provider: .deepgram,
                 isMultilingual: false,
@@ -61,7 +94,7 @@ struct DeepgramProvider: CloudProvider {
         audioData: Data, fileName: String, apiKey: String, model: String, language: String?,
         customVocabulary: [String], timeout: TimeInterval
     ) async throws -> String {
-        let deepgramLanguage = model == "nova-3" && language == nil ? "multi" : language
+        let deepgramLanguage = Self.usesMultilingualMode(model) && language == nil ? "multi" : language
         return try await DeepgramClient.transcribe(
             audioData: audioData,
             apiKey: apiKey,

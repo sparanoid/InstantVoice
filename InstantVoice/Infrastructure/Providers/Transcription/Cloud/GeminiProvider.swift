@@ -25,15 +25,52 @@ struct GeminiProvider: CloudProvider {
     }
 
     var models: [CloudModel] {
+        listedModels ?? builtInModels
+    }
+
+    /// Transcribe models from Gemini's fetched list, which also holds its chat models. Live models such as
+    /// `gemini-3.5-transcribe-live` stream; their file counterpart drops the `-live` suffix.
+    private var listedModels: [CloudModel]? {
+        guard let listed = ProviderModelCatalog.shared.models(for: providerKey) else { return nil }
+        let models = listed
+            .filter { ListedModelKind.isGeminiTranscriptionModel($0.id) }
+            .map { model in
+                let isLive = model.id.hasSuffix("-live") || model.capabilities.contains("bidiGenerateContent")
+                return CloudModel.listed(
+                    model.id,
+                    provider: .gemini,
+                    builtIn: builtInModels,
+                    description: model.displayName,
+                    defaultDescription: String(localized: "Google's dedicated transcription model"),
+                    defaultLanguages: Self.transcribeSupportedLanguages,
+                    supportsBatch: !isLive,
+                    supportsStreaming: isLive,
+                    batchFallbackName: isLive ? String(model.id.dropLast("-live".count)) : nil
+                )
+            }
+        return models.isEmpty ? nil : models
+    }
+
+    var builtInModels: [CloudModel] {
         [
             CloudModel(
                 name: "gemini-3.5-transcribe",
-                displayName: "Gemini 3.5 Transcribe",
-                description: "Google's dedicated Verbatim transcription model with real-time support",
+                displayName: "gemini-3.5-transcribe",
+                description: "Google's dedicated Verbatim transcription model for recorded audio",
+                provider: .gemini,
+                isMultilingual: true,
+                supportedLanguages: Self.transcribeSupportedLanguages
+            ),
+            CloudModel(
+                name: "gemini-3.5-transcribe-live",
+                displayName: "gemini-3.5-transcribe-live",
+                description: "Google's dedicated Verbatim transcription model for real-time transcription",
                 provider: .gemini,
                 isMultilingual: true,
                 supportsStreaming: true,
-                supportedLanguages: Self.transcribeSupportedLanguages
+                supportsBatch: false,
+                supportedLanguages: Self.transcribeSupportedLanguages,
+                batchFallbackName: "gemini-3.5-transcribe"
             ),
         ]
     }

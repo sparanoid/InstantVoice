@@ -100,6 +100,9 @@ struct InstantVoiceApp: App {
         Task { @MainActor in
             await aiService.fetchOpenRouterModelsIfNeededForMigration()
         }
+        Task {
+            await ProviderModelCatalog.shared.refreshStaleCatalogs()
+        }
 
         let updaterViewModel = UpdaterViewModel()
         _updaterViewModel = StateObject(wrappedValue: updaterViewModel)

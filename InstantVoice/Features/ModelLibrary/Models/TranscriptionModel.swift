@@ -141,10 +141,16 @@ struct CloudModel: TranscriptionModel {
     let isMultilingualModel: Bool
     let supportsStreaming: Bool
     let supportedLanguages: [String: String]
+    /// Whether the model transcribes recorded files. Models that only stream require real-time.
+    let supportsBatch: Bool
+    /// The provider's file-transcription model that stands in for a streaming-only model when a recording
+    /// has to be sent as a file, such as after streaming fails or when retranscribing.
+    let batchFallbackName: String?
 
     init(
         id: UUID = UUID(), name: String, displayName: String, description: String, provider: ModelProvider,
-        isMultilingual: Bool, supportsStreaming: Bool = false, supportedLanguages: [String: String]
+        isMultilingual: Bool, supportsStreaming: Bool = false, supportsBatch: Bool = true,
+        supportedLanguages: [String: String], batchFallbackName: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -153,7 +159,14 @@ struct CloudModel: TranscriptionModel {
         self.provider = provider
         self.isMultilingualModel = isMultilingual
         self.supportsStreaming = supportsStreaming
+        self.supportsBatch = supportsBatch
         self.supportedLanguages = supportedLanguages
+        self.batchFallbackName = batchFallbackName
+    }
+
+    /// The model to name when sending a recording as a file.
+    var batchName: String {
+        supportsBatch ? name : batchFallbackName ?? name
     }
 }
 

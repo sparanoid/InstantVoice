@@ -77,22 +77,14 @@ public struct AnthropicLLMClient: Sendable {
             return (false, "API key is missing or empty.")
         }
 
-        let url = URL(string: "https://api.anthropic.com/v1/messages")!
+        // Listing models needs only a valid key, so this keeps working as models retire.
+        let url = URL(string: "https://api.anthropic.com/v1/models?limit=1")!
 
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
+        request.httpMethod = "GET"
         request.timeoutInterval = timeout
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-
-        let body = AnthropicRequest(
-            model: "claude-haiku-4-5",
-            max_tokens: 1,
-            system: nil,
-            messages: [AnthropicMessage(role: "user", content: "Hi")]
-        )
-        request.httpBody = try? JSONEncoder().encode(body)
 
         do {
             let (data, response) = try await URLSession.shared.data(for: request)

@@ -111,7 +111,7 @@ struct ModeListRow: View {
 
         switch modelResolution {
         case .available(_, let model):
-            parts.append(model.displayName)
+            parts.append(model.providerQualifiedName)
         case .noMode, .noSelection, .modelNotFound, .unavailable:
             parts.append(String(localized: "Unavailable"))
         }
