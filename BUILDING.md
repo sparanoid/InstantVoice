@@ -2,8 +2,8 @@
 
 ## Requirements
 
-- macOS 15.0 or later
-- Xcode with Command Line Tools
+- macOS 26.0 or later
+- Xcode 26 or later with Command Line Tools
 - Git
 
 ## Local Build

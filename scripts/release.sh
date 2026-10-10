@@ -22,7 +22,7 @@ SPARKLE_ACCOUNT="${INSTANTVOICE_SPARKLE_ACCOUNT:-InstantVoice}"
 RELEASE_BASE_URL="${INSTANTVOICE_RELEASE_BASE_URL:-https://github.com/sparanoid/InstantVoice/releases/download}"
 EXPECTED_FEED_URL="https://sparanoid.github.io/InstantVoice/appcast.xml"
 EXPECTED_BUNDLE_ID="com.sparanoid.InstantVoice"
-EXPECTED_MINIMUM_SYSTEM_VERSION="15.0"
+EXPECTED_MINIMUM_SYSTEM_VERSION="26.0"
 
 XCODE_DEVELOPER_DIR="${INSTANTVOICE_XCODE_DEVELOPER_DIR:-${DEVELOPER_DIR:-}}"
 if [[ -z "$XCODE_DEVELOPER_DIR" && -d "/Applications/Xcode.app/Contents/Developer" ]]; then

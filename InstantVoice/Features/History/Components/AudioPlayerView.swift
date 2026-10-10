@@ -198,6 +198,9 @@ struct WaveformView: View {
                     .opacity(0.6)
                     .frame(maxHeight: .infinity)
                     .padding(.horizontal, 2)
+                    // Keep bars inside the waveform's bounds even when there are more samples than points.
+                    .frame(width: geometry.size.width, alignment: .leading)
+                    .clipped()
 
                     if isHovering {
                         Text(formatTime(duration * Double(hoverLocation / geometry.size.width)))
@@ -274,7 +277,8 @@ struct WaveformBar: View {
                 )
             )
             .frame(
-                width: max((geometryWidth / CGFloat(totalBars)) - 0.5, 1),
+                // Subtract the 2pt side padding and the 0.5pt spacing between bars so the row fits its width.
+                width: max(((geometryWidth - 4) / CGFloat(max(totalBars, 1))) - 0.5, 0.5),
                 height: max(CGFloat(sample) * 24, 2)
             )
             .scaleEffect(y: isHovering && isNearHover ? 1.15 : 1.0)

@@ -14,6 +14,7 @@ struct HistoryDetailActionBar: View {
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @Environment(\.modelContext) private var modelContext
     @ObservedObject private var modeManager = ModeManager.shared
+    @Environment(\.historyControlStyle) private var style
 
     @State private var didCopy = false
     @State private var isShowingModes = false
@@ -42,24 +43,50 @@ struct HistoryDetailActionBar: View {
     }
 
     var body: some View {
+        switch style {
+        case .panel:
+            HStack(spacing: 8) {
+                modeButton
+                promptButton
+                retryButton
+                finderButton
+                infoButton
+                Spacer(minLength: 8)
+                textActionButton
+            }
+            .padding(.horizontal, 10)
+            .frame(height: HistoryLayout.actionBarHeight)
+        case .glass:
+            // Picker titles drop away, leaving icons and tooltips, when the detail pane is too narrow.
+            ViewThatFits(in: .horizontal) {
+                glassBar(showsModeTitle: true, showsPromptTitle: true)
+                glassBar(showsModeTitle: true, showsPromptTitle: false)
+                glassBar(showsModeTitle: false, showsPromptTitle: false)
+            }
+        }
+    }
+
+    private func glassBar(showsModeTitle: Bool, showsPromptTitle: Bool) -> some View {
         HStack(spacing: 8) {
-            modeButton
-            promptButton
+            modeButton(showsTitle: showsModeTitle)
+            promptButton(showsTitle: showsPromptTitle)
+            Spacer(minLength: 8)
             retryButton
             finderButton
             infoButton
-            Spacer(minLength: 8)
-            textActionButton
+            copyIconButton
         }
-        .padding(.horizontal, 10)
-        .frame(height: HistoryLayout.actionBarHeight)
     }
 
     private var modeButton: some View {
+        modeButton(showsTitle: true)
+    }
+
+    private func modeButton(showsTitle: Bool) -> some View {
         Button {
             isShowingModes.toggle()
         } label: {
-            actionLabel(title: selectedMode?.name ?? String(localized: "Select Mode")) {
+            actionLabel(title: selectedMode?.name ?? String(localized: "Select Mode"), showsTitle: showsTitle) {
                 if let selectedMode {
                     ModeIconView(
                         icon: selectedMode.icon,
@@ -72,7 +99,7 @@ struct HistoryDetailActionBar: View {
                 }
             }
         }
-        .buttonStyle(.plain)
+        .modifier(HistoryActionPickerStyle(style: style))
         .disabled(isWorking)
         .popover(isPresented: $isShowingModes, arrowEdge: .bottom) {
             ModePopover(selectedModeId: selectedMode?.id) { mode in
@@ -85,14 +112,18 @@ struct HistoryDetailActionBar: View {
     }
 
     private var promptButton: some View {
+        promptButton(showsTitle: true)
+    }
+
+    private func promptButton(showsTitle: Bool) -> some View {
         Button {
             isShowingPrompts.toggle()
         } label: {
-            actionLabel(title: selectedPromptTitle) {
+            actionLabel(title: selectedPromptTitle, showsTitle: showsTitle) {
                 Image(systemName: "wand.and.stars")
             }
         }
-        .buttonStyle(.plain)
+        .modifier(HistoryActionPickerStyle(style: style))
         .disabled(isWorking)
         .popover(isPresented: $isShowingPrompts, arrowEdge: .bottom) {
             promptPopover
@@ -112,6 +143,15 @@ struct HistoryDetailActionBar: View {
             onPaste == nil
                 ? "Copy transcription"
                 : "Paste enhanced text when available, otherwise paste the original transcription"
+        )
+    }
+
+    /// Icon-only copy for the floating bar, so the bar fits the narrowest detail pane.
+    private var copyIconButton: some View {
+        HistoryIconButton(
+            systemName: didCopy ? "checkmark" : "doc.on.doc",
+            help: "Copy transcription",
+            action: performTextAction
         )
     }
 
@@ -162,7 +202,32 @@ struct HistoryDetailActionBar: View {
         )
     }
 
-    private func actionLabel<Icon: View>(title: String, @ViewBuilder icon: () -> Icon) -> some View {
+    @ViewBuilder
+    private func actionLabel<Icon: View>(
+        title: String,
+        showsTitle: Bool = true,
+        @ViewBuilder icon: () -> Icon
+    ) -> some View {
+        switch style {
+        case .panel:
+            panelActionLabel(title: title, icon: icon)
+        case .glass:
+            HStack(spacing: 6) {
+                icon()
+                if showsTitle {
+                    Text(title.count > 22 ? String(title.prefix(20)) + "…" : title)
+                        .lineLimit(1)
+                }
+                Image(systemName: "chevron.down")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .fixedSize()
+            .accessibilityLabel(Text(title))
+        }
+    }
+
+    private func panelActionLabel<Icon: View>(title: String, @ViewBuilder icon: () -> Icon) -> some View {
         HStack(spacing: 7) {
             icon()
             Text(title)
@@ -353,5 +418,20 @@ struct HistoryDetailActionBar: View {
 
     private func showError(_ title: String) {
         NotificationManager.shared.showNotification(title: title, type: .error, duration: 3.0)
+    }
+}
+
+private struct HistoryActionPickerStyle: ViewModifier {
+    let style: HistoryControlStyle
+
+    func body(content: Content) -> some View {
+        switch style {
+        case .panel:
+            content.buttonStyle(.plain)
+        case .glass:
+            content
+                .buttonStyle(.glass)
+                .controlSize(.large)
+        }
     }
 }

@@ -36,17 +36,25 @@ final class MainWindowNavigation: ObservableObject {
 
 struct ContentView: View {
     private let logger = Logger(subsystem: "com.sparanoid.instantvoice", category: "ContentView")
-    private static let detailBackgroundTintOpacity = 0.50
     @EnvironmentObject private var navigation: MainWindowNavigation
 
     var body: some View {
-        HStack(spacing: 0) {
-            AppSidebar(selectedView: $navigation.selectedView)
-
-            detailContent
+        NavigationSplitView {
+            AppSidebar(selection: $navigation.selectedView)
+                .navigationSplitViewColumnWidth(
+                    min: AppWindowLayout.sidebarMinimumWidth,
+                    ideal: AppWindowLayout.sidebarIdealWidth,
+                    max: AppWindowLayout.sidebarMaximumWidth
+                )
+        } detail: {
+            // A fresh stack per destination resets any drill-down when switching sections.
+            NavigationStack {
+                detailView(for: navigation.selectedView)
+                    .navigationTitle(navigation.selectedView.title)
+            }
+            .id(navigation.selectedView)
         }
-        .frame(width: AppWindowLayout.width)
-        .frame(minHeight: AppWindowLayout.minimumHeight)
+        .frame(minWidth: AppWindowLayout.minimumWidth, minHeight: AppWindowLayout.minimumHeight)
         .onAppear {
             logger.notice("ContentView appeared")
         }
@@ -59,26 +67,6 @@ struct ContentView: View {
                 navigation.navigate(to: destination)
             }
         }
-    }
-
-    @ViewBuilder
-    private var detailContent: some View {
-        detailView(for: navigation.selectedView)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(detailBackground)
-    }
-
-    private var detailBackground: some View {
-        ZStack {
-            VisualEffectView(
-                material: .sidebar,
-                blendingMode: .behindWindow
-            )
-
-            AppTheme.Surface.window
-                .opacity(Self.detailBackgroundTintOpacity)
-        }
-        .ignoresSafeArea(.container, edges: .top)
     }
 
     @ViewBuilder

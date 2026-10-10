@@ -115,20 +115,9 @@ struct InstantVoiceRefineModelCardView: View {
                 modelStatusPill("Unavailable", systemImage: "exclamationmark.triangle")
             case .available:
                 if service.isDownloading {
-                    Button {
+                    ModelDownloadButton(isDownloading: true) {
                         service.cancelDownload()
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text("Cancel")
-                            Image(systemName: "xmark.circle")
-                        }
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Capsule().fill(AppTheme.Action.destructiveFill))
                     }
-                    .buttonStyle(.plain)
                 } else if service.isDownloaded {
                     modelStatusPill("Downloaded", systemImage: "checkmark.circle")
 
@@ -155,28 +144,12 @@ struct InstantVoiceRefineModelCardView: View {
                     .menuIndicator(.hidden)
                     .frame(width: 20, height: 20)
                 } else {
-                    Button {
+                    ModelDownloadButton(
+                        isDownloading: false,
+                        downloadTitle: service.downloadError == nil ? "Download" : "Retry"
+                    ) {
                         service.startDownload()
-                    } label: {
-                        HStack(spacing: 4) {
-                            if service.downloadError == nil {
-                                Text("Download")
-                            } else {
-                                Text("Retry")
-                            }
-                            Image(systemName: "arrow.down.circle")
-                        }
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(AppTheme.Accent.primary)
-                                .shadow(color: AppTheme.Accent.shadow, radius: 2, x: 0, y: 1)
-                        )
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }

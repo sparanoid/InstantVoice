@@ -1,19 +1,19 @@
 import SwiftUI
 
+/// A grouped-section surface: borderless like macOS form sections, outlined only when selected.
 struct AppCardBackground: View {
     var isSelected: Bool = false
-    var cornerRadius: CGFloat = 12
+    var cornerRadius: CGFloat = AppTheme.Radius.card
 
     var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius)
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
             .fill(AppTheme.Surface.card)
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(
-                        isSelected ? AppTheme.Selection.border : AppTheme.Border.subtle,
-                        lineWidth: isSelected ? 1.5 : 1
-                    )
-            )
+            .overlay {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .strokeBorder(AppTheme.Selection.border, lineWidth: 1.5)
+                }
+            }
     }
 }
 
@@ -32,15 +32,7 @@ struct AppMaterialCardBackground: View {
     }
 
     var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius)
-            .fill(Self.fill)
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(
-                        Self.border(for: isSelected),
-                        lineWidth: Self.lineWidth(for: isSelected)
-                    )
-            )
+        AppCardBackground(isSelected: isSelected, cornerRadius: cornerRadius)
     }
 }
 

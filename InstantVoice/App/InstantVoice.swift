@@ -355,8 +355,11 @@ struct InstantVoiceApp: App {
                         .environmentObject(transcriptionModelManager)
                         .environmentObject(aiService)
                         .environmentObject(enhancementService)
-                        .frame(width: AppWindowLayout.width)
-                        .frame(minHeight: AppWindowLayout.minimumHeight)
+                        .frame(width: AppWindowLayout.onboardingWidth)
+                        .frame(minHeight: AppWindowLayout.onboardingMinimumHeight)
+                        // Onboarding draws its own full-window backdrop, so keep the title bar empty and clear.
+                        .toolbar(removing: .title)
+                        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
                         .background(
                             WindowAccessor { window in
                                 WindowManager.shared.configureWindow(window)
@@ -364,15 +367,21 @@ struct InstantVoiceApp: App {
                 }
             }
         }
-        .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: AppWindowLayout.width, height: AppWindowLayout.minimumHeight)
+        .defaultSize(width: AppWindowLayout.defaultWidth, height: AppWindowLayout.defaultHeight)
         .windowResizability(.contentSize)
+        .windowToolbarStyle(.unified)
         .commands {
             CommandGroup(replacing: .newItem) {}
 
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(updaterViewModel: updaterViewModel)
             }
+
+            MainWindowCommands(
+                navigation: mainWindowNavigation,
+                menuBarManager: menuBarManager,
+                isEnabled: hasCompletedOnboardingV2
+            )
         }
 
         MenuBarExtra(isInserted: $showMenuBarIcon) {

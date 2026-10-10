@@ -108,26 +108,13 @@ struct TranscribeCppModelCardView: View {
                 .menuIndicator(.hidden)
                 .frame(width: 20, height: 20)
             } else {
-                Button {
+                ModelDownloadButton(isDownloading: isDownloading) {
                     if isDownloading {
                         modelManager.cancelDownload(model)
                     } else {
                         modelManager.startDownload(model)
                     }
-                } label: {
-                    HStack(spacing: 4) {
-                        Text(LocalizedStringKey(isDownloading ? "Cancel" : "Download"))
-                        Image(systemName: isDownloading ? "xmark.circle" : "arrow.down.circle")
-                    }
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule().fill(isDownloading ? AppTheme.Action.destructiveFill : AppTheme.Accent.primary)
-                    )
                 }
-                .buttonStyle(.plain)
             }
         }
     }

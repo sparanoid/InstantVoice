@@ -820,13 +820,7 @@ private struct CustomModelEditorFooter: View {
         }
 
         var body: some View {
-            VStack(spacing: 0) {
-                AppScreenHeader(title: "Model Catalog") {
-                    AppIconButton(systemName: "plus.circle.fill", help: "Add custom model") {
-                        activePanel = .transcription
-                    }
-                }
-
+            NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         customSectionHeader(
@@ -856,9 +850,16 @@ private struct CustomModelEditorFooter: View {
                     .padding(24)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
+                .navigationTitle("Model Catalog")
+                .toolbar {
+                    Button {
+                        activePanel = .transcription
+                    } label: {
+                        Label("Add custom model", systemImage: "plus")
+                    }
+                }
             }
             .frame(width: 920, height: 640)
-            .background(AppTheme.Surface.window)
             .sidePanel(isPresented: isPanelOpen) {
                 panelContent
             }

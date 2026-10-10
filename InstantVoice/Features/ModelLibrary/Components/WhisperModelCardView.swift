@@ -38,8 +38,8 @@ struct WhisperModelCardView: View {
     private var headerSection: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(model.displayName)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color(.labelColor))
+                .font(.headline)
+                .foregroundStyle(.primary)
 
             Spacer()
         }
@@ -110,23 +110,10 @@ struct WhisperModelCardView: View {
             if isDownloaded {
                 modelStatusPill("Downloaded", systemImage: "checkmark.circle")
             } else {
-                Button(action: isDownloading ? cancelDownloadAction : downloadAction) {
-                    HStack(spacing: 4) {
-                        Text(LocalizedStringKey(isDownloading ? "Cancel" : "Download"))
-                            .font(.system(size: 12, weight: .medium))
-                        Image(systemName: isDownloading ? "xmark.circle" : "arrow.down.circle")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(isDownloading ? AppTheme.Action.destructiveFill : AppTheme.Accent.primary)
-                            .shadow(color: AppTheme.Accent.shadow, radius: 2, x: 0, y: 1)
-                    )
-                }
-                .buttonStyle(.plain)
+                ModelDownloadButton(
+                    isDownloading: isDownloading,
+                    action: isDownloading ? cancelDownloadAction : downloadAction
+                )
             }
 
             if isDownloaded {

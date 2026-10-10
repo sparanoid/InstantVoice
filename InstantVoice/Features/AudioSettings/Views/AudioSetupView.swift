@@ -46,7 +46,6 @@ struct AudioSetupView: View {
             }
         }
         .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
         .onAppear {
             if !usesPriorityOrder {
                 microphoneSourceBeforePriorityOrder = currentMicrophoneSource

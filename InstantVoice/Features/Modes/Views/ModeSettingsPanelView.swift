@@ -34,12 +34,12 @@ struct ModeSettingsPanelView: View {
             .padding(.vertical, 16)
             .overlay(Divider().opacity(0.5), alignment: .bottom)
 
-            HStack {
+            HStack(spacing: 0) {
                 Text("Reorder Modes")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.callout.weight(.semibold))
                     .foregroundStyle(.secondary)
-                    + Text(" (drag to reorder)")
-                    .font(.system(size: 12))
+                Text(" (drag to reorder)")
+                    .font(.callout)
                     .foregroundStyle(.tertiary)
                 Spacer()
             }

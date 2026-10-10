@@ -8,22 +8,25 @@ struct HistoryView: View {
     }
 
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var searchText = ""
-    @State private var detailTranscription: Transcription?
-    @FocusState private var isSearchFocused: Bool
-    @State private var selectedTranscriptions: Set<Transcription> = []
+    @State private var selection: Set<UUID> = []
+    @State private var selectedTranscriptions: [Transcription] = []
+    @State private var updatedTranscription: Transcription?
+    /// Keeps the detail pane on a selected row that a reload or search pushed out of the loaded pages.
+    @State private var focusedFallback: Transcription?
     @State private var showDeleteConfirmation = false
     @State private var isShowingInfo = false
     @State private var activePanel: HistoryPanel?
     @State private var displayedTranscriptions: [Transcription] = []
     @State private var isLoading = false
+    @State private var hasLoadedInitialContent = false
     @State private var hasMoreContent = true
     @State private var paginationCursor: PaginationCursor?
     @State private var isViewCurrentlyVisible = false
 
     private let exportService = InstantVoiceCSVExportService()
-    private let pageSize = 20
+    private let pageSize = 40
+    private static let listWidth: CGFloat = 300
 
     @Query(Self.createLatestTranscriptionIndicatorDescriptor()) private var latestTranscriptionIndicator:
         [Transcription]
@@ -36,7 +39,10 @@ struct HistoryView: View {
         return descriptor
     }
 
-    private func cursorQueryDescriptor(after cursor: PaginationCursor? = nil) -> FetchDescriptor<Transcription> {
+    private func cursorQueryDescriptor(
+        after cursor: PaginationCursor? = nil,
+        limit: Int? = nil
+    ) -> FetchDescriptor<Transcription> {
         var descriptor = FetchDescriptor<Transcription>(
             sortBy: [
                 SortDescriptor(\Transcription.timestamp, order: .reverse),
@@ -71,55 +77,60 @@ struct HistoryView: View {
         }
 
         // Fetch one extra row so the UI can determine whether another page exists.
-        descriptor.fetchLimit = pageSize + 1
+        descriptor.fetchLimit = (limit ?? pageSize) + 1
 
         return descriptor
     }
 
-    private var allSelected: Bool {
-        !displayedTranscriptions.isEmpty && displayedTranscriptions.allSatisfy { selectedTranscriptions.contains($0) }
+    /// The transcription shown in the detail pane when exactly one row is selected.
+    private var focusedTranscription: Transcription? {
+        guard selection.count == 1, let id = selection.first else { return nil }
+        if let updatedTranscription, updatedTranscription.id == id {
+            return updatedTranscription
+        }
+        if let loaded = displayedTranscriptions.first(where: { $0.id == id }) {
+            return loaded
+        }
+        return focusedFallback?.id == id ? focusedFallback : nil
     }
 
-    private func openDetail(_ transcription: Transcription) {
-        activePanel = nil
-        isShowingInfo = false
-        isSearchFocused = false
-        detailTranscription = transcription
-    }
-
-    private func closeDetail() {
-        activePanel = nil
-        isShowingInfo = false
-        detailTranscription = nil
-        isSearchFocused = true
+    private var isHistoryEmpty: Bool {
+        hasLoadedInitialContent && displayedTranscriptions.isEmpty && searchText.isEmpty && !isLoading
     }
 
     var body: some View {
-        ZStack {
-            // Keep the list mounted so returning from details preserves its scroll position.
-            historyContent
-                .opacity(detailTranscription == nil ? 1 : 0)
-                .allowsHitTesting(detailTranscription == nil)
-                .disabled(detailTranscription != nil)
-                .accessibilityHidden(detailTranscription != nil)
+        Group {
+            if isHistoryEmpty {
+                ContentUnavailableView {
+                    Label("No transcriptions yet", systemImage: "text.bubble")
+                } description: {
+                    Text("Your transcription history will appear here")
+                }
+            } else {
+                HStack(spacing: 0) {
+                    listColumn
+                        .frame(width: Self.listWidth)
 
-            if let transcription = detailTranscription {
-                TranscriptionDetailView(
-                    transcription: transcription,
-                    isInfoPresented: $isShowingInfo,
-                    onBack: closeDetail,
-                    onTranscriptionUpdated: { updated in
-                        guard detailTranscription?.id == transcription.id else { return }
-                        isShowingInfo = false
-                        detailTranscription = updated
-                    }
-                )
-                .transition(.opacity)
+                    Divider()
+                        .ignoresSafeArea()
+
+                    detailColumn
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
         }
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: detailTranscription?.id)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea(.container, edges: .top)
+        .searchable(text: $searchText, placement: .toolbar, prompt: Text("Search transcriptions..."))
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    activePanel = activePanel == .settings ? nil : .settings
+                } label: {
+                    Label("History Settings", systemImage: "gearshape")
+                }
+                .help("History settings")
+            }
+        }
         .sidePanel(
             isPresented: .init(
                 get: { activePanel != nil },
@@ -134,8 +145,8 @@ struct HistoryView: View {
                 isShowingInfo = false
             } else if activePanel != nil {
                 activePanel = nil
-            } else if detailTranscription != nil {
-                closeDetail()
+            } else if !selection.isEmpty {
+                selection.removeAll()
             }
         }
         .alert("Delete Selected Items?", isPresented: $showDeleteConfirmation) {
@@ -147,12 +158,11 @@ struct HistoryView: View {
             Text(
                 String(
                     localized:
-                        "This action cannot be undone. Are you sure you want to delete \(selectedTranscriptions.count) items?"
+                        "This action cannot be undone. Are you sure you want to delete \(selection.count) items?"
                 ))
         }
         .onAppear {
             isViewCurrentlyVisible = true
-            isSearchFocused = true
             Task { await loadInitialContent() }
         }
         .onDisappear {
@@ -162,113 +172,130 @@ struct HistoryView: View {
             Task {
                 resetPagination()
                 await loadInitialContent()
+                // A new search is a new context: keep only selected rows that are still visible.
+                let visibleIDs = Set(displayedTranscriptions.map(\.id))
+                selection.formIntersection(visibleIDs)
             }
+        }
+        .onChange(of: selection) { _, newSelection in
+            isShowingInfo = false
+            if newSelection.count != 1 {
+                updatedTranscription = nil
+            }
+            refreshFocusedFallback()
         }
         .onChange(of: latestTranscriptionIndicator.first?.id) { oldId, newId in
-            guard isViewCurrentlyVisible else { return }
-            if newId != oldId {
-                Task {
-                    resetPagination()
-                    await loadInitialContent()
+            guard isViewCurrentlyVisible, newId != oldId else { return }
+            // Reload in place, keeping every loaded page so scroll position and selection survive.
+            Task { await loadInitialContent(minimumCount: displayedTranscriptions.count + 1) }
+        }
+    }
+
+    // MARK: - List
+
+    @ViewBuilder
+    private var listColumn: some View {
+        if !hasLoadedInitialContent {
+            // Build the list only once rows exist; rows inserted into an empty list keep a stale height.
+            Color.clear
+        } else if displayedTranscriptions.isEmpty && !isLoading && !searchText.isEmpty {
+            ContentUnavailableView.search(text: searchText)
+        } else {
+            List(selection: $selection) {
+                ForEach(displayedTranscriptions) { transcription in
+                    HistoryListRow(transcription: transcription)
+                        .tag(transcription.id)
+                        .listRowSeparator(
+                            transcription.id == displayedTranscriptions.first?.id ? .hidden : .automatic,
+                            edges: .top
+                        )
+                        .onAppear {
+                            loadMoreIfNeeded(after: transcription)
+                        }
                 }
+
+                if hasMoreContent && isLoading {
+                    ProgressView()
+                        .controlSize(.small)
+                        .frame(maxWidth: .infinity)
+                        .listRowSeparator(.hidden)
+                }
+            }
+            .listStyle(.inset)
+            .environment(\.defaultMinListRowHeight, HistoryListRow.height)
+            .contextMenu(forSelectionType: UUID.self) { ids in
+                rowContextMenu(for: ids)
+            }
+            .onDeleteCommand {
+                guard !selection.isEmpty else { return }
+                showDeleteConfirmation = true
             }
         }
     }
 
-    private var historyContent: some View {
-        QuickPanelScaffold {
-            if displayedTranscriptions.isEmpty && !isLoading {
-                HistoryEmptyState(
-                    hasSearchQuery: !searchText.isEmpty,
-                    emptyMessage: "Your transcription history will appear here"
-                )
-            } else {
-                historyList
+    @ViewBuilder
+    private func rowContextMenu(for ids: Set<UUID>) -> some View {
+        if !ids.isEmpty {
+            Button {
+                copyText(of: ids)
+            } label: {
+                Label("Copy", systemImage: "doc.on.doc")
             }
-        } header: {
-            searchHeader
-        } footer: {
-            selectionBar
+
+            Button {
+                exportTranscriptions(ids)
+            } label: {
+                Label("Export", systemImage: "square.and.arrow.up")
+            }
+
+            Button {
+                analyzeTranscriptions(ids)
+            } label: {
+                Label("Analyze", systemImage: "chart.bar.xaxis")
+            }
+
+            Divider()
+
+            Button(role: .destructive) {
+                selection = ids
+                showDeleteConfirmation = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
         }
     }
 
-    // MARK: - Search Header
+    // MARK: - Detail
 
-    private var searchHeader: some View {
-        HistorySearchHeader(
-            searchText: $searchText,
-            searchFocus: $isSearchFocused,
-            isSearching: isLoading
-        ) {
-            Spacer()
-            HistoryIconButton(systemName: "gearshape", help: "History settings") {
-                activePanel = .settings
-            }
-        }
-    }
-
-    private var selectionBar: some View {
-        HStack(spacing: 8) {
-            if !selectedTranscriptions.isEmpty {
-                Text(String(format: String(localized: "%lld selected"), Int64(selectedTranscriptions.count)))
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(AppTheme.Text.secondary)
-
-                Spacer(minLength: 8)
-
-                HistoryCommandButton("Analyze", systemImage: "chart.bar.xaxis") {
-                    activePanel = .analysis
+    @ViewBuilder
+    private var detailColumn: some View {
+        if let transcription = focusedTranscription {
+            TranscriptionDetailView(
+                transcription: transcription,
+                isInfoPresented: $isShowingInfo,
+                onBack: { selection.removeAll() },
+                onTranscriptionUpdated: { updated in
+                    guard selection.contains(transcription.id) else { return }
+                    isShowingInfo = false
+                    updatedTranscription = updated
+                    selection = [updated.id]
                 }
-
-                HistoryCommandButton("Export", systemImage: "square.and.arrow.up") {
-                    exportService.exportTranscriptionsToCSV(transcriptions: Array(selectedTranscriptions))
-                }
-
-                HistoryCommandButton("Delete", systemImage: "trash", isDestructive: true) {
-                    showDeleteConfirmation = true
-                }
-            }
-
-            if allSelected {
-                HistoryCommandButton("Deselect All") {
-                    selectedTranscriptions.removeAll()
-                }
-            } else {
-                HistoryCommandButton("Select All") {
-                    Task { await selectAllTranscriptions() }
-                }
-                .disabled(displayedTranscriptions.isEmpty)
-            }
-
-            if selectedTranscriptions.isEmpty {
-                Spacer()
-            }
-        }
-        .padding(.horizontal, 10)
-        .frame(height: HistoryLayout.actionBarHeight)
-    }
-
-    // MARK: - History List
-
-    private var historyList: some View {
-        HistoryList {
-            ForEach(displayedTranscriptions) { transcription in
-                HistoryTranscriptionRow(
-                    transcription: transcription,
-                    isSelected: selectedTranscriptions.contains(transcription),
-                    onSelect: { openDetail(transcription) },
-                    onToggleCheck: { toggleSelection(transcription) },
-                    showsCopyButton: true
-                )
-                .id(transcription.id)
-            }
-
-            if hasMoreContent {
-                HistoryCommandButton("Load More") {
-                    Task { await loadMoreContent() }
-                }
-                .disabled(isLoading)
-                .padding(.vertical, 8)
+            )
+            .id(transcription.id)
+        } else if selection.count > 1 {
+            HistoryMultiSelectionView(
+                count: selection.count,
+                canSelectAll: hasMoreContent,
+                onSelectAll: { Task { await selectAllTranscriptions() } },
+                onAnalyze: { analyzeTranscriptions(selection) },
+                onExport: { exportTranscriptions(selection) },
+                onDelete: { showDeleteConfirmation = true }
+            )
+        } else {
+            ContentUnavailableView {
+                Label("No Transcription Selected", systemImage: "text.bubble")
+            } description: {
+                Text("Select a transcription to see its details.")
             }
         }
     }
@@ -281,7 +308,7 @@ struct HistoryView: View {
             switch activePanel {
             case .analysis:
                 HistoryAnalysisPanelView(
-                    transcriptions: Array(selectedTranscriptions),
+                    transcriptions: selectedTranscriptions,
                     onClose: { self.activePanel = nil }
                 )
                 .id(selectedTranscriptions.count)
@@ -291,22 +318,93 @@ struct HistoryView: View {
         }
     }
 
+    // MARK: - Actions
+
+    private func copyText(of ids: Set<UUID>) {
+        let text = transcriptions(for: ids)
+            .map(\.preferredHistoryText)
+            .joined(separator: "\n\n")
+        guard !text.isEmpty else { return }
+        _ = ClipboardManager.copyToClipboard(text)
+    }
+
+    private func exportTranscriptions(_ ids: Set<UUID>) {
+        exportService.exportTranscriptionsToCSV(transcriptions: transcriptions(for: ids))
+    }
+
+    private func analyzeTranscriptions(_ ids: Set<UUID>) {
+        selectedTranscriptions = transcriptions(for: ids)
+        activePanel = .analysis
+    }
+
+    /// Resolves selected IDs to models, including rows beyond the loaded pages after Select All.
+    private func transcriptions(for ids: Set<UUID>) -> [Transcription] {
+        let loaded = displayedTranscriptions.filter { ids.contains($0.id) }
+        guard loaded.count < ids.count else { return loaded }
+
+        let idList = Array(ids)
+        let descriptor = FetchDescriptor<Transcription>(
+            predicate: #Predicate<Transcription> { idList.contains($0.id) },
+            sortBy: [SortDescriptor(\Transcription.timestamp, order: .reverse)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? loaded
+    }
+
     // MARK: - Data Loading
 
+    private func loadMoreIfNeeded(after transcription: Transcription) {
+        guard transcription.id == displayedTranscriptions.last?.id else { return }
+        Task { await loadMoreContent() }
+    }
+
+    /// Loads the first rows, or at least `minimumCount` rows when reloading in place.
     @MainActor
-    private func loadInitialContent() async {
+    private func loadInitialContent(minimumCount: Int = 0) async {
         isLoading = true
-        defer { isLoading = false }
+        defer {
+            isLoading = false
+            hasLoadedInitialContent = true
+            refreshFocusedFallback()
+        }
+
+        let isFirstLoad = !hasLoadedInitialContent
 
         do {
-            paginationCursor = nil
-            let items = try modelContext.fetch(cursorQueryDescriptor())
-            let page = Array(items.prefix(pageSize))
+            let limit = max(pageSize, minimumCount)
+            let items = try modelContext.fetch(cursorQueryDescriptor(limit: limit))
+            let page = Array(items.prefix(limit))
             displayedTranscriptions = page
             paginationCursor = page.last.map { PaginationCursor(timestamp: $0.timestamp, id: $0.id) }
-            hasMoreContent = items.count > pageSize
+            hasMoreContent = items.count > limit
+
+            // Like Mail, open on the newest item rather than an empty detail pane.
+            if isFirstLoad, selection.isEmpty, let newest = page.first {
+                selection = [newest.id]
+            }
         } catch {
             print("Error loading transcriptions: \(error)")
+        }
+    }
+
+    /// Resolves a single selected row that isn't loaded, and drops it from the selection if it no longer exists.
+    private func refreshFocusedFallback() {
+        guard selection.count == 1, let id = selection.first,
+            !displayedTranscriptions.contains(where: { $0.id == id })
+        else {
+            focusedFallback = nil
+            return
+        }
+        if updatedTranscription?.id == id {
+            return
+        }
+
+        var descriptor = FetchDescriptor<Transcription>(predicate: #Predicate { $0.id == id })
+        descriptor.fetchLimit = 1
+        if let transcription = try? modelContext.fetch(descriptor).first {
+            focusedFallback = transcription
+        } else {
+            focusedFallback = nil
+            selection.remove(id)
         }
     }
 
@@ -336,15 +434,7 @@ struct HistoryView: View {
         isLoading = false
     }
 
-    // MARK: - Selection & Deletion
-
-    private func toggleSelection(_ transcription: Transcription) {
-        if selectedTranscriptions.contains(transcription) {
-            selectedTranscriptions.remove(transcription)
-        } else {
-            selectedTranscriptions.insert(transcription)
-        }
-    }
+    // MARK: - Deletion
 
     private func performDeletion(for transcription: Transcription) {
         if let url = transcription.availableHistoryAudioURL {
@@ -355,29 +445,28 @@ struct HistoryView: View {
             }
         }
 
-        if detailTranscription?.id == transcription.id {
-            closeDetail()
-        }
-
-        selectedTranscriptions.remove(transcription)
         modelContext.delete(transcription)
     }
 
     private func deleteSelectedTranscriptions() {
-        for transcription in selectedTranscriptions {
+        for transcription in transcriptions(for: selection) {
             performDeletion(for: transcription)
         }
+        selection.removeAll()
         selectedTranscriptions.removeAll()
+        updatedTranscription = nil
+        focusedFallback = nil
+        isShowingInfo = false
 
+        let loadedCount = displayedTranscriptions.count
         Task {
             do {
                 try modelContext.save()
                 NotificationCenter.default.post(name: .transcriptionDeleted, object: nil)
-                await loadInitialContent()
             } catch {
                 print("Error saving deletion: \(error.localizedDescription)")
-                await loadInitialContent()
             }
+            await loadInitialContent(minimumCount: loadedCount)
         }
     }
 
@@ -396,8 +485,7 @@ struct HistoryView: View {
 
             allDescriptor.propertiesToFetch = [\.id]
             let allTranscriptions = try modelContext.fetch(allDescriptor)
-            selectedTranscriptions = Set(displayedTranscriptions)
-            selectedTranscriptions.formUnion(allTranscriptions)
+            selection = Set(displayedTranscriptions.map(\.id)).union(allTranscriptions.map(\.id))
         } catch {
             print("Error selecting all transcriptions: \(error)")
         }

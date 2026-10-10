@@ -104,26 +104,13 @@ struct FluidAudioModelCardView: View {
             if isDownloaded && !isDownloading {
                 modelStatusPill("Downloaded", systemImage: "checkmark.circle")
             } else {
-                Button(action: {
+                ModelDownloadButton(isDownloading: isDownloading) {
                     if isDownloading {
                         fluidAudioModelManager.cancelDownload(model)
                     } else {
                         fluidAudioModelManager.startDownload(model)
                     }
-                }) {
-                    HStack(spacing: 4) {
-                        Text(LocalizedStringKey(isDownloading ? "Cancel" : "Download"))
-                        Image(systemName: isDownloading ? "xmark.circle" : "arrow.down.circle")
-                    }
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule().fill(isDownloading ? AppTheme.Action.destructiveFill : AppTheme.Accent.primary)
-                    )
                 }
-                .buttonStyle(.plain)
             }
 
             if isDownloaded && !isDownloading {

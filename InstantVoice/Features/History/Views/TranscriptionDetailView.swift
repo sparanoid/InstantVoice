@@ -23,6 +23,107 @@ struct TranscriptionDetailView: View {
     }
 
     var body: some View {
+        switch presentation {
+        case .mainWindow:
+            mainWindowLayout
+        case .quickPanel:
+            quickPanelLayout
+        }
+    }
+
+    // MARK: - Main Window
+
+    private var mainWindowLayout: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                detailHeader
+                transcriptionContent
+            }
+            .padding(.horizontal, 28)
+            .padding(.top, 22)
+            .padding(.bottom, 24)
+            .frame(maxWidth: 760, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .safeAreaBar(edge: .bottom) {
+            floatingControls
+        }
+        .id(transcription.id)
+        .sidePanel(isPresented: $isInfoPresented, width: 340, dismissOnExitCommand: false) {
+            TranscriptionInfoSidePanel(transcription: transcription) {
+                isInfoPresented = false
+            }
+            .id(transcription.id)
+        }
+    }
+
+    private var detailHeader: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(transcription.timestamp, format: .dateTime.weekday(.wide).month(.wide).day().year().hour().minute())
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(.primary)
+                .textSelection(.enabled)
+                .accessibilityAddTraits(.isHeader)
+
+            HStack(spacing: 14) {
+                if let modeName = transcription.modeName, !modeName.isEmpty {
+                    Label {
+                        Text(modeName)
+                    } icon: {
+                        if let icon = transcription.recordedHistoryModeIcon {
+                            ModeIconView(icon: icon, size: 11, color: .secondary)
+                        } else {
+                            Image(systemName: "sparkles.rectangle.stack")
+                        }
+                    }
+                }
+
+                if transcription.duration > 0 {
+                    Label {
+                        Text(Duration.seconds(Int(transcription.duration)), format: .time(pattern: .minuteSecond))
+                            .monospacedDigit()
+                    } icon: {
+                        Image(systemName: "clock")
+                    }
+                }
+
+                if let modelName = transcription.transcriptionModelName, !modelName.isEmpty {
+                    Label(modelName, systemImage: "cpu")
+                        .lineLimit(1)
+                }
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .labelStyle(.titleAndIcon)
+        }
+    }
+
+    /// Playback and actions float over the transcript on Liquid Glass, like media controls.
+    private var floatingControls: some View {
+        GlassEffectContainer(spacing: 10) {
+            VStack(spacing: 10) {
+                if let playbackURL {
+                    HistoryAudioPlayer(url: playbackURL)
+                }
+
+                HistoryDetailActionBar(
+                    transcription: transcription,
+                    audioURL: audioURL,
+                    isInfoPresented: isInfoPresented,
+                    onToggleInfo: { isInfoPresented.toggle() },
+                    onTranscriptionUpdated: onTranscriptionUpdated,
+                    onPaste: onPaste
+                )
+            }
+        }
+        .environment(\.historyControlStyle, .glass)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 14)
+    }
+
+    // MARK: - Quick Panel
+
+    private var quickPanelLayout: some View {
         QuickPanelScaffold(footerHeight: footerHeight) {
             ScrollView {
                 transcriptionContent
@@ -79,7 +180,6 @@ struct TranscriptionDetailView: View {
                 HistoryTranscriptionTextCard(
                     text: enhancementText,
                     title: "Enhanced",
-                    surface: AppTheme.Surface.control,
                     rendersMarkdown: rendersMarkdown
                 )
             }
@@ -115,7 +215,7 @@ struct TranscriptionDetailView: View {
 private struct HistoryTranscriptionTextCard: View {
     let text: String
     var title: LocalizedStringKey? = nil
-    var surface = AppTheme.Surface.window
+    var surface = AppTheme.Surface.card
     var rendersMarkdown = true
 
     var body: some View {

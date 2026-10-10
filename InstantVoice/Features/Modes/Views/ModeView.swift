@@ -69,94 +69,49 @@ struct ModeView: View {
         activePanel != nil
     }
 
-    private var headerControls: some View {
-        HStack(spacing: 8) {
-            addModeButton
-            settingsButton
-        }
-    }
-
-    private var addModeButton: some View {
-        AppIconButton(
-            systemName: "plus.circle.fill",
-            help: "Add a new mode"
-        ) {
-            openPanel(mode: .add)
-        }
-    }
-
-    private var settingsButton: some View {
-        AppIconButton(
-            systemName: "gearshape.fill",
-            help: "Modes Settings"
-        ) {
-            openSettingsPanel()
-        }
-    }
-
     var body: some View {
-        VStack(spacing: 0) {
-            AppScreenHeader(
-                title: "Modes",
-                infoMessage: "Modes help you set up InstantVoice for different writing tasks, workflows, and scenarios.",
-                infoURL: "https://tryvoiceink.com/docs/modes"
-            ) {
-                headerControls
-            }
-
-            Group {
-                GeometryReader { geometry in
-                    ScrollView {
-                        VStack(spacing: 0) {
-                            if modeManager.configurations.isEmpty {
-                                VStack(spacing: 24) {
-                                    Spacer()
-                                        .frame(height: geometry.size.height * 0.2)
-
-                                    VStack(spacing: 16) {
-                                        Image(systemName: "square.grid.2x2.fill")
-                                            .font(.system(size: 48, weight: .regular))
-                                            .foregroundColor(.secondary.opacity(0.6))
-
-                                        VStack(spacing: 8) {
-                                            Text("Create your first mode")
-                                                .font(.system(size: 20, weight: .medium))
-                                                .foregroundColor(.primary)
-
-                                            Text(
-                                                "Set how InstantVoice transcribes and formats your speech, then start dictating in any app."
-                                            )
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.secondary)
-                                            .multilineTextAlignment(.center)
-                                            .lineSpacing(2)
-                                        }
-                                    }
-
-                                    Spacer()
-                                }
-                                .frame(maxWidth: .infinity)
-                                .frame(minHeight: geometry.size.height)
-                            } else {
-                                VStack(spacing: 0) {
-                                    ModeConfigurationsGrid(
-                                        modeManager: modeManager,
-                                        onEditConfig: { config in
-                                            openPanel(mode: .edit(config))
-                                        }
-                                    )
-                                    .padding(.horizontal, 24)
-                                    .padding(.vertical, 20)
-
-                                    Spacer()
-                                        .frame(height: 40)
-                                }
-                            }
+        Group {
+            if modeManager.configurations.isEmpty {
+                emptyState
+            } else {
+                ScrollView {
+                    ModeConfigurationsGrid(
+                        modeManager: modeManager,
+                        onEditConfig: { config in
+                            openPanel(mode: .edit(config))
                         }
-                    }
+                    )
+                    .padding(.horizontal, 24)
+                    .padding(.top, 20)
+                    .padding(.bottom, 40)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .toolbar {
+            ToolbarItemGroup(placement: .primaryAction) {
+                ScreenInfoButton(
+                    title: "Info",
+                    message: "Modes help you set up InstantVoice for different writing tasks, workflows, and scenarios.",
+                    learnMoreURL: "https://tryvoiceink.com/docs/modes"
+                )
+
+                Button(action: openSettingsPanel) {
+                    Label("Modes Settings", systemImage: "gearshape")
+                }
+                .help("Modes Settings")
+            }
+
+            ToolbarSpacer(.fixed, placement: .primaryAction)
+
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    openPanel(mode: .add)
+                } label: {
+                    Label("Add Mode", systemImage: "plus")
+                }
+                .help("Add a new mode")
+            }
         }
         .sidePanel(
             isPresented: .init(
@@ -181,6 +136,20 @@ struct ModeView: View {
                 enhancementService: enhancementService,
                 transcriptionModelManager: transcriptionModelManager
             )
+        }
+    }
+
+    private var emptyState: some View {
+        ContentUnavailableView {
+            Label("Create your first mode", systemImage: "sparkles.rectangle.stack")
+        } description: {
+            Text("Set how InstantVoice transcribes and formats your speech, then start dictating in any app.")
+        } actions: {
+            Button("Add Mode") {
+                openPanel(mode: .add)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
         }
     }
 

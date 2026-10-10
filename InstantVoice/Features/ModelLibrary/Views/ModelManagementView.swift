@@ -82,25 +82,32 @@ struct ModelManagementView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            headerSection
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    if SystemArchitecture.isIntelMac {
-                        intelMacWarningBanner
-                    }
-
-                    availableModelsSection
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                if SystemArchitecture.isIntelMac {
+                    intelMacWarningBanner
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 18)
-                .padding(.bottom, 28)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
+
+                availableModelsSection
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.horizontal, 24)
+            .padding(.top, 18)
+            .padding(.bottom, 28)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .frame(minWidth: 600, minHeight: 500)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                modelFilterPicker
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: toggleSettingsPanel) {
+                    Label("Model Settings", systemImage: "gearshape")
+                }
+                .help("Model Settings")
+            }
+        }
         .sidePanel(
             isPresented: .init(
                 get: { isPanelOpen },
@@ -116,12 +123,6 @@ struct ModelManagementView: View {
                 primaryButton: .destructive(Text("Delete"), action: deleteActionClosure),
                 secondaryButton: .cancel()
             )
-        }
-    }
-
-    private var headerSection: some View {
-        AppScreenHeader(title: "Model Catalog") {
-            settingsButton
         }
     }
 
@@ -167,8 +168,6 @@ struct ModelManagementView: View {
 
     private var availableModelsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            modelFilterPicker
-
             switch selectedFilter {
             case .local:
                 localModelsSection
@@ -208,36 +207,27 @@ struct ModelManagementView: View {
     }
 
     private var modelFilterPicker: some View {
-        HStack(spacing: 12) {
-            ForEach(ModelFilter.allCases, id: \.self) { filter in
-                Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        selectedFilter = filter
-                    }
-                    activePanel = nil
-                }) {
-                    Text(filter.title)
-                        .font(.system(size: 14, weight: selectedFilter == filter ? .semibold : .medium))
-                        .foregroundColor(selectedFilter == filter ? .primary : .primary.opacity(0.7))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            AppMaterialCardBackground(isSelected: selectedFilter == filter, cornerRadius: 22)
-                        )
-                }
-                .buttonStyle(PlainButtonStyle())
+        Picker("Model Catalog", selection: filterSelection) {
+            ForEach(ModelFilter.allCases) { filter in
+                Text(filter.title)
+                    .tag(filter)
             }
         }
-        .padding(.bottom, 8)
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .fixedSize()
     }
 
-    private var settingsButton: some View {
-        AppIconButton(
-            systemName: "gearshape.fill",
-            help: "Model Settings"
-        ) {
-            toggleSettingsPanel()
-        }
+    private var filterSelection: Binding<ModelFilter> {
+        Binding(
+            get: { selectedFilter },
+            set: { newValue in
+                withAnimation(.smooth(duration: 0.25)) {
+                    selectedFilter = newValue
+                }
+                activePanel = nil
+            }
+        )
     }
 
     private var localModelsSection: some View {

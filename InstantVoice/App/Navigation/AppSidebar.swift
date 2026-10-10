@@ -1,62 +1,61 @@
 import SwiftUI
 
 struct AppSidebar: View {
-    @Binding var selectedView: ViewType
+    @Binding var selection: ViewType
+    @ObservedObject private var transcriptionQueue = AudioTranscriptionManager.shared
 
     var body: some View {
-        ZStack(alignment: .trailing) {
-            sidebarBackground
-            sidebarDivider
-            sidebarContent
+        List(selection: listSelection) {
+            Section {
+                ForEach(ViewType.workspaceItems) { item in
+                    row(for: item)
+                }
+            }
+
+            Section("Configuration") {
+                ForEach(ViewType.configurationItems) { item in
+                    row(for: item)
+                }
+            }
+
+            Section {
+                ForEach(ViewType.appItems) { item in
+                    row(for: item)
+                }
+            }
         }
-        .frame(width: 220)
-        .frame(maxHeight: .infinity)
+        .listStyle(.sidebar)
         .onAppear {
             ViewType.assertSidebarItemsCoverAllCases()
         }
     }
 
-    private var sidebarContent: some View {
-        VStack(spacing: 0) {
-            sidebarSection(ViewType.primaryItems)
-                .padding(.top, 10)
-
-            Spacer(minLength: 16)
-
-            sidebarSection(ViewType.secondaryItems)
-                .padding(.bottom, 14)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var sidebarBackground: some View {
-        VisualEffectView(material: .sidebar, blendingMode: .behindWindow)
-            .ignoresSafeArea(.container, edges: .top)
-    }
-
-    private var sidebarDivider: some View {
-        Rectangle()
-            .fill(AppTheme.Border.control.opacity(0.55))
-            .frame(width: 1)
-            .ignoresSafeArea(.container, edges: .top)
-    }
-
-    private func sidebarSection(_ items: [ViewType]) -> some View {
-        VStack(spacing: 3) {
-            ForEach(items) { viewType in
-                SidebarItemButton(
-                    viewType: viewType,
-                    isSelected: selectedView == viewType
-                ) {
-                    selectedView = viewType
-                }
+    private var listSelection: Binding<ViewType?> {
+        Binding(
+            get: { selection },
+            set: { newValue in
+                // A section is always selected. Reassigning on nil (for example after a Command-click on
+                // the selected row) republishes it so the list restores the highlight.
+                selection = newValue ?? selection
             }
-        }
-        .padding(.horizontal, 10)
+        )
+    }
+
+    private func row(for item: ViewType) -> some View {
+        Label(item.title, systemImage: item.systemImage)
+            .badge(badgeCount(for: item))
+            .tag(item)
+    }
+
+    /// Transcribe queue files that haven't finished, shown like an unread count. The manager republishes
+    /// as each file completes and when processing stops, which keeps the count current.
+    private func badgeCount(for item: ViewType) -> Int {
+        guard item == .transcribeAudio else { return 0 }
+        return transcriptionQueue.queue.filter { $0.status != .completed }.count
     }
 }
 
-private extension ViewType {
+extension ViewType {
     var title: LocalizedStringKey {
         switch self {
         case .transcribeAudio:
@@ -66,153 +65,42 @@ private extension ViewType {
         }
     }
 
-    static let primaryItems: [ViewType] = [
+    var systemImage: String {
+        switch self {
+        case .dashboard: return "gauge.with.dots.needle.50percent"
+        case .transcribeAudio: return "waveform"
+        case .history: return "clock.arrow.circlepath"
+        case .modes: return "sparkles.rectangle.stack"
+        case .dictionary: return "character.book.closed"
+        case .models: return "cpu"
+        case .audio: return "mic"
+        case .settings: return "gearshape"
+        }
+    }
+
+    static let workspaceItems: [ViewType] = [
         .dashboard,
-        .modes,
         .transcribeAudio,
         .history,
+    ]
+
+    static let configurationItems: [ViewType] = [
+        .modes,
         .dictionary,
         .models,
         .audio,
     ]
 
-    static let secondaryItems: [ViewType] = [
+    static let appItems: [ViewType] = [
         .settings
     ]
 
+    /// Sidebar order, which also defines the Command-number shortcuts in the View menu.
+    static let sidebarOrder: [ViewType] = workspaceItems + configurationItems + appItems
+
     static func assertSidebarItemsCoverAllCases() {
         #if DEBUG
-            let sidebarItems = primaryItems + secondaryItems
-            assert(Set(sidebarItems) == Set(allCases) && sidebarItems.count == allCases.count)
+            assert(Set(sidebarOrder) == Set(allCases) && sidebarOrder.count == allCases.count)
         #endif
-    }
-
-    var icon: String {
-        switch self {
-        case .dashboard: return "gauge.medium"
-        case .transcribeAudio: return "waveform.path"
-        case .history: return "doc.text.fill"
-        case .models: return "cpu"
-        case .modes: return "sparkles.square.fill.on.square"
-        case .audio: return "mic.fill"
-        case .dictionary: return "text.book.closed.fill"
-        case .settings: return "gearshape.fill"
-        }
-    }
-
-    var sidebarIconStyle: SidebarIconStyle {
-        switch self {
-        case .dashboard:
-            return .init(background: AppTheme.Sidebar.dashboard)
-        case .modes:
-            return .init(background: AppTheme.Sidebar.modes)
-        case .models:
-            return .init(background: AppTheme.Sidebar.models)
-        case .audio:
-            return .init(background: AppTheme.Sidebar.fallback)
-        case .dictionary:
-            return .init(background: AppTheme.Sidebar.dictionary)
-        case .history:
-            return .init(background: AppTheme.Sidebar.audio)
-        case .transcribeAudio:
-            return .init(background: AppTheme.Sidebar.transcribeAudio)
-        case .settings:
-            return .init(background: AppTheme.Sidebar.fallback)
-        }
-    }
-}
-
-private struct SidebarIconStyle {
-    let background: Color
-    var foreground: Color = .white
-}
-
-private struct SidebarItemButton: View {
-    let viewType: ViewType
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 9) {
-                SidebarIconTile(
-                    systemName: viewType.icon,
-                    style: viewType.sidebarIconStyle
-                )
-
-                Text(viewType.title)
-                    .font(.system(size: 13.5, weight: isSelected ? .semibold : .medium))
-                    .lineLimit(1)
-
-                Spacer(minLength: 0)
-            }
-            .foregroundStyle(isSelected ? selectedForegroundColor : Color.primary)
-            .padding(.leading, 8)
-            .padding(.trailing, 10)
-            .frame(height: 38)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(rowBackground)
-            .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .help(viewType.title)
-        .accessibilityLabel(viewType.title)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .animation(.easeInOut(duration: 0.12), value: isSelected)
-    }
-
-    private var rowBackground: some View {
-        RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .fill(rowBackgroundColor)
-            .overlay {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(rowBorderColor, lineWidth: 1)
-            }
-    }
-
-    private var rowBackgroundColor: Color {
-        if isSelected {
-            return Color(nsColor: .selectedContentBackgroundColor)
-        }
-
-        return .clear
-    }
-
-    private var rowBorderColor: Color {
-        isSelected ? selectedForegroundColor.opacity(0.18) : .clear
-    }
-
-    private var selectedForegroundColor: Color {
-        Color(nsColor: .alternateSelectedControlTextColor)
-    }
-}
-
-private struct SidebarIconTile: View {
-    let systemName: String
-    let style: SidebarIconStyle
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(style.background)
-                .overlay(alignment: .top) {
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(Color.white.opacity(0.18))
-                        .frame(height: 11)
-                        .blendMode(.screen)
-                }
-                .overlay {
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.24), lineWidth: 0.5)
-                }
-                .shadow(color: Color.black.opacity(0.18), radius: 1.2, y: 1)
-
-            Image(systemName: systemName)
-                .font(.system(size: 14.5, weight: .semibold))
-                .symbolRenderingMode(.monochrome)
-                .foregroundStyle(style.foreground)
-                .shadow(color: Color.black.opacity(0.16), radius: 0.5, y: 0.5)
-        }
-        .frame(width: 24, height: 24)
     }
 }

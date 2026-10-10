@@ -14,8 +14,9 @@ enum AppTheme {
     }
 
     enum Surface {
-        static let card = Color.secondary.opacity(0.10)
-        static let materialCard = Color(nsColor: .controlBackgroundColor).opacity(0.50)
+        /// The fill macOS uses for grouped form sections, so custom cards match Settings in both appearances.
+        static let card = Color(nsColor: .quaternarySystemFill)
+        static let materialCard = card
         static let subtle = Color.primary.opacity(0.06)
         static let controlActive = Color.secondary.opacity(0.14)
         static let control = Color(nsColor: .controlBackgroundColor)
@@ -58,8 +59,9 @@ enum AppTheme {
     }
 
     enum Insights {
-        static let page = neutral(light: 0.995, dark: 0.065)
-        static let card = neutral(light: 0.955, dark: 0.105)
+        /// Insights sit directly on the window background, with cards matching the rest of the app.
+        static let page = Color.clear
+        static let card = AppTheme.Surface.card
         static let elevated = neutral(light: 1.0, dark: 0.145)
         static let hover = Color.primary.opacity(0.045)
         static let border = AppTheme.Border.tint
@@ -82,16 +84,6 @@ enum AppTheme {
                 return isDark ? dark : light
             })
         }
-    }
-
-    enum Sidebar {
-        static let dashboard = Color(nsColor: .systemOrange)
-        static let modes = Color(nsColor: .systemIndigo)
-        static let models = Color(nsColor: .systemBrown)
-        static let audio = Color(nsColor: .systemPink)
-        static let dictionary = Color(nsColor: .systemBlue)
-        static let transcribeAudio = Color(red: 0.86, green: 0.32, blue: 0.27)
-        static let fallback = Color(nsColor: .systemGray)
     }
 
     enum Waveform {

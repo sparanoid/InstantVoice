@@ -14,11 +14,11 @@ struct ProviderBrandIcon: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: max(7, size * 0.25))
+            RoundedRectangle(cornerRadius: max(7, size * 0.25), style: .continuous)
                 .fill(backgroundColor)
                 .overlay(
-                    RoundedRectangle(cornerRadius: max(7, size * 0.25))
-                        .stroke(borderColor, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: max(7, size * 0.25), style: .continuous)
+                        .strokeBorder(borderColor, lineWidth: 1)
                 )
 
             if let assetName = descriptor.brandAssetName {
@@ -58,9 +58,10 @@ struct ProviderSectionHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.title3.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
             Text(subtitle)
-                .font(.caption)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -79,7 +80,7 @@ struct ProviderConfigurationGroup<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.callout.weight(.semibold))
                 .foregroundStyle(.secondary)
 
             content()
@@ -99,7 +100,7 @@ struct ProviderModelListSection<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.callout.weight(.semibold))
                 .foregroundStyle(.secondary)
 
             VStack(alignment: .leading, spacing: 0) {
@@ -135,6 +136,30 @@ struct ProviderStatusBadge: View {
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// The download control on model cards: a prominent Download, or Cancel while a download runs.
+struct ModelDownloadButton: View {
+    let isDownloading: Bool
+    var downloadTitle: LocalizedStringKey = "Download"
+    let action: () -> Void
+
+    var body: some View {
+        if isDownloading {
+            Button(action: action) {
+                Label("Cancel", systemImage: "xmark.circle")
+            }
+            .buttonStyle(.bordered)
+            .tint(AppTheme.Status.error)
+            .controlSize(.small)
+        } else {
+            Button(action: action) {
+                Label(downloadTitle, systemImage: "arrow.down.circle")
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
         }
     }
 }

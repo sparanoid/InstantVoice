@@ -6,7 +6,7 @@ import os
 struct DashboardContent: View {
     private let logger = Logger(subsystem: "com.sparanoid.instantvoice", category: "DashboardContent")
     private static let fallbackDisplayName = String(localized: "there")
-    private static let displayNameFontSize: CGFloat = 28
+    private static let displayNameFontSize: CGFloat = 30
     private static let displayNameFontWeight: NSFont.Weight = .bold
     private static let displayNameMinWidth: CGFloat = 72
     private static let displayNameMaxWidth: CGFloat = 280
@@ -37,7 +37,6 @@ struct DashboardContent: View {
     @State private var isAccessibilityEnabled = AXIsProcessTrusted()
     @EnvironmentObject private var updaterViewModel: UpdaterViewModel
     @ObservedObject private var modeManager = ModeManager.shared
-    @State private var isSystemInfoCopied = false
     @State private var isEditingDisplayName = false
     @State private var displayNameDraft = ""
     @AppStorage("dashboardDisplayName") private var dashboardDisplayName: String = ""
@@ -66,35 +65,51 @@ struct DashboardContent: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let contentWidth = DashboardLayout.contentWidth(for: geometry.size.width)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                heroSection
 
-            ZStack(alignment: .top) {
-                if isInsightsViewPresented && canViewInsights {
-                    AppTheme.Insights.page
-                        .ignoresSafeArea()
-                        .allowsHitTesting(false)
-                } else {
-                    DashboardAmbientBackground()
-                }
-
-                ScrollView {
-                    Group {
-                        if isInsightsViewPresented && canViewInsights {
-                            dashboardInsightsView
-                        } else {
-                            dashboardMainContent(availableWidth: contentWidth)
-                        }
-                    }
-                    .frame(width: contentWidth, alignment: .top)
-                    .frame(
-                        minHeight: max(0, geometry.size.height - DashboardLayout.contentBottomOffset),
-                        alignment: .top
-                    )
-                    .padding(.vertical, DashboardLayout.pageVerticalPadding)
+                dashboardSections
+                    .onTapGesture(perform: dismissDisplayNameEditorIfNeeded)
+                    .frame(maxWidth: DashboardLayout.contentMaxWidth, alignment: .topLeading)
                     .padding(.horizontal, DashboardLayout.pageHorizontalPadding)
+                    .padding(.top, 4)
+                    .padding(.bottom, 32)
+            }
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .background {
+                // Clicking empty space ends name editing, since it doesn't move keyboard focus.
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture(perform: dismissDisplayNameEditorIfNeeded)
+            }
+        }
+        .ignoresSafeArea(edges: .top)
+        // The artwork runs under the toolbar, so skip the edge band and toolbar backing that would cover it.
+        .scrollEdgeEffectHidden(true, for: .top)
+        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+        .toolbar(removing: .title)
+        .toolbar {
+            if let availableUpdate = updaterViewModel.availableUpdate {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: updaterViewModel.checkForUpdates) {
+                        Label("Update Available", systemImage: "arrow.down.circle.fill")
+                    }
+                    .buttonStyle(.glassProminent)
+                    .disabled(!updaterViewModel.canCheckForUpdates)
+                    .help(
+                        String(
+                            format: String(localized: "Open the InstantVoice %@ update"),
+                            availableUpdate.displayVersion
+                        )
+                    )
+                    .accessibilityValue(Text(verbatim: availableUpdate.displayVersion))
+                    .accessibilityHint("Opens the update window")
                 }
             }
+        }
+        .navigationDestination(isPresented: $isInsightsViewPresented) {
+            insightsPage
         }
         .task {
             scheduleDashboardStatsRefresh(allowSkipWhenFresh: hasLoadedStatsSnapshot)
@@ -142,26 +157,14 @@ struct DashboardContent: View {
             scheduleAutoLearnReviewBacklogRefresh()
         }
         .onDisappear {
+            // Pushing Insights also hides the dashboard root; keep its refresh running for that page.
+            guard !isInsightsViewPresented else { return }
             dashboardStatsTask?.cancel()
             dashboardStatsTask = nil
             dashboardStatsLoadGeneration += 1
             isDashboardStatsRefreshing = false
             autoLearnFailurePresentationTask?.cancel()
             autoLearnFailurePresentationTask = nil
-        }
-        .sidePanel(isPresented: $isModelPerformancePanelPresented) {
-            ModelPerformancePanel(
-                summaries: selectedModelPerformance
-            ) {
-                isModelPerformancePanelPresented = false
-            }
-        }
-        .sidePanel(isPresented: $isModelUsagePanelPresented) {
-            ModelUsagePanel(
-                summary: selectedModelUsage
-            ) {
-                isModelUsagePanelPresented = false
-            }
         }
         .sidePanel(isPresented: $isAutoLearnFailurePanelPresented) {
             AutoLearnFailurePanel {
@@ -222,43 +225,38 @@ struct DashboardContent: View {
         }
     }
 
-    private func dashboardMainContent(availableWidth: CGFloat) -> some View {
+    private var dashboardSections: some View {
         VStack(alignment: .leading, spacing: DashboardLayout.sectionSpacing) {
-            greetingHeader
-
-            nameEditorDismissArea {
-                heroSection
-            }
-
             if !isAccessibilityEnabled {
-                nameEditorDismissArea {
-                    accessibilityReminder
-                }
+                DashboardCallout(
+                    systemImage: "hand.raised.fill",
+                    tint: AppTheme.Status.warningStrong,
+                    title: "Enable Accessibility Access",
+                    message: "Required for InstantVoice shortcuts and app-wide controls to work properly.",
+                    actionTitle: "Open Settings",
+                    actionHelp: "Open Accessibility settings",
+                    action: openAccessibilitySettings
+                )
             }
 
             if !modeManager.hasEnabledConfiguration {
-                nameEditorDismissArea {
-                    DashboardNoModesReminder(onOpenModes: ModeSetupNavigator.openModesSettings)
-                }
+                DashboardCallout(
+                    systemImage: "sparkles.rectangle.stack.fill",
+                    tint: AppTheme.Accent.primary,
+                    title: "Set Up a Mode",
+                    message: "InstantVoice needs at least one mode to record. Create one to start dictating.",
+                    actionTitle: "Manage Modes",
+                    actionHelp: "Open Modes settings",
+                    action: ModeSetupNavigator.openModesSettings
+                )
             }
 
             if !recentDashboardTranscriptions.isEmpty {
-                nameEditorDismissArea {
-                    DashboardTranscriptCards(transcriptions: recentDashboardTranscriptions)
+                DashboardTranscriptCards(transcriptions: recentDashboardTranscriptions) {
+                    MainWindowNavigation.shared.navigate(to: .history)
                 }
-            }
-
-            Spacer(minLength: DashboardLayout.footerTopSpacing)
-
-            nameEditorDismissArea {
-                HStack {
-                    Spacer()
-                    footerActionsView
-                }
-                .frame(maxWidth: .infinity)
             }
         }
-        .frame(width: availableWidth, alignment: .topLeading)
     }
 
     private var recentDashboardTranscriptions: [Transcription] {
@@ -354,42 +352,26 @@ struct DashboardContent: View {
         canViewInsights ? "View insights" : "Insights locked"
     }
 
-    private var accessibilityReminder: some View {
-        DashboardAccessibilityReminder(onOpenSettings: openAccessibilitySettings)
-    }
+    private var greetingRow: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: greetingSymbol)
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(DashboardHeroPalette.accent)
+                .font(displayNameFont)
+                .accessibilityHidden(true)
 
-    private var greetingHeader: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(greetingEmoji)
-                    .font(.system(size: 25))
-                    .accessibilityHidden(true)
+            Text("\(greetingText),")
+                .font(displayNameFont)
+                .foregroundStyle(.primary)
+                .onTapGesture(perform: dismissDisplayNameEditorIfNeeded)
 
-                Text("\(greetingText),")
-                    .font(displayNameFont)
-                    .foregroundStyle(AppTheme.Text.primary)
-                    .onTapGesture(perform: dismissDisplayNameEditorIfNeeded)
+            displayNameView
 
-                displayNameView
-
-                dismissingSpacer
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .lineLimit(1)
-            .minimumScaleFactor(0.72)
-
-            HStack(alignment: .top, spacing: 0) {
-                Text(headerSubtitle)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(AppTheme.Text.secondary)
-                    .lineLimit(2)
-
-                Spacer(minLength: 0)
-            }
-            .contentShape(Rectangle())
-            .onTapGesture(perform: dismissDisplayNameEditorIfNeeded)
+            Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .lineLimit(1)
+        .minimumScaleFactor(0.72)
     }
 
     @ViewBuilder
@@ -398,16 +380,15 @@ struct DashboardContent: View {
             TextField("your name", text: displayNameBinding)
                 .textFieldStyle(.plain)
                 .font(displayNameFont)
-                .foregroundStyle(AppTheme.Text.primary)
+                .foregroundStyle(.primary)
                 .focused($isNameFieldFocused)
                 .frame(width: displayNameFieldWidth, alignment: .leading)
                 .padding(.horizontal, Self.displayNameHorizontalPadding)
                 .padding(.vertical, 3)
-                .background(AppTheme.Accent.fill)
-                .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .stroke(AppTheme.Accent.border, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(AppTheme.Accent.border, lineWidth: 1)
                 )
                 .onSubmit(finishEditingDisplayName)
                 .onChange(of: isNameFieldFocused) { _, isFocused in
@@ -418,7 +399,7 @@ struct DashboardContent: View {
         } else {
             Text(defaultedDisplayName)
                 .font(displayNameFont)
-                .foregroundStyle(AppTheme.Text.primary)
+                .foregroundStyle(.primary)
                 .lineLimit(1)
                 .frame(width: displayNameFieldWidth, alignment: .leading)
                 .help("Click to edit dashboard name")
@@ -429,17 +410,6 @@ struct DashboardContent: View {
 
     private var displayNameFont: Font {
         .system(size: Self.displayNameFontSize, weight: .bold, design: .rounded)
-    }
-
-    private var dismissingSpacer: some View {
-        Spacer(minLength: 0)
-            .contentShape(Rectangle())
-            .onTapGesture(perform: dismissDisplayNameEditorIfNeeded)
-    }
-
-    private func nameEditorDismissArea<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        content()
-            .onTapGesture(perform: dismissDisplayNameEditorIfNeeded)
     }
 
     private func refreshAccessibilityStatus() {
@@ -573,24 +543,57 @@ struct DashboardContent: View {
 
     // MARK: - Sections
 
-    private var dashboardInsightsView: some View {
-        DashboardInsightsView(
-            selectedPeriod: $selectedInsightPeriod,
-            dailyActivityPoints: selectedDailyActivityPoints,
-            allTimeDailyActivityPoints: statsSummary.allTimeDailyActivity,
-            peakHoursSummary: selectedPeakHours,
-            isPeakHoursLocked: shouldLockPeakHours,
-            timeSavedSummary: selectedTimeSavedSummary,
-            modelUsage: selectedModelUsage,
-            modelPerformanceSummaries: selectedModelPerformance,
-            onBack: { isInsightsViewPresented = false },
-            onViewModelUsage: openModelUsagePanel,
-            onViewModelPerformance: openModelPerformancePanel
-        )
+    private var insightsPage: some View {
+        ScrollView {
+            DashboardInsightsView(
+                dailyActivityPoints: selectedDailyActivityPoints,
+                allTimeDailyActivityPoints: statsSummary.allTimeDailyActivity,
+                peakHoursSummary: selectedPeakHours,
+                isPeakHoursLocked: shouldLockPeakHours,
+                timeSavedSummary: selectedTimeSavedSummary,
+                modelUsage: selectedModelUsage,
+                modelPerformanceSummaries: selectedModelPerformance,
+                onViewModelUsage: openModelUsagePanel,
+                onViewModelPerformance: openModelPerformancePanel
+            )
+            .frame(maxWidth: DashboardLayout.contentMaxWidth, alignment: .topLeading)
+            .padding(.horizontal, DashboardLayout.pageHorizontalPadding)
+            .padding(.top, 12)
+            .padding(.bottom, DashboardLayout.pageVerticalPadding)
+            .frame(maxWidth: .infinity, alignment: .top)
+        }
+        .navigationTitle("Insights")
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Picker("Insights period", selection: $selectedInsightPeriod.animation(.smooth)) {
+                    ForEach(DashboardInsightPeriod.allCases) { period in
+                        Text(period.pickerTitle)
+                            .tag(period)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .fixedSize()
+            }
+        }
+        .sidePanel(isPresented: $isModelPerformancePanelPresented) {
+            ModelPerformancePanel(
+                summaries: selectedModelPerformance
+            ) {
+                isModelPerformancePanelPresented = false
+            }
+        }
+        .sidePanel(isPresented: $isModelUsagePanelPresented) {
+            ModelUsagePanel(
+                summary: selectedModelUsage
+            ) {
+                isModelUsagePanelPresented = false
+            }
+        }
     }
 
     private var heroSection: some View {
-        DashboardHeroCard(
+        DashboardHero(
             isLocked: shouldShowLockedInsightsState,
             headline: momentumHeadline,
             subtext: momentumSubtext,
@@ -601,75 +604,10 @@ struct DashboardContent: View {
             actionAccessibilityLabel: insightsActionAccessibilityLabel,
             reviewCorrectionCount: dashboardReviewCorrectionCount,
             onViewInsights: openInsightsIfAvailable,
-            onReviewCorrections: openAutoLearnReviewPanel
-        )
-    }
-
-    private var footerActionsView: some View {
-        HStack(alignment: .center, spacing: 12) {
-            if let availableUpdate = updaterViewModel.availableUpdate {
-                Button(action: updaterViewModel.checkForUpdates) {
-                    footerActionLabel(
-                        icon: "arrow.down.circle.fill",
-                        title: "Update Available",
-                        color: AppTheme.Status.infoStrong
-                    )
-                }
-                .buttonStyle(.plain)
-                .fixedSize(horizontal: true, vertical: true)
-                .disabled(!updaterViewModel.canCheckForUpdates)
-                .help(
-                    String(
-                        format: String(localized: "Open the InstantVoice %@ update"),
-                        availableUpdate.displayVersion
-                    )
-                )
-                .accessibilityLabel("Update Available")
-                .accessibilityValue(Text(verbatim: availableUpdate.displayVersion))
-                .accessibilityHint("Opens the update window")
-                .transition(.move(edge: .trailing).combined(with: .opacity))
-            }
-
-            Button(action: copySystemInfo) {
-                footerActionLabel(
-                    icon: isSystemInfoCopied ? "checkmark" : "doc.on.doc",
-                    title: isSystemInfoCopied ? "Copied!" : "Copy System Info",
-                    color: isSystemInfoCopied ? AppTheme.Status.positive : AppTheme.Sidebar.fallback
-                )
-            }
-            .buttonStyle(.plain)
-            .fixedSize(horizontal: true, vertical: true)
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSystemInfoCopied)
-        }
-        .animation(.easeOut(duration: 0.2), value: updaterViewModel.availableUpdate)
-    }
-
-    @ViewBuilder
-    private func footerActionLabel(icon: String, title: LocalizedStringKey, color: Color) -> some View {
-        HStack(alignment: .center, spacing: 8) {
-            DashboardIconGlyph(systemName: icon, color: color, size: 13, frameSize: 16)
-
-            Text(title)
-                .font(.system(size: 13, weight: .medium))
-                .lineLimit(1)
-                .fixedSize(horizontal: true, vertical: false)
-        }
-        .padding(.horizontal, 14)
-        .frame(height: DashboardLayout.footerButtonHeight)
-        .background(AppCardBackground(cornerRadius: 18))
-    }
-
-    private func copySystemInfo() {
-        SystemInfoService.shared.copySystemInfoToClipboard()
-
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            isSystemInfoCopied = true
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                isSystemInfoCopied = false
-            }
+            onReviewCorrections: openAutoLearnReviewPanel,
+            onBackgroundTap: dismissDisplayNameEditorIfNeeded
+        ) {
+            greetingRow
         }
     }
 
@@ -781,39 +719,19 @@ struct DashboardContent: View {
         }
     }
 
-    private var greetingEmoji: String {
+    private var greetingSymbol: String {
         let hour = Calendar.current.component(.hour, from: Date())
 
         switch hour {
         case 5..<12:
-            return "☀️"
+            return "sun.horizon.fill"
         case 12..<17:
-            return "👋"
+            return "sun.max.fill"
         case 17..<24:
-            return "🌙"
+            return "moon.stars.fill"
         default:
-            return "👋"
+            return "moon.zzz.fill"
         }
-    }
-
-    private var headerSubtitle: String {
-        guard hasLoadedStatsSnapshot else {
-            return String(localized: "Pulling together your InstantVoice activity.")
-        }
-
-        guard statsSummary.totalCount > 0 else {
-            return String(localized: "Record your first session to start building momentum.")
-        }
-
-        if statsSummary.recentSevenDayCount >= 5 {
-            return String(localized: "You’re on a roll this week. Keep the momentum going.")
-        }
-
-        if statsSummary.recentSevenDayCount > 0 {
-            return String(localized: "You’re building momentum this week. Keep it going.")
-        }
-
-        return String(localized: "Your data is not ready yet. Keep the momentum going.")
     }
 
     private var momentumHeadline: DashboardHeroHeadline {
@@ -883,90 +801,44 @@ struct DashboardContent: View {
     }
 }
 
-private struct DashboardAccessibilityReminder: View {
-    let onOpenSettings: () -> Void
+private struct DashboardCallout: View {
+    let systemImage: String
+    let tint: Color
+    let title: LocalizedStringKey
+    let message: LocalizedStringKey
+    let actionTitle: LocalizedStringKey
+    let actionHelp: LocalizedStringKey
+    let action: () -> Void
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(AppTheme.Accent.fill)
+        HStack(alignment: .center, spacing: 14) {
+            Image(systemName: systemImage)
+                .font(.title2)
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(tint)
+                .frame(width: 32)
+                .accessibilityHidden(true)
 
-                Image(systemName: "hand.raised")
-                    .font(.system(size: 15, weight: .medium))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(AppTheme.Accent.primary)
-            }
-            .frame(width: 34, height: 34)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Enable Accessibility Access")
-                    .font(.system(size: 13, weight: .semibold))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.headline)
                     .foregroundStyle(.primary)
-                    .lineLimit(1)
 
-                Text("Required for InstantVoice shortcuts and app-wide controls to work properly.")
-                    .font(.system(size: 11))
+                Text(message)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer(minLength: 12)
 
-            Button("Open Settings", action: onOpenSettings)
-                .controlSize(.small)
-                .help("Open Accessibility settings")
+            Button(actionTitle, action: action)
+                .buttonStyle(.borderedProminent)
+                .help(actionHelp)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppCardBackground(cornerRadius: 16))
-    }
-}
-
-private struct DashboardNoModesReminder: View {
-    let onOpenModes: () -> Void
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(AppTheme.Accent.fill)
-
-                Image(systemName: "square.grid.2x2")
-                    .font(.system(size: 15, weight: .medium))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(AppTheme.Accent.primary)
-            }
-            .frame(width: 34, height: 34)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Set Up a Mode")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-
-                Text("InstantVoice needs at least one mode to record. Create one to start dictating.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-
-            Spacer(minLength: 12)
-
-            Button("Manage Modes", action: onOpenModes)
-                .controlSize(.small)
-                .help("Open Modes settings")
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppCardBackground(cornerRadius: 16))
-    }
-}
-
-private struct DashboardAmbientBackground: View {
-    var body: some View {
-        Color.clear
-            .ignoresSafeArea()
-            .allowsHitTesting(false)
+        .background(AppCardBackground(cornerRadius: DashboardLayout.cardCornerRadius))
+        .accessibilityElement(children: .combine)
     }
 }

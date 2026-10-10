@@ -383,7 +383,7 @@ class CustomSoundManager: ObservableObject {
 
         let duration: TimeInterval
         do {
-            duration = try await AVAsset(url: url).load(.duration).seconds
+            duration = try await AVURLAsset(url: url).load(.duration).seconds
         } catch {
             return .failure(.invalidAudioFile)
         }

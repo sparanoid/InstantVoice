@@ -56,13 +56,14 @@ struct CloudProviderManagementView: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 3) {
                 Text("Cloud Providers")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.title3.weight(.semibold))
+                    .accessibilityAddTraits(.isHeader)
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text("Cloud providers process audio and text under their own privacy policies.")
                         .foregroundStyle(.secondary)
                     Link("Learn more", destination: URL(string: "https://tryvoiceink.com/privacy")!)
                 }
-                .font(.caption)
+                .font(.subheadline)
             }
 
             ForEach(providerDescriptors) { descriptor in

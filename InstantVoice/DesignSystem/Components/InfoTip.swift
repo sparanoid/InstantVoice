@@ -16,39 +16,34 @@ struct InfoTip: View {
     @State private var isShowingTip: Bool = false
 
     var body: some View {
-        Image(systemName: iconName)
-            .imageScale(iconSize)
-            .foregroundColor(iconColor)
-            .fontWeight(.semibold)
-            .padding(5)
-            .contentShape(Rectangle())
-            .popover(isPresented: $isShowingTip) {
-                VStack(alignment: .leading, spacing: 0) {
-                    if learnMoreLink != nil {
-                        (Text(message)
-                            .foregroundColor(.secondary)
-                            + Text(" ")
-                            + Text("Learn more")
-                            .foregroundColor(AppTheme.Accent.primary))
-                            .font(.callout)
-                    } else {
-                        Text(message)
-                            .font(.callout)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(width: width, alignment: .leading)
-                .padding(14)
-                .onTapGesture {
-                    if let url = learnMoreLink {
-                        NSWorkspace.shared.open(url)
-                    }
+        Button {
+            isShowingTip.toggle()
+        } label: {
+            Image(systemName: iconName)
+                .imageScale(iconSize)
+                .foregroundStyle(iconColor)
+                .fontWeight(.semibold)
+                .padding(5)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel("Info")
+        .accessibilityHint(Text(message))
+        .popover(isPresented: $isShowingTip) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(message)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let learnMoreLink {
+                    Link("Learn more", destination: learnMoreLink)
+                        .font(.callout)
                 }
             }
-            .onTapGesture {
-                isShowingTip.toggle()
-            }
+            .frame(width: width, alignment: .leading)
+            .padding(14)
+        }
     }
 }
 

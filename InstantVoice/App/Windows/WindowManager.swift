@@ -2,8 +2,18 @@ import AppKit
 import SwiftUI
 
 enum AppWindowLayout {
-    static let width: CGFloat = 950
-    static let minimumHeight: CGFloat = 750
+    static let minimumWidth: CGFloat = 860
+    static let minimumHeight: CGFloat = 600
+    static let defaultWidth: CGFloat = 1100
+    static let defaultHeight: CGFloat = 780
+
+    static let sidebarMinimumWidth: CGFloat = 180
+    static let sidebarIdealWidth: CGFloat = 210
+    static let sidebarMaximumWidth: CGFloat = 280
+
+    /// Onboarding keeps its fixed-width layout inside the same window.
+    static let onboardingWidth: CGFloat = 950
+    static let onboardingMinimumHeight: CGFloat = 750
 }
 
 enum AppWindowID {
@@ -79,17 +89,12 @@ class WindowManager: NSObject {
             .titled, .closable, .miniaturizable, .resizable, .fullSizeContentView,
         ]
         window.styleMask.formUnion(requiredStyleMask)
-        window.titlebarAppearsTransparent = true
-        window.titleVisibility = .hidden
-        window.backgroundColor = .clear
+        // SwiftUI owns the title bar and toolbar, which carry the Liquid Glass chrome.
         window.isReleasedWhenClosed = false
-        window.title = "InstantVoice"
         window.collectionBehavior = [.fullScreenPrimary]
         window.level = .normal
-        window.isOpaque = false
         window.isMovableByWindowBackground = false
-        window.minSize = NSSize(width: AppWindowLayout.width, height: AppWindowLayout.minimumHeight)
-        window.maxSize = NSSize(width: AppWindowLayout.width, height: CGFloat.greatestFiniteMagnitude)
+        window.minSize = NSSize(width: AppWindowLayout.minimumWidth, height: AppWindowLayout.minimumHeight)
         window.setFrameAutosaveName(Self.mainWindowAutosaveName)
         applyInitialPlacementIfNeeded(to: window)
         registerMainWindowIfNeeded(window)
@@ -154,16 +159,18 @@ class WindowManager: NSObject {
 
     private func enforceMainWindowFrameIfNeeded(on window: NSWindow, preserveRestoredOrigin: Bool) {
         let currentFrame = window.frame
-        guard currentFrame.width != AppWindowLayout.width || currentFrame.height < AppWindowLayout.minimumHeight else {
+        guard currentFrame.width < AppWindowLayout.minimumWidth || currentFrame.height < AppWindowLayout.minimumHeight
+        else {
             return
         }
 
+        let width = max(currentFrame.width, AppWindowLayout.minimumWidth)
         let height = max(currentFrame.height, AppWindowLayout.minimumHeight)
-        let x = preserveRestoredOrigin ? currentFrame.origin.x : currentFrame.midX - (AppWindowLayout.width / 2)
+        let x = preserveRestoredOrigin ? currentFrame.origin.x : currentFrame.midX - (width / 2)
         let frame = NSRect(
             x: x,
             y: currentFrame.maxY - height,
-            width: AppWindowLayout.width,
+            width: width,
             height: height
         )
         window.setFrame(frame, display: true)

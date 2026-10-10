@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 
+/// A circular icon-only button in the system bordered style, used for panel close buttons and inline tools.
 struct AppIconButton: View {
     let systemName: String
     let help: LocalizedStringResource
@@ -30,18 +31,26 @@ struct AppIconButton: View {
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: iconSize, weight: .medium))
-                .foregroundColor(isDisabled ? .secondary.opacity(0.45) : .primary.opacity(0.7))
-                .frame(width: size, height: size)
-                .background(
-                    AppCardBackground(isSelected: false, cornerRadius: cornerRadius)
-                )
+            Label {
+                Text(help)
+            } icon: {
+                Image(systemName: systemName)
+            }
+            .labelStyle(.iconOnly)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.circle)
+        .controlSize(controlSize)
         .disabled(isDisabled)
-        .help(help)
-        .accessibilityLabel(help)
+        .help(Text(help))
+    }
+
+    private var controlSize: ControlSize {
+        switch size {
+        case ..<30: return .small
+        case ..<38: return .regular
+        default: return .large
+        }
     }
 }
 
@@ -70,54 +79,28 @@ struct AppActionButton: View {
     }
 
     var body: some View {
+        styledButton
+            .controlSize(.large)
+    }
+
+    @ViewBuilder
+    private var styledButton: some View {
+        switch kind {
+        case .primary:
+            button.buttonStyle(.borderedProminent)
+        case .secondary:
+            button.buttonStyle(.bordered)
+        case .destructive:
+            button
+                .buttonStyle(.borderedProminent)
+                .tint(AppTheme.Status.error)
+        }
+    }
+
+    private var button: some View {
         Button(role: kind == .destructive ? .destructive : nil, action: action) {
             Text(title)
                 .frame(minWidth: minWidth)
-        }
-        .buttonStyle(AppActionButtonStyle(kind: kind))
-    }
-}
-
-private struct AppActionButtonStyle: ButtonStyle {
-    let kind: AppActionButtonKind
-    @Environment(\.isEnabled) private var isEnabled
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(foregroundColor)
-            .padding(.horizontal, 14)
-            .frame(height: 32)
-            .background(backgroundColor)
-            .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .strokeBorder(borderColor, lineWidth: 1)
-            }
-            .opacity(isEnabled ? (configuration.isPressed ? 0.78 : 1) : 0.45)
-    }
-
-    private var foregroundColor: Color {
-        switch kind {
-        case .secondary: AppTheme.Action.secondaryForeground
-        case .primary: AppTheme.Action.primaryForeground
-        case .destructive: AppTheme.Action.destructiveForeground
-        }
-    }
-
-    private var backgroundColor: Color {
-        switch kind {
-        case .secondary: AppTheme.Surface.control
-        case .primary: AppTheme.Action.primaryFill
-        case .destructive: AppTheme.Action.destructiveFill
-        }
-    }
-
-    private var borderColor: Color {
-        switch kind {
-        case .secondary: AppTheme.Border.control
-        case .primary: AppTheme.Accent.border
-        case .destructive: Color.white.opacity(0.14)
         }
     }
 }
@@ -129,9 +112,10 @@ struct AppPanelHeader: View {
     var body: some View {
         HStack(spacing: 12) {
             Text(title)
-                .font(.headline)
+                .font(.title3)
                 .fontWeight(.semibold)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
+                .accessibilityAddTraits(.isHeader)
 
             Spacer()
 
@@ -140,56 +124,45 @@ struct AppPanelHeader: View {
                 help: "Close",
                 size: 28,
                 iconSize: 14,
-                cornerRadius: AppTheme.Radius.control,
                 action: onClose
             )
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .overlay(Divider().opacity(0.5), alignment: .bottom)
+        .padding(.top, 16)
+        .padding(.bottom, 12)
         .zIndex(1)
     }
 }
 
-struct AppScreenHeader<Trailing: View>: View {
+/// A toolbar button that explains the current screen in a popover, with an optional link to documentation.
+struct ScreenInfoButton: View {
     let title: LocalizedStringKey
-    var infoMessage: LocalizedStringKey?
-    var infoURL: String?
-    @ViewBuilder let trailing: () -> Trailing
+    let message: LocalizedStringKey
+    var learnMoreURL: String?
+
+    @State private var isPresented = false
 
     var body: some View {
-        HStack {
-            HStack(spacing: 8) {
-                Text(title)
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.primary)
+        Button {
+            isPresented.toggle()
+        } label: {
+            Label(title, systemImage: "info.circle")
+        }
+        .help(title)
+        .popover(isPresented: $isPresented, arrowEdge: .bottom) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(message)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                if let infoMessage {
-                    if let infoURL {
-                        InfoTip(infoMessage, learnMoreURL: infoURL)
-                    } else {
-                        InfoTip(infoMessage)
-                    }
+                if let learnMoreURL, let url = URL(string: learnMoreURL) {
+                    Link("Learn more", destination: url)
+                        .font(.callout)
                 }
             }
-
-            Spacer()
-
-            trailing()
+            .frame(width: 280, alignment: .leading)
+            .padding(16)
         }
-        .frame(height: 40)
-        .padding(.horizontal, 24)
-        .padding(.top, 20)
-        .padding(.bottom, 12)
-        .frame(maxWidth: .infinity)
-    }
-}
-
-extension AppScreenHeader where Trailing == EmptyView {
-    init(title: LocalizedStringKey, infoMessage: LocalizedStringKey? = nil, infoURL: String? = nil) {
-        self.title = title
-        self.infoMessage = infoMessage
-        self.infoURL = infoURL
-        self.trailing = { EmptyView() }
     }
 }

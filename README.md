@@ -31,7 +31,7 @@ Build InstantVoice yourself by following the instructions in [BUILDING.md](BUILD
 
 ## Requirements
 
-- macOS 15.0 or later
+- macOS 26.0 or later
 
 ## Documentation
 

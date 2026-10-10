@@ -1,5 +1,12 @@
 import SwiftUI
 
+enum SidePanelMetrics {
+    /// Matches the floating inset of the macOS sidebar so both panes read as one family.
+    static let inset: CGFloat = 8
+    static let cornerRadius: CGFloat = 20
+}
+
+/// Presents a trailing pane that floats over the screen on Liquid Glass, like an inspector.
 struct SidePanel<PanelContent: View>: ViewModifier {
     @Binding var isPresented: Bool
     let panelWidth: CGFloat
@@ -26,14 +33,19 @@ struct SidePanel<PanelContent: View>: ViewModifier {
             .onTapGesture(perform: dismissPanel)
     }
 
+    private var panelShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: SidePanelMetrics.cornerRadius, style: .continuous)
+    }
+
+    /// Takes the requested width, shrinking only when the window is too narrow to fit it.
     private var panelSurface: some View {
         panelContent()
-            .frame(width: panelWidth)
-            .frame(maxHeight: .infinity, alignment: .top)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(SidePanelBackground())
-            .overlay(SidePanelEdgeSeparator(), alignment: .leading)
-            .overlay(SidePanelOuterSeparator(), alignment: .trailing)
-            .ignoresSafeArea()
+            .clipShape(panelShape)
+            .glassEffect(.regular, in: panelShape)
+            .padding(SidePanelMetrics.inset)
+            .frame(maxWidth: panelWidth + SidePanelMetrics.inset * 2)
     }
 
     func body(content: Content) -> some View {
@@ -59,28 +71,10 @@ struct SidePanel<PanelContent: View>: ViewModifier {
     }
 }
 
+/// A translucent backing that keeps dense panel content legible on top of the glass.
 struct SidePanelBackground: View {
     var body: some View {
-        ZStack {
-            VisualEffectView(material: .sidebar, blendingMode: .behindWindow)
-            AppTheme.Surface.sidePanelOverlay
-        }
-    }
-}
-
-private struct SidePanelEdgeSeparator: View {
-    var body: some View {
-        Rectangle()
-            .fill(AppTheme.Border.tint)
-            .frame(width: 1)
-    }
-}
-
-private struct SidePanelOuterSeparator: View {
-    var body: some View {
-        Rectangle()
-            .fill(AppTheme.Border.sidePanelOuter)
-            .frame(width: 1)
+        AppTheme.Surface.sidePanelOverlay
     }
 }
 

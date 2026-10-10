@@ -2,13 +2,28 @@ import SwiftUI
 
 struct DashboardTranscriptCards: View {
     let transcriptions: [Transcription]
+    var onShowAll: (() -> Void)? = nil
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Recent Transcripts")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(AppTheme.Text.primary)
-                .lineLimit(1)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Recent Transcripts")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .accessibilityAddTraits(.isHeader)
+
+                Spacer()
+
+                if let onShowAll {
+                    Button("Show All", action: onShowAll)
+                        .buttonStyle(.link)
+                        // As the page's first control it takes initial focus; skip the ring for a quiet launch.
+                        .focusEffectDisabled()
+                        .help("Open History")
+                }
+            }
+            .padding(.horizontal, 4)
 
             VStack(spacing: 0) {
                 ForEach(Array(transcriptions.enumerated()), id: \.element.id) { index, transcription in
@@ -16,10 +31,12 @@ struct DashboardTranscriptCards: View {
 
                     if index < transcriptions.count - 1 {
                         Divider()
-                            .padding(.horizontal, 8)
+                            .padding(.leading, 54)
                     }
                 }
             }
+            .padding(.vertical, 4)
+            .background(AppCardBackground(cornerRadius: DashboardLayout.cardCornerRadius))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -30,7 +47,7 @@ private struct DashboardTranscriptCardRow: View {
     private static let rowSpacing: CGFloat = 12
     private static let copyButtonSize: CGFloat = 28
     private static let copyButtonTopInset: CGFloat = 12
-    private static let copyButtonTrailingInset: CGFloat = 6
+    private static let copyButtonTrailingInset: CGFloat = 12
 
     let transcription: Transcription
     @State private var isHovering = false
@@ -76,11 +93,14 @@ private struct DashboardTranscriptCardRow: View {
         ZStack(alignment: .topTrailing) {
             rowContent
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, 10)
-                .padding(.horizontal, 8)
+                .padding(.vertical, 12)
+                .padding(.leading, 12)
+                .padding(.trailing, 48)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    isExpanded.toggle()
+                    withAnimation(.smooth(duration: 0.25)) {
+                        isExpanded.toggle()
+                    }
                 }
                 .accessibilityAddTraits(.isButton)
 
@@ -107,21 +127,22 @@ private struct DashboardTranscriptCardRow: View {
             ModeIconView(
                 icon: modeIcon,
                 size: modeIcon.kind == .emoji ? 16 : 14,
-                color: AppTheme.Text.secondary.opacity(0.82)
+                color: .secondary
             )
             .frame(width: Self.iconFrameSize, height: Self.iconFrameSize)
-            .padding(.top, 3)
+            .background(.quinary, in: Circle())
+            .padding(.top, 1)
 
-            VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(metadataText)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(AppTheme.Text.secondary)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(isExpanded ? copyText : previewText)
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(AppTheme.Text.primary)
+                    .font(.body)
+                    .foregroundStyle(.primary)
                     .lineLimit(isExpanded ? nil : 2)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }

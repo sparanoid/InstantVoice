@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import SwiftUI
 
@@ -7,9 +8,11 @@ enum DashboardHeroHeadline {
     case savedTime(String)
 }
 
-struct DashboardHeroCard: View {
-    private static let headlineFont: Font = .system(size: 23, weight: .bold, design: .rounded)
-    private static let highlightedHeadlineFont: Font = .system(size: 30, weight: .black, design: .rounded)
+/// The dashboard's full-bleed banner. The artwork runs under the toolbar and, through the background
+/// extension effect, continues beneath the floating sidebar before fading into the window background.
+struct DashboardHero<Greeting: View>: View {
+    private static var headlineFont: Font { .system(.title2, design: .rounded, weight: .semibold) }
+    private static var highlightedHeadlineFont: Font { .system(.largeTitle, design: .rounded, weight: .heavy) }
 
     let isLocked: Bool
     let headline: DashboardHeroHeadline
@@ -22,57 +25,68 @@ struct DashboardHeroCard: View {
     let reviewCorrectionCount: Int?
     let onViewInsights: () -> Void
     let onReviewCorrections: () -> Void
+    /// Taps outside the greeting, such as on the artwork or copy, end name editing.
+    var onBackgroundTap: () -> Void = {}
+    @ViewBuilder let greeting: () -> Greeting
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if isLocked {
-                lockedInsightsPrompt
-            } else {
-                heroCopy
-            }
+        VStack(alignment: .leading, spacing: 12) {
+            greeting()
 
-            HStack(spacing: 12) {
-                Button(action: onViewInsights) {
-                    DashboardMomentumActionLabel(
-                        title: actionTitle,
-                        icon: actionIcon,
-                        isPrimary: canViewInsights,
-                        isLocked: !canViewInsights
-                    )
+            Group {
+                if isLocked {
+                    lockedInsightsPrompt
+                } else {
+                    heroCopy
                 }
-                .buttonStyle(.plain)
-                .disabled(!canViewInsights)
-                .help(actionHelp)
-                .accessibilityLabel(Text(actionAccessibilityLabel))
 
-                if let reviewCorrectionCount {
-                    Button(action: onReviewCorrections) {
-                        DashboardMomentumActionLabel(
-                            title: "Review Corrections",
-                            icon: "text.book.closed",
-                            isPrimary: false
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .help(reviewCorrectionsHelp(count: reviewCorrectionCount))
-                    .accessibilityLabel("Review corrections")
-                    .accessibilityValue(
-                        Text(
-                            String(
-                                format: String(localized: "%lld pending corrections"),
-                                Int64(reviewCorrectionCount)
-                            )
-                        )
-                    )
-                }
+                actions
+                    .padding(.top, 6)
             }
-            .padding(.top, 8)
+            .contentShape(Rectangle())
+            .onTapGesture(perform: onBackgroundTap)
         }
-        .padding(.horizontal, 28)
-        .padding(.vertical, 18)
-        .frame(maxWidth: .infinity, minHeight: 160, alignment: .leading)
-        .background(DashboardImpactBackground(isLocked: isLocked))
-        .clipShape(RoundedRectangle(cornerRadius: DashboardLayout.cardCornerRadius, style: .continuous))
+        .padding(.horizontal, DashboardLayout.pageHorizontalPadding + 8)
+        .padding(.top, DashboardLayout.heroTopPadding)
+        .padding(.bottom, 30)
+        .frame(maxWidth: .infinity, minHeight: DashboardLayout.heroMinimumHeight, alignment: .bottomLeading)
+        .background {
+            DashboardHeroBackground(isLocked: isLocked)
+                .contentShape(Rectangle())
+                .onTapGesture(perform: onBackgroundTap)
+        }
+    }
+
+    private var actions: some View {
+        HStack(spacing: 10) {
+            Button(action: onViewInsights) {
+                Label(actionTitle, systemImage: actionIcon)
+            }
+            .buttonStyle(.glassProminent)
+            .tint(DashboardHeroPalette.accent)
+            .controlSize(.large)
+            .disabled(!canViewInsights)
+            .help(actionHelp)
+            .accessibilityLabel(Text(actionAccessibilityLabel))
+
+            if let reviewCorrectionCount {
+                Button(action: onReviewCorrections) {
+                    Label("Review Corrections", systemImage: "text.book.closed")
+                }
+                .buttonStyle(.glass)
+                .controlSize(.large)
+                .help(reviewCorrectionsHelp(count: reviewCorrectionCount))
+                .accessibilityLabel("Review corrections")
+                .accessibilityValue(
+                    Text(
+                        String(
+                            format: String(localized: "%lld pending corrections"),
+                            Int64(reviewCorrectionCount)
+                        )
+                    )
+                )
+            }
+        }
     }
 
     private func reviewCorrectionsHelp(count: Int) -> String {
@@ -83,19 +97,16 @@ struct DashboardHeroCard: View {
     }
 
     private var heroCopy: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            headlineText
+        VStack(alignment: .leading, spacing: 6) {
+            Text(styledHeadline)
                 .frame(maxWidth: 720, alignment: .leading)
+                .contentTransition(.numericText())
 
             Text(subtext)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(DashboardMomentumBackground.subtext)
+                .font(.title3.weight(.medium))
+                .foregroundStyle(.secondary)
                 .frame(maxWidth: 620, alignment: .leading)
         }
-    }
-
-    private var headlineText: Text {
-        Text(styledHeadline)
     }
 
     private var styledHeadline: AttributedString {
@@ -115,122 +126,71 @@ struct DashboardHeroCard: View {
         }
 
         text.font = Self.headlineFont
-        text.foregroundColor = DashboardMomentumBackground.headline
+        text.foregroundColor = .primary
 
         if let highlightedRange = text.range(of: highlightedValue) {
             text[highlightedRange].font = Self.highlightedHeadlineFont
-            text[highlightedRange].foregroundColor = DashboardMomentumBackground.accent
+            text[highlightedRange].foregroundColor = DashboardHeroPalette.accent
         }
 
         return text
     }
 
     private var lockedInsightsPrompt: some View {
-        HStack(alignment: .center, spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.white.opacity(0.78))
-
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(DashboardMomentumBackground.accent)
-            }
-            .frame(width: 42, height: 42)
-
+        Label {
             Text("Continue using InstantVoice to unlock stats and insights.")
-                .font(.system(size: 26, weight: .black, design: .rounded))
-                .foregroundStyle(DashboardMomentumBackground.headline)
+                .font(.system(.title2, design: .rounded, weight: .bold))
+                .foregroundStyle(.primary)
                 .frame(maxWidth: 540, alignment: .leading)
+        } icon: {
+            Image(systemName: "lock.fill")
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(DashboardHeroPalette.accent)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
-private struct DashboardMomentumActionLabel: View {
-    private static let cornerRadius: CGFloat = 12
-
-    let title: LocalizedStringKey
-    let icon: String
-    let isPrimary: Bool
+private struct DashboardHeroBackground: View {
     var isLocked = false
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        HStack(spacing: 9) {
-            Text(title)
-                .lineLimit(2)
-
-            Image(systemName: icon)
-                .font(.system(size: 13, weight: .semibold))
-        }
-        .font(.system(size: 13, weight: .semibold))
-        .foregroundStyle(foregroundColor)
-        .padding(.horizontal, 18)
-        .frame(minHeight: 40)
-        .background(backgroundColor)
-        .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
-                .stroke(borderColor, lineWidth: 1)
-        )
-        .shadow(color: shadowColor, radius: 5, y: 2)
-    }
-
-    private var foregroundColor: Color {
-        if isPrimary {
-            return Color.white
-        }
-
-        return isLocked
-            ? DashboardMomentumBackground.subtext
-            : DashboardMomentumBackground.headline
-    }
-
-    private var backgroundColor: Color {
-        if isPrimary {
-            return DashboardMomentumBackground.accent
-        }
-
-        return isLocked ? Color.white.opacity(0.64) : Color.white.opacity(0.82)
-    }
-
-    private var borderColor: Color {
-        if isPrimary {
-            return Color.clear
-        }
-
-        return isLocked ? DashboardMomentumBackground.accent.opacity(0.22) : Color.black.opacity(0.08)
-    }
-
-    private var shadowColor: Color {
-        isPrimary ? DashboardMomentumBackground.accent.opacity(0.18) : Color.black.opacity(0.06)
-    }
-}
-
-private struct DashboardImpactBackground: View {
-    var isLocked = false
-
-    var body: some View {
-        ZStack {
-            Image("momentum-hero-bg")
-                .resizable()
-                .scaledToFill()
-                .blur(radius: isLocked ? 2.5 : 0)
-                .saturation(isLocked ? 0.78 : 1)
-
-            if isLocked {
-                Color.white.opacity(0.32)
+        Color.clear
+            .overlay(alignment: .trailing) {
+                // Anchor the artwork's trailing edge so the sunrise stays in view at every width.
+                Image("momentum-hero-bg")
+                    .resizable()
+                    .scaledToFill()
+                    .saturation(isLocked ? 0.8 : 1)
             }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: DashboardLayout.cardCornerRadius, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: DashboardLayout.cardCornerRadius, style: .continuous)
-                .stroke(AppTheme.Border.card, lineWidth: 1)
-        )
+            .clipped()
+            .overlay {
+                if colorScheme == .dark {
+                    Color.black.opacity(0.5)
+                }
+            }
+            .overlay {
+                LinearGradient(
+                    stops: [
+                        .init(color: .clear, location: 0.35),
+                        .init(color: Color(nsColor: .windowBackgroundColor), location: 1),
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+            .backgroundExtensionEffect()
+            .accessibilityHidden(true)
     }
 }
 
-private struct DashboardMomentumBackground {
-    static let accent = Color(red: 0.76, green: 0.31, blue: 0.08)
-    static let headline = Color(red: 0.10, green: 0.08, blue: 0.06)
-    static let subtext = Color(red: 0.40, green: 0.34, blue: 0.28)
+enum DashboardHeroPalette {
+    /// Burnt orange that holds contrast on the light artwork, lifted for the dimmed dark-mode artwork.
+    static let accent = Color(
+        nsColor: NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            return isDark
+                ? NSColor(srgbRed: 1.0, green: 0.62, blue: 0.32, alpha: 1)
+                : NSColor(srgbRed: 0.76, green: 0.31, blue: 0.08, alpha: 1)
+        })
 }

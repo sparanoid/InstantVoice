@@ -43,22 +43,44 @@ struct DictionarySettingsView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            headerSection
-
-            ScrollView(.vertical) {
-                VStack(alignment: .leading, spacing: 18) {
-                    sectionSelector
-                    selectedSectionForm
-                }
+        ScrollView(.vertical) {
+            selectedSectionForm
                 .padding(.horizontal, 24)
                 .padding(.top, 18)
                 .padding(.bottom, 28)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(minWidth: 600, minHeight: 500)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                sectionPicker
+            }
+
+            ToolbarItemGroup(placement: .primaryAction) {
+                if hasAutoLearnFailure {
+                    Button {
+                        activePanel = .autoLearnFailure
+                    } label: {
+                        Label("Dictionary Auto Learn failed", systemImage: "exclamationmark.triangle.fill")
+                    }
+                    .foregroundStyle(AppTheme.Status.warningStrong)
+                    .help("Dictionary Auto Learn failed")
+                }
+
+                ScreenInfoButton(
+                    title: "Info",
+                    message: dictionaryInfoMessage,
+                    learnMoreURL: "https://tryvoiceink.com/docs/auto-learn-dictionary"
+                )
+
+                Button {
+                    activePanel = activePanel == .settings ? nil : .settings
+                } label: {
+                    Label("Dictionary Settings", systemImage: "gearshape")
+                }
+                .help("Dictionary Settings")
+            }
+        }
         .sidePanel(
             isPresented: Binding(
                 get: { activePanel != nil },
@@ -88,42 +110,31 @@ struct DictionarySettingsView: View {
         }
     }
 
-    private var headerSection: some View {
-        AppScreenHeader(
-            title: "Dictionary",
-            infoMessage: dictionaryInfoMessage,
-            infoURL: "https://tryvoiceink.com/docs/auto-learn-dictionary"
-        ) {
-            HStack(spacing: 8) {
-                if hasAutoLearnFailure {
-                    AppIconButton(
-                        systemName: "exclamationmark.triangle.fill",
-                        help: "Dictionary Auto Learn failed"
-                    ) {
-                        activePanel = .autoLearnFailure
-                    }
-                }
-                settingsButton
+    private var sectionPicker: some View {
+        Picker("Dictionary", selection: $selectedSection.animation(.smooth(duration: 0.2))) {
+            ForEach(DictionarySection.allCases, id: \.self) { section in
+                Text(LocalizedStringKey(section.rawValue))
+                    .tag(section)
             }
         }
-    }
-
-    private var settingsButton: some View {
-        AppIconButton(
-            systemName: "gearshape.fill",
-            help: "Dictionary Settings"
-        ) {
-            activePanel = activePanel == .settings ? nil : .settings
-        }
-    }
-
-    private var sectionSelector: some View {
-        DictionarySectionSwitcher(selection: $selectedSection)
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .fixedSize()
+        .help(selectedSection.description)
     }
 
     private var selectedSectionForm: some View {
-        DictionaryGroupedSection {
-            selectedSectionContent
+        VStack(alignment: .leading, spacing: 8) {
+            DictionaryGroupedSection {
+                selectedSectionContent
+            }
+
+            // Explains the selected list the way a form section footer would.
+            Text(selectedSection.description)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 16)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }
@@ -148,81 +159,7 @@ private struct DictionaryGroupedSection<Content: View>: View {
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(sectionBackground)
-        .overlay(sectionBorder)
+        .background(AppCardBackground())
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var sectionBackground: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(AppTheme.Surface.card)
-    }
-
-    private var sectionBorder: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .stroke(AppTheme.Border.control.opacity(0.16), lineWidth: 1)
-    }
-}
-
-private struct DictionarySectionSwitcher: View {
-    @Binding var selection: DictionarySettingsView.DictionarySection
-
-    var body: some View {
-        HStack(spacing: 10) {
-            ForEach(DictionarySettingsView.DictionarySection.allCases, id: \.self) { section in
-                DictionarySectionButton(
-                    section: section,
-                    isSelected: selection == section
-                ) {
-                    withAnimation(.easeInOut(duration: 0.16)) {
-                        selection = section
-                    }
-                }
-            }
-        }
-        .frame(maxWidth: .infinity)
-    }
-}
-
-private struct DictionarySectionButton: View {
-    let section: DictionarySettingsView.DictionarySection
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            DictionarySectionButtonLabel(
-                title: LocalizedStringKey(section.rawValue),
-                icon: section.systemImage,
-                isSelected: isSelected
-            )
-        }
-        .buttonStyle(.plain)
-        .help(section.description)
-    }
-}
-
-private struct DictionarySectionButtonLabel: View {
-    let title: LocalizedStringKey
-    let icon: String
-    let isSelected: Bool
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 13, weight: .semibold))
-                .symbolRenderingMode(.hierarchical)
-
-            Text(title)
-                .font(.system(size: 14, weight: isSelected ? .semibold : .medium))
-        }
-        .foregroundStyle(isSelected ? Color.primary : Color.secondary)
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
-        .background(
-            AppCardBackground(isSelected: isSelected, cornerRadius: 22)
-        )
-        .contentShape(Rectangle())
     }
 }
