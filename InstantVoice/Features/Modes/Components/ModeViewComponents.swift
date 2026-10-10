@@ -46,8 +46,18 @@ struct ModeIconTile: View {
 /// A row in the Modes list: icon tile, name, and a one-line summary of how the mode transcribes.
 struct ModeListRow: View {
     let config: ModeConfig
+    /// `ModeConfig` compares only IDs, so SwiftUI would keep showing a row's old summary after an edit.
+    /// Comparing the encoded settings redraws the row when anything in the mode changes.
+    private let settings: Data?
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @EnvironmentObject private var transcriptionModelManager: TranscriptionModelManager
+
+    init(config: ModeConfig) {
+        self.config = config
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        settings = try? encoder.encode(config)
+    }
 
     var body: some View {
         HStack(spacing: 12) {
