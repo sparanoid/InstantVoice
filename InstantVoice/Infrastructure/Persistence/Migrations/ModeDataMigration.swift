@@ -100,12 +100,19 @@ extension ModeManager {
         }
     }
 
+    /// The names earlier versions gave the built-in models these renames apply to.
+    private static let legacyBuiltInModelNames: Set<String> = [
+        "nova-3", "stt-async-v5", "scribe_v2", "gemini-3.5-transcribe",
+    ]
+
     /// Cloud models used to merge a provider's file and real-time models into one entry, with the Real-time
     /// switch picking between them. Modes now name the model they use, so real-time modes move to the
     /// streaming model, and Deepgram's general models take their canonical names. Earlier versions also saved a
     /// custom model by its name, which can look like a provider's model, such as `nova-2`; those names stay.
+    /// A name their built-in models used, such as `nova-3`, still changes: they resolved it to the built-in model
+    /// even when a custom model had the same name.
     private static func rawModelName(for modelName: String, realtime: Bool, customModelNames: Set<String>) -> String? {
-        guard !customModelNames.contains(modelName) else { return nil }
+        if customModelNames.contains(modelName), !legacyBuiltInModelNames.contains(modelName) { return nil }
         if modelName.range(of: #"^nova-\d+$"#, options: .regularExpression) != nil {
             return "\(modelName)-general"
         }

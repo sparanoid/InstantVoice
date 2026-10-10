@@ -57,12 +57,12 @@ public final class GeminiStreamingClient: StreamingTranscriptionProvider, @unche
             throw LLMKitError.invalidURL(Self.endpoint)
         }
 
-        // Transcribe models stream through their `-live` counterpart, e.g. `gemini-3.5-transcribe-live`.
+        // Transcribe models stream through their Live counterpart, e.g. `gemini-3.5-transcribe-live`.
         let requestedModel = model.lowercased()
         guard requestedModel.hasPrefix("gemini-"), requestedModel.contains("-transcribe") else {
             throw LLMKitError.unsupportedModel(model)
         }
-        let liveModel = ListedModelKind.isGeminiLiveModel(requestedModel) ? requestedModel : "\(requestedModel)-live"
+        let liveModel = Self.liveModel(for: requestedModel)
 
         stateLock.withLock {
             setupComplete = false
@@ -285,6 +285,15 @@ public final class GeminiStreamingClient: StreamingTranscriptionProvider, @unche
             }
         }
 
+    }
+
+    /// The Live model a transcribe model streams through. Its ID adds a `live` part after `transcribe`, at the end
+    /// as in `gemini-3.5-transcribe-live` or before a suffix as in `gemini-3.6-transcribe-live-preview`.
+    static func liveModel(for model: String) -> String {
+        guard !ListedModelKind.isGeminiLiveModel(model) else { return model }
+        var parts = model.split(separator: "-", omittingEmptySubsequences: false)
+        parts.insert("live", at: parts.firstIndex(of: "transcribe").map { $0 + 1 } ?? parts.endIndex)
+        return parts.joined(separator: "-")
     }
 
     private static func normalizedVocabulary(_ terms: [String]) -> [String] {
