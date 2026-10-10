@@ -4426,6 +4426,28 @@
         }
       }
     },
+    "Also Recognize" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auch erkennen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnaître aussi"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同时识别"
+          }
+        }
+      }
+    },
     "An unknown error occurred." : {
       "localizations" : {
         "de" : {
@@ -23581,6 +23603,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "部分更正无法审核。请检查所选的 AI 提供商后重试。"
+          }
+        }
+      }
+    },
+    "Soniox transcribes speech in the main language and these, and avoids others. Each extra language can lower accuracy, so add only ones you speak." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soniox transkribiert Sprache in der Hauptsprache und in diesen Sprachen und vermeidet andere. Jede zusätzliche Sprache kann die Genauigkeit verringern, füge also nur Sprachen hinzu, die du sprichst."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soniox transcrit la parole dans la langue principale et dans celles-ci, et évite les autres. Chaque langue supplémentaire peut réduire la précision, alors n'ajoutez que celles que vous parlez."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soniox 会转写主语言和这些语言的语音，并避开其他语言。每增加一种语言都可能降低准确度，因此只添加你会说的语言。"
           }
         }
       }

@@ -68,6 +68,10 @@ For Nova-3 multilingual and code-switching transcription, pass `language: "multi
 omitted language to English. Both the batch and streaming clients send custom vocabulary as Nova-3 `keyterm`
 parameters; up to 100 terms are accepted by the client, subject to Deepgram's 500-token total limit.
 
+For Soniox speech that mixes known languages, pass `languages: ["en", "zh"]` to `SonioxClient.transcribe` or
+`SonioxStreamingClient.connect`. They're sent as strict `language_hints`, so Soniox keeps to those languages.
+An empty array, `language: nil`, or `"auto"` lets Soniox identify the language itself.
+
 ## Requirements
 
 - Swift 6.2+, macOS 14+, iOS 17+

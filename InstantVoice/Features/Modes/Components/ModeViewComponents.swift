@@ -138,13 +138,18 @@ struct ModeListRow: View {
             let model = TranscriptionModelRegistry.model(
                 forSelectionKey: modelName,
                 in: transcriptionModelManager.allAvailableModels
-            ),
-            let name = TranscriptionLanguageSupport.languages(
+            )
+        {
+            let languages = TranscriptionLanguageSupport.languages(
                 for: model,
                 realtimeEnabled: config.isRealtimeTranscriptionEnabled
-            )[code]
-        {
-            return name
+            )
+            if let name = languages[code] {
+                let additionalNames = TranscriptionLanguageSupport.additionalLanguages(
+                    config.additionalLanguages, primary: code, for: model
+                ).compactMap { languages[$0] }
+                return ([name] + additionalNames).joined(separator: ", ")
+            }
         }
         return code.uppercased()
     }

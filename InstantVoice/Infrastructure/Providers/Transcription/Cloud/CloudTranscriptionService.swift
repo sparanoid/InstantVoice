@@ -52,7 +52,6 @@ class CloudTranscriptionService: TranscriptionService {
     {
         let audioData = try loadAudioData(from: audioURL)
         let fileName = audioURL.lastPathComponent
-        let language = selectedLanguage(from: context)
         let timeout = CloudTranscriptionSettings.timeout
 
         do {
@@ -73,7 +72,7 @@ class CloudTranscriptionService: TranscriptionService {
                 fileName: fileName,
                 apiKey: apiKey,
                 model: model.name,
-                language: language,
+                languages: context.languages,
                 customVocabulary: getCustomDictionaryTerms(),
                 timeout: timeout
             )
@@ -100,11 +99,6 @@ class CloudTranscriptionService: TranscriptionService {
             throw CloudTranscriptionError.missingAPIKey
         }
         return apiKey
-    }
-
-    private func selectedLanguage(from context: TranscriptionRequestContext) -> String? {
-        let lang = context.language ?? "auto"
-        return (lang == "auto" || lang.isEmpty) ? nil : lang
     }
 
     private func getCustomDictionaryTerms() -> [String] {

@@ -29,6 +29,16 @@ public final class SonioxStreamingClient: StreamingTranscriptionProvider, @unche
     }
 
     public func connect(apiKey: String, model: String, language: String?, customVocabulary: [String] = []) async throws {
+        try await connect(
+            apiKey: apiKey, model: model, languages: language.map { [$0] } ?? [], customVocabulary: customVocabulary)
+    }
+
+    /// Connects for speech that may contain any of several languages.
+    ///
+    /// - Parameters:
+    ///   - languages: Language codes the audio may contain, sent as strict language hints. Pass an empty
+    ///     array for auto-detect.
+    public func connect(apiKey: String, model: String, languages: [String], customVocabulary: [String] = []) async throws {
         let urlString = "wss://stt-rt.soniox.com/transcribe-websocket"
         guard let url = URL(string: urlString) else {
             throw LLMKitError.invalidURL(urlString)
@@ -42,7 +52,7 @@ public final class SonioxStreamingClient: StreamingTranscriptionProvider, @unche
         task.resume()
 
         // Send initial configuration (API key is in the config JSON, not HTTP header)
-        try await sendConfiguration(apiKey: apiKey, model: model, language: language, customVocabulary: customVocabulary)
+        try await sendConfiguration(apiKey: apiKey, model: model, languages: languages, customVocabulary: customVocabulary)
 
         eventsContinuation?.yield(.sessionStarted)
 
@@ -83,7 +93,7 @@ public final class SonioxStreamingClient: StreamingTranscriptionProvider, @unche
 
     // MARK: - Private
 
-    private func sendConfiguration(apiKey: String, model: String, language: String?, customVocabulary: [String]) async throws {
+    private func sendConfiguration(apiKey: String, model: String, languages: [String], customVocabulary: [String]) async throws {
         guard let task = webSocketTask else {
             throw LLMKitError.networkError("Not connected to Soniox streaming.")
         }
@@ -96,13 +106,7 @@ public final class SonioxStreamingClient: StreamingTranscriptionProvider, @unche
             "num_channels": 1
         ]
 
-        if let language, language != "auto", !language.isEmpty {
-            config["language_hints"] = [language]
-            config["language_hints_strict"] = true
-            config["enable_language_identification"] = true
-        } else {
-            config["enable_language_identification"] = true
-        }
+        SonioxClient.addLanguageHints(languages, to: &config)
 
         if !customVocabulary.isEmpty {
             config["context"] = ["terms": customVocabulary]

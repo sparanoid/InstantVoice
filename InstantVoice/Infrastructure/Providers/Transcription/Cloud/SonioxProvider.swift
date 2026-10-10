@@ -14,6 +14,7 @@ struct SonioxProvider: CloudProvider {
         "sv", "tl", "ta", "te", "th", "tr", "uk", "ur", "vi", "cy",
     ]
     let includesAutoDetect: Bool = true
+    let supportsMultipleLanguages: Bool = true
 
     var models: [CloudModel] {
         [
@@ -33,12 +34,21 @@ struct SonioxProvider: CloudProvider {
         audioData: Data, fileName: String, apiKey: String, model: String, language: String?,
         customVocabulary: [String], timeout: TimeInterval
     ) async throws -> String {
+        try await transcribe(
+            audioData: audioData, fileName: fileName, apiKey: apiKey, model: model,
+            languages: language.map { [$0] } ?? [], customVocabulary: customVocabulary, timeout: timeout)
+    }
+
+    func transcribe(
+        audioData: Data, fileName: String, apiKey: String, model: String, languages: [String],
+        customVocabulary: [String], timeout: TimeInterval
+    ) async throws -> String {
         return try await SonioxClient.transcribe(
             audioData: audioData,
             fileName: fileName,
             apiKey: apiKey,
             model: model,
-            language: language,
+            languages: languages,
             customVocabulary: customVocabulary,
             maxWaitSeconds: timeout,
             timeout: timeout

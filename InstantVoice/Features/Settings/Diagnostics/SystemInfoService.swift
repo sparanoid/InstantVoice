@@ -193,11 +193,15 @@ final class SystemInfoService {
             for: model,
             realtimeEnabled: mode.isRealtimeTranscriptionEnabled
         )[language]
+        let additionalLanguages = TranscriptionLanguageSupport.additionalLanguages(
+            mode.additionalLanguages, primary: language, for: model)
+        let additionalDescription =
+            additionalLanguages.isEmpty ? "" : " + \(additionalLanguages.joined(separator: ", "))"
 
         guard let displayName, displayName.caseInsensitiveCompare(language) != .orderedSame else {
-            return language
+            return language + additionalDescription
         }
-        return "\(displayName) (\(language))"
+        return "\(displayName) (\(language))" + additionalDescription
     }
 
     private func getModeEnhancementDescription(for mode: ModeConfig) -> String {

@@ -31,6 +31,44 @@ public struct SonioxClient: Sendable {
         maxWaitSeconds: TimeInterval = 300,
         timeout: TimeInterval = 30
     ) async throws -> String {
+        try await transcribe(
+            audioData: audioData,
+            fileName: fileName,
+            apiKey: apiKey,
+            model: model,
+            languages: language.map { [$0] } ?? [],
+            customVocabulary: customVocabulary,
+            maxWaitSeconds: maxWaitSeconds,
+            timeout: timeout
+        )
+    }
+
+    /// Transcribes audio data that may contain any of several languages using the Soniox API.
+    ///
+    /// This method handles the full async flow: file upload, job creation, status polling, and
+    /// transcript retrieval.
+    ///
+    /// - Parameters:
+    ///   - audioData: Raw audio bytes.
+    ///   - fileName: Name of the audio file (e.g. `"recording.wav"`).
+    ///   - apiKey: Soniox API key.
+    ///   - model: Model name (e.g. `"stt-async-v4"`).
+    ///   - languages: Language codes the audio may contain, sent as strict language hints. Pass an empty
+    ///     array for auto-detect.
+    ///   - customVocabulary: Optional list of custom terms to boost recognition.
+    ///   - maxWaitSeconds: Maximum seconds to wait for transcription completion (default 300).
+    ///   - timeout: Per-request timeout in seconds (default 30).
+    /// - Returns: The transcribed text.
+    public static func transcribe(
+        audioData: Data,
+        fileName: String = "audio.wav",
+        apiKey: String,
+        model: String,
+        languages: [String],
+        customVocabulary: [String] = [],
+        maxWaitSeconds: TimeInterval = 300,
+        timeout: TimeInterval = 30
+    ) async throws -> String {
         try validateAPIKey(apiKey)
 
         let fileId = try await uploadFile(audioData: audioData, fileName: fileName, apiKey: apiKey, timeout: timeout)
@@ -38,7 +76,7 @@ public struct SonioxClient: Sendable {
             fileId: fileId,
             apiKey: apiKey,
             model: model,
-            language: language,
+            languages: languages,
             customVocabulary: customVocabulary,
             timeout: timeout
         )
@@ -110,7 +148,7 @@ public struct SonioxClient: Sendable {
         fileId: String,
         apiKey: String,
         model: String,
-        language: String?,
+        languages: [String],
         customVocabulary: [String],
         timeout: TimeInterval
     ) async throws -> String {
@@ -128,13 +166,7 @@ public struct SonioxClient: Sendable {
             payload["context"] = ["terms": customVocabulary]
         }
 
-        if let language, !language.isEmpty {
-            payload["language_hints"] = [language]
-            payload["language_hints_strict"] = true
-            payload["enable_language_identification"] = true
-        } else {
-            payload["enable_language_identification"] = true
-        }
+        addLanguageHints(languages, to: &payload)
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -205,6 +237,29 @@ public struct SonioxClient: Sendable {
             return text
         }
         throw LLMKitError.noResultReturned
+    }
+}
+
+// MARK: - Language Hints
+
+extension SonioxClient {
+    /// Adds the language fields shared by the async and real-time APIs to a request body.
+    ///
+    /// Hints are strict, so Soniox keeps to the given languages. Without hints, it identifies the language itself.
+    static func addLanguageHints(_ languages: [String], to body: inout [String: Any]) {
+        var hints: [String] = []
+        for language in languages {
+            let code = language.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !code.isEmpty, code != "auto", !hints.contains(code) {
+                hints.append(code)
+            }
+        }
+
+        if !hints.isEmpty {
+            body["language_hints"] = hints
+            body["language_hints_strict"] = true
+        }
+        body["enable_language_identification"] = true
     }
 }
 

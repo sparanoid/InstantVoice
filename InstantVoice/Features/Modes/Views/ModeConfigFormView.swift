@@ -260,6 +260,8 @@ struct ModeConfigFormView: View {
 
             languagePicker
 
+            additionalLanguagesPicker
+
             ExpandableSettingsRow(
                 title: "Transcription Formatting",
                 isExpanded: $draft.isTranscriptionFormattingExpanded
@@ -357,6 +359,55 @@ struct ModeConfigFormView: View {
                     draft.selectedLanguage = effectiveLanguage(for: modelInfo)
                 }
         }
+    }
+
+    /// Extra languages for providers that accept several, shown once a specific main language is chosen.
+    @ViewBuilder
+    private var additionalLanguagesPicker: some View {
+        if let modelInfo = selectedTranscriptionModel,
+            TranscriptionLanguageSupport.supportsMultipleLanguages(modelInfo)
+        {
+            let primaryLanguage = effectiveLanguage(for: modelInfo)
+
+            if primaryLanguage != "auto" {
+                let options = availableLanguages(for: modelInfo)
+                    .filter { $0.key != "auto" && $0.key != primaryLanguage }
+                    .sorted { $0.value < $1.value }
+                let selectedNames = options.filter { draft.additionalLanguages.contains($0.key) }.map(\.value)
+
+                LabeledContent {
+                    Menu {
+                        ForEach(options, id: \.key) { code, name in
+                            Toggle(name, isOn: additionalLanguageBinding(for: code))
+                        }
+                    } label: {
+                        Text(selectedNames.isEmpty ? String(localized: "None") : selectedNames.joined(separator: ", "))
+                            .lineLimit(1)
+                    }
+                    .menuStyle(.borderlessButton)
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Also Recognize")
+                        InfoTip(
+                            "Soniox transcribes speech in the main language and these, and avoids others. Each extra language can lower accuracy, so add only ones you speak."
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private func additionalLanguageBinding(for code: String) -> Binding<Bool> {
+        Binding(
+            get: { draft.additionalLanguages.contains(code) },
+            set: { isOn in
+                var languages = draft.additionalLanguages.filter { $0 != code }
+                if isOn {
+                    languages.append(code)
+                }
+                draft.additionalLanguages = languages
+            }
+        )
     }
 
     private var aiEnhancementSection: some View {
