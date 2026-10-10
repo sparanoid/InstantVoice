@@ -184,6 +184,7 @@ struct CustomTranscriptionModelEditorPanel: View {
     @State private var apiEndpoint = ""
     @State private var apiKey = ""
     @State private var modelName = ""
+    @State private var serverModels: [String] = []
     @State private var isMultilingual = true
     @State private var validationErrors: [String] = []
     @State private var isSaving = false
@@ -238,7 +239,7 @@ struct CustomTranscriptionModelEditorPanel: View {
                     "API Endpoint", text: $apiEndpoint,
                     prompt: Text(verbatim: "https://api.openai.com/v1/audio/transcriptions"))
                 SecureField("API Key", text: $apiKey, prompt: Text("Paste API key"))
-                TextField("Model Name", text: $modelName, prompt: Text(verbatim: "gpt-4o-mini-transcribe"))
+                ModelNameField(modelName: $modelName, prompt: "gpt-4o-mini-transcribe", serverModels: serverModels)
                 Toggle("Multilingual Model", isOn: $isMultilingual)
                 ConnectionTestRow(state: connectionTest, isDisabled: !canTestConnection, action: runConnectionTest)
             } header: {
@@ -255,6 +256,12 @@ struct CustomTranscriptionModelEditorPanel: View {
             isEditing
                 ? Text(verbatim: editingModel?.displayName ?? "") : Text("Add Custom Transcription Model")
         )
+        .task(id: "\(apiEndpoint)\n\(apiKey)") {
+            let models = await ModelNameField.loadServerModels(endpoint: apiEndpoint, apiKey: apiKey)
+            if !Task.isCancelled {
+                serverModels = models
+            }
+        }
         .toolbar {
             if !isEditing {
                 ToolbarItem(placement: .primaryAction) {
@@ -440,6 +447,7 @@ struct CustomEnhancementModelEditorPanel: View {
     @State private var baseURL = ""
     @State private var apiKey = ""
     @State private var modelName = ""
+    @State private var serverModels: [String] = []
     @State private var errorMessage: String?
     @State private var isSaving = false
     @State private var connectionTest: ConnectionTestState = .idle
@@ -493,7 +501,7 @@ struct CustomEnhancementModelEditorPanel: View {
                     "Base URL", text: $baseURL,
                     prompt: Text(verbatim: "https://api.openai.com/v1/chat/completions"))
                 SecureField("API Key", text: $apiKey, prompt: Text("Paste API key"))
-                TextField("Model Name", text: $modelName, prompt: Text(verbatim: "gpt-5.5"))
+                ModelNameField(modelName: $modelName, prompt: "gpt-5.5", serverModels: serverModels)
                 ConnectionTestRow(state: connectionTest, isDisabled: !canTestConnection, action: runConnectionTest)
             } header: {
                 Text("Details")
@@ -508,6 +516,12 @@ struct CustomEnhancementModelEditorPanel: View {
         .navigationTitle(
             isEditing ? Text(verbatim: editingProvider?.name ?? "") : Text("Add Custom Enhancement Model")
         )
+        .task(id: "\(baseURL)\n\(apiKey)") {
+            let models = await ModelNameField.loadServerModels(endpoint: baseURL, apiKey: apiKey)
+            if !Task.isCancelled {
+                serverModels = models
+            }
+        }
         .toolbar {
             if !isEditing {
                 ToolbarItem(placement: .primaryAction) {
@@ -686,6 +700,46 @@ private enum ConnectionTestState: Equatable {
 
     var isTesting: Bool {
         self == .testing
+    }
+}
+
+/// The Model Name field, with a menu of the models the server lists once it returns any.
+private struct ModelNameField: View {
+    @Binding var modelName: String
+    let prompt: String
+    let serverModels: [String]
+
+    var body: some View {
+        LabeledContent("Model Name") {
+            HStack(spacing: 6) {
+                TextField("Model Name", text: $modelName, prompt: Text(verbatim: prompt))
+                    .labelsHidden()
+
+                if !serverModels.isEmpty {
+                    Menu {
+                        ForEach(serverModels, id: \.self) { model in
+                            Button(model) { modelName = model }
+                        }
+                    } label: {
+                        Image(systemName: "list.bullet")
+                    }
+                    .menuStyle(.borderlessButton)
+                    .menuIndicator(.hidden)
+                    .fixedSize()
+                    .help("Choose a model this server lists")
+                }
+            }
+        }
+    }
+
+    /// Waits for typing to pause, then asks the server for its models.
+    static func loadServerModels(endpoint: String, apiKey: String) async -> [String] {
+        try? await Task.sleep(for: .milliseconds(600))
+        guard !Task.isCancelled else { return [] }
+        return await CustomModelConnectionTester.listModels(
+            endpoint: endpoint,
+            apiKey: apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
     }
 }
 

@@ -64,6 +64,16 @@ Select the `InstantVoice` scheme. Run builds `InstantVoice Dev.app`; Archive use
 
 UserDefaults and keychain keys keep their `VoiceInk` names on purpose.
 
+### LLMkit
+
+[LLMkit](https://github.com/Beingpax/LLMkit), upstream's provider API library, is vendored in `Packages/LLMkit` with `git subtree`, and Xcode builds it as a local package. Edit it in place; `git log -- Packages/LLMkit` lists the local changes.
+
+When an upstream merge changes the LLMkit pin in `project.pbxproj` or `Package.resolved`, keep this repo's side of those lines. Then pull the revision upstream pinned, and Git merges it with the local changes:
+
+```bash
+git subtree pull --prefix=Packages/LLMkit https://github.com/Beingpax/LLMkit.git <revision> --squash
+```
+
 ## Troubleshooting
 
 - Run `make check` to verify the required tools.

@@ -10,6 +10,10 @@ enum TranscriptionRealtimeSupport {
             return FluidAudioModelManager.requiresRealtime(named: model.name)
         }
 
+        if let cloudModel = model as? CloudModel, !cloudModel.supportsBatch {
+            return true
+        }
+
         return CloudProviderRegistry.provider(for: model.provider)?.isStreamingOnly ?? false
     }
 

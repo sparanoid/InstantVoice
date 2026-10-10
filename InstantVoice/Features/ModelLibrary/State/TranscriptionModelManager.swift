@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import SwiftUI
 import os
@@ -10,6 +11,7 @@ class TranscriptionModelManager: ObservableObject {
     private weak var whisperModelManager: WhisperModelManager?
     private weak var fluidAudioModelManager: FluidAudioModelManager?
     private let transcribeCppModelManager = TranscribeCppModelManager.shared
+    private var modelCatalogSubscription: AnyCancellable?
 
     private let logger = Logger(subsystem: "com.sparanoid.instantvoice", category: "TranscriptionModelManager")
 
@@ -39,6 +41,13 @@ class TranscriptionModelManager: ObservableObject {
             self?.refreshAllAvailableModels()
         }
 
+        // A provider's fetched model list replaces its built-in cloud models.
+        modelCatalogSubscription = NotificationCenter.default.publisher(for: .providerModelCatalogDidChange)
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.refreshAllAvailableModels()
+                }
+            }
     }
 
     // MARK: - Computed: usable models

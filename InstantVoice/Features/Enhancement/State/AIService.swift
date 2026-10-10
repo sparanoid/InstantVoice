@@ -74,7 +74,17 @@ enum AIProvider: String, CaseIterable {
         }
     }
 
+    /// The provider's chat models: its fetched list when available, otherwise the built-in one.
     var availableModels: [String] {
+        if let listedModels = ProviderModelCatalog.shared.models(for: rawValue) {
+            let models = ProviderModelFilters.enhancementModels(listedModels, for: self)
+            if !models.isEmpty { return models }
+        }
+        return fallbackModels
+    }
+
+    /// Models offered until the provider's list has been fetched, and for providers without one.
+    var fallbackModels: [String] {
         switch self {
         case .groq:
             return [
@@ -215,6 +225,7 @@ class AIService: ObservableObject {
     private lazy var localCLIService = LocalCLIService()
     private var apiKeyChangeObserver: NSObjectProtocol?
     private var settingsChangeObserver: NSObjectProtocol?
+    private var modelCatalogObserver: NSObjectProtocol?
     private var instantVoiceRefineObserver: AnyCancellable?
 
     @Published private var openRouterModels: [String] = []
@@ -380,6 +391,15 @@ class AIService: ObservableObject {
         ) { [weak self] _ in
             self?.initializeAutoLearnSelectionIfNeeded()
         }
+
+        // Fetched model lists change what `availableModels` returns.
+        modelCatalogObserver = NotificationCenter.default.addObserver(
+            forName: .providerModelCatalogDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.objectWillChange.send()
+        }
     }
 
     deinit {
@@ -388,6 +408,9 @@ class AIService: ObservableObject {
         }
         if let settingsChangeObserver {
             NotificationCenter.default.removeObserver(settingsChangeObserver)
+        }
+        if let modelCatalogObserver {
+            NotificationCenter.default.removeObserver(modelCatalogObserver)
         }
         instantVoiceRefineObserver?.cancel()
     }

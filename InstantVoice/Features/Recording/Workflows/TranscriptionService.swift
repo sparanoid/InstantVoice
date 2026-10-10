@@ -3,6 +3,14 @@ import Foundation
 struct TranscriptionRequestContext {
     let language: String?
     let prompt: String?
+    /// Languages the audio may also contain, for providers that accept several.
+    var additionalLanguages: [String] = []
+
+    /// `language` followed by `additionalLanguages`. Empty means auto-detect.
+    var languages: [String] {
+        guard let language, !language.isEmpty, language != "auto" else { return [] }
+        return [language] + additionalLanguages
+    }
 
     static var currentDefaults: TranscriptionRequestContext {
         let language = UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "auto"
@@ -14,7 +22,8 @@ struct TranscriptionRequestContext {
 
     func scoped(to model: any TranscriptionModel) -> TranscriptionRequestContext {
         guard model.provider == .whisper else {
-            return TranscriptionRequestContext(language: language, prompt: nil)
+            return TranscriptionRequestContext(
+                language: language, prompt: nil, additionalLanguages: additionalLanguages)
         }
 
         return self

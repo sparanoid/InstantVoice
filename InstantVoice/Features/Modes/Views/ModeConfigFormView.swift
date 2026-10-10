@@ -222,25 +222,32 @@ struct ModeConfigFormView: View {
                 .foregroundColor(.secondary)
             } else {
                 let availableModels = warmupSnapshot.usableTranscriptionModels
-                let openRouterModels = availableModels.filter { $0.provider == .openRouter }
+                let localModels = availableModels.filter { cloudProviderName(for: $0) == nil }
+                let cloudProviderNames = CloudProviderRegistry.allProviders
+                    .filter { provider in availableModels.contains { $0.provider == provider.modelProvider } }
+                    .map(\.providerKey)
 
                 LabeledContent("Model") {
                     Menu {
-                        ForEach(availableModels.filter { $0.provider != .openRouter }, id: \.selectionKey) { model in
+                        ForEach(localModels, id: \.selectionKey) { model in
                             transcriptionModelMenuItem(model)
                         }
 
-                        if !openRouterModels.isEmpty {
-                            Menu("OpenRouter") {
-                                ForEach(openRouterModels, id: \.selectionKey) { model in
+                        // Cloud models are listed per provider under the IDs the provider gives them.
+                        ForEach(cloudProviderNames, id: \.self) { providerName in
+                            Menu(providerName) {
+                                ForEach(
+                                    availableModels.filter { cloudProviderName(for: $0) == providerName },
+                                    id: \.selectionKey
+                                ) { model in
                                     transcriptionModelMenuItem(model)
                                 }
                             }
                         }
                     } label: {
                         Text(
-                            availableModels.first { $0.selectionKey == draft.selectedTranscriptionModelName }?.displayName
-                                ?? String(localized: "Unavailable")
+                            availableModels.first { $0.selectionKey == draft.selectedTranscriptionModelName }
+                                .map(\.providerQualifiedName) ?? String(localized: "Unavailable")
                         )
                             .lineLimit(1)
                     }
@@ -260,6 +267,8 @@ struct ModeConfigFormView: View {
 
             languagePicker
 
+            additionalLanguagesPicker
+
             ExpandableSettingsRow(
                 title: "Transcription Formatting",
                 isExpanded: $draft.isTranscriptionFormattingExpanded
@@ -272,6 +281,11 @@ struct ModeConfigFormView: View {
                 }
             }
         }
+    }
+
+    /// The cloud provider a model is listed under, or nil for local and custom models.
+    private func cloudProviderName(for model: any TranscriptionModel) -> String? {
+        CloudProviderRegistry.provider(for: model.provider)?.providerKey
     }
 
     @ViewBuilder
@@ -357,6 +371,55 @@ struct ModeConfigFormView: View {
                     draft.selectedLanguage = effectiveLanguage(for: modelInfo)
                 }
         }
+    }
+
+    /// Extra languages for providers that accept several, shown once a specific main language is chosen.
+    @ViewBuilder
+    private var additionalLanguagesPicker: some View {
+        if let modelInfo = selectedTranscriptionModel,
+            TranscriptionLanguageSupport.supportsMultipleLanguages(modelInfo)
+        {
+            let primaryLanguage = effectiveLanguage(for: modelInfo)
+
+            if primaryLanguage != "auto" {
+                let options = availableLanguages(for: modelInfo)
+                    .filter { $0.key != "auto" && $0.key != primaryLanguage }
+                    .sorted { $0.value < $1.value }
+                let selectedNames = options.filter { draft.additionalLanguages.contains($0.key) }.map(\.value)
+
+                LabeledContent {
+                    Menu {
+                        ForEach(options, id: \.key) { code, name in
+                            Toggle(name, isOn: additionalLanguageBinding(for: code))
+                        }
+                    } label: {
+                        Text(selectedNames.isEmpty ? String(localized: "None") : selectedNames.joined(separator: ", "))
+                            .lineLimit(1)
+                    }
+                    .menuStyle(.borderlessButton)
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Also Recognize")
+                        InfoTip(
+                            "Soniox transcribes speech in the main language and these, and avoids others. Each extra language can lower accuracy, so add only ones you speak."
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private func additionalLanguageBinding(for code: String) -> Binding<Bool> {
+        Binding(
+            get: { draft.additionalLanguages.contains(code) },
+            set: { isOn in
+                var languages = draft.additionalLanguages.filter { $0 != code }
+                if isOn {
+                    languages.append(code)
+                }
+                draft.additionalLanguages = languages
+            }
+        )
     }
 
     private var aiEnhancementSection: some View {
@@ -505,6 +568,11 @@ struct ModeConfigFormView: View {
                 if provider == .openRouter {
                     Button("Refresh Models") {
                         Task { await aiService.fetchOpenRouterModels() }
+                    }
+                    .help("Refresh models")
+                } else if ProviderModelCatalog.supportsListing(provider.rawValue) {
+                    Button("Refresh Models") {
+                        Task { try? await ProviderModelCatalog.shared.refresh(providerKey: provider.rawValue) }
                     }
                     .help("Refresh models")
                 }

@@ -31,6 +31,26 @@ enum TranscriptionLanguageSupport {
         }.first ?? "en"
     }
 
+    /// Whether the model's provider accepts several languages in one request.
+    static func supportsMultipleLanguages(_ model: any TranscriptionModel) -> Bool {
+        CloudProviderRegistry.provider(for: model.provider)?.supportsMultipleLanguages ?? false
+    }
+
+    /// The model-supported languages from `codes` to request alongside `primary`. Auto-detect, and models that
+    /// take one language, get none.
+    static func additionalLanguages(
+        _ codes: [String], primary: String, for model: any TranscriptionModel
+    ) -> [String] {
+        guard primary != "auto", supportsMultipleLanguages(model) else { return [] }
+
+        let supported = languages(for: model)
+        var additional: [String] = []
+        for code in codes
+        where code != primary && code != "auto" && supported[code] != nil && !additional.contains(code) {
+            additional.append(code)
+        }
+        return additional
+    }
 }
 
 enum LanguageDictionary {

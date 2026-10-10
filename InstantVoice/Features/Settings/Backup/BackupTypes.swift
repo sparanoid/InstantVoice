@@ -113,6 +113,9 @@ struct WordBackup: Codable {
 
 struct BackupFile: Codable {
     let version: String
+    /// True for backups made since modes name the exact model they use, such as `stt-rt-v5` or `nova-3-general`.
+    /// Older backups name a provider's file model for real-time modes, so their modes are converted on import.
+    let usesRawModelNames: Bool
     let customPrompts: [CustomPrompt]
     let modeConfigs: [ModeConfig]
     let modeShortcuts: [String: ShortcutBackup]?
@@ -123,8 +126,8 @@ struct BackupFile: Codable {
     let customCloudModels: [CustomModelBackup]?
 
     private enum CodingKeys: String, CodingKey {
-        case version, customPrompts, modeConfigs, modeShortcuts, vocabularyWords, wordReplacements, generalSettings,
-            customEmojis, customCloudModels
+        case version, usesRawModelNames, customPrompts, modeConfigs, modeShortcuts, vocabularyWords, wordReplacements,
+            generalSettings, customEmojis, customCloudModels
         case legacyModeConfigs = "powerModeConfigs"
         case legacyModeShortcuts = "powerModeShortcuts"
     }
@@ -135,6 +138,7 @@ struct BackupFile: Codable {
         generalSettings: GeneralBackup?, customEmojis: [String]?, customCloudModels: [CustomModelBackup]?
     ) {
         self.version = version
+        self.usesRawModelNames = true
         self.customPrompts = customPrompts
         self.modeConfigs = modeConfigs
         self.modeShortcuts = modeShortcuts
@@ -148,6 +152,7 @@ struct BackupFile: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         version = try container.decodeIfPresent(String.self, forKey: .version) ?? "0.0.0"
+        usesRawModelNames = try container.decodeIfPresent(Bool.self, forKey: .usesRawModelNames) ?? false
         customPrompts = try container.decodeIfPresent([CustomPrompt].self, forKey: .customPrompts) ?? []
         modeConfigs =
             try container.decodeIfPresent([ModeConfig].self, forKey: .modeConfigs)
@@ -166,6 +171,7 @@ struct BackupFile: Codable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(version, forKey: .version)
+        try container.encode(usesRawModelNames, forKey: .usesRawModelNames)
         try container.encode(customPrompts, forKey: .customPrompts)
         try container.encode(modeConfigs, forKey: .modeConfigs)
         try container.encodeIfPresent(modeShortcuts, forKey: .modeShortcuts)

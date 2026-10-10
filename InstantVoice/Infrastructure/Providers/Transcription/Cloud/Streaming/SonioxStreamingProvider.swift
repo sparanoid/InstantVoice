@@ -25,6 +25,10 @@ final class SonioxStreamingProvider: StreamingTranscriptionProvider {
     }
 
     func connect(model: any TranscriptionModel, language: String?) async throws {
+        try await connect(model: model, languages: language.map { [$0] } ?? [])
+    }
+
+    func connect(model: any TranscriptionModel, languages: [String]) async throws {
         guard let apiKey = APIKeyManager.shared.getAPIKey(forProvider: "Soniox"), !apiKey.isEmpty else {
             throw StreamingTranscriptionError.missingAPIKey
         }
@@ -37,7 +41,9 @@ final class SonioxStreamingProvider: StreamingTranscriptionProvider {
 
         do {
             try await client.connect(
-                apiKey: apiKey, model: "stt-rt-v5", language: language, customVocabulary: vocabulary)
+                apiKey: apiKey, model: model.name, languages: languages,
+                strictLanguageHints: SonioxProvider.acceptsStrictLanguageHints(model.name),
+                customVocabulary: vocabulary)
         } catch {
             // Clean up forwarding task on connection failure
             forwardingTask?.cancel()

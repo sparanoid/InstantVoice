@@ -9,10 +9,31 @@ struct GroqProvider: CloudProvider {
     let includesAutoDetect: Bool = false
 
     var models: [CloudModel] {
+        listedModels ?? builtInModels
+    }
+
+    /// Whisper models from Groq's fetched list, which also holds its chat and speech models.
+    private var listedModels: [CloudModel]? {
+        guard let listed = ProviderModelCatalog.shared.models(for: providerKey) else { return nil }
+        let models = listed
+            .filter { ListedModelKind.isGroqTranscriptionModel($0.id) }
+            .map { model in
+                CloudModel.listed(
+                    model.id,
+                    provider: .groq,
+                    builtIn: builtInModels,
+                    defaultDescription: String(localized: "Whisper model with Groq's fast inference"),
+                    defaultLanguages: LanguageDictionary.forProvider(isMultilingual: true, provider: .groq)
+                )
+            }
+        return models.isEmpty ? nil : models
+    }
+
+    var builtInModels: [CloudModel] {
         [
             CloudModel(
                 name: "whisper-large-v3-turbo",
-                displayName: "Whisper Large v3 Turbo",
+                displayName: "whisper-large-v3-turbo",
                 description: "Whisper Large v3 Turbo model with Groq's lightning-speed inference",
                 provider: .groq,
                 isMultilingual: true,

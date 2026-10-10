@@ -1,4 +1,5 @@
 import AppKit
+import LLMkit
 import SwiftUI
 
 struct ProviderDetailPanel: View {
@@ -9,7 +10,8 @@ struct ProviderDetailPanel: View {
 
     @State private var apiKey = ""
     @State private var isVerifying = false
-    @State private var isRefreshingOpenRouterModels = false
+    @State private var isRefreshingModels = false
+    @State private var modelRefreshError: String?
     @State private var verificationMessage: String?
     @State private var verificationDetailMessage: String?
     @State private var verificationSucceeded = false
@@ -38,6 +40,10 @@ struct ProviderDetailPanel: View {
 
                 if descriptor.hasEnhancement {
                     enhancementModelsSection
+                }
+
+                if !otherModels.isEmpty {
+                    otherModelsSection
                 }
             }
             .padding(.horizontal, 24)
@@ -254,42 +260,46 @@ struct ProviderDetailPanel: View {
         let models = descriptor.transcriptionModels
 
         return ProviderModelListSection(title: "Available Transcription Models") {
-            if descriptor.cloudProvider?.modelProvider == .openRouter {
-                openRouterCatalogStatus(modelCount: models.count)
+            if supportsModelRefresh {
+                modelListStatus(modelCount: models.count)
             }
 
-            ForEach(Array(models.prefix(8).enumerated()), id: \.element.id) { index, model in
-                modelRow(
-                    title: model.displayName,
-                    subtitle: nil,
-                    trailing: nil,
-                    systemImage: "captions.bubble.fill"
-                )
+            LazyVStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(models.enumerated()), id: \.element.id) { index, model in
+                    modelRow(
+                        title: model.displayName,
+                        subtitle: transcriptionModelDetails(model),
+                        trailing: nil,
+                        systemImage: "captions.bubble.fill"
+                    )
 
-                if index < min(models.count, 8) - 1 {
-                    Divider()
+                    if index < models.count - 1 {
+                        Divider()
+                    }
                 }
             }
-
-            if models.count > 8 {
-                Divider()
-                Text("+\(models.count - 8) more transcription models available")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.vertical, 8)
-            }
         }
+    }
+
+    /// What a transcription model handles, then what the provider says about it.
+    private func transcriptionModelDetails(_ model: CloudModel) -> String {
+        let capability: String
+        switch (model.supportsBatch, model.supportsStreaming) {
+        case (true, true): capability = String(localized: "Recorded audio and real-time")
+        case (false, true): capability = String(localized: "Real-time only")
+        default: capability = String(localized: "Recorded audio")
+        }
+        return model.description.isEmpty ? capability : "\(capability) · \(model.description)"
     }
 
     @ViewBuilder
     private var enhancementModelsSection: some View {
         if let provider = descriptor.aiProvider {
             let models = aiService.availableModels(for: provider)
-            let previewCount = provider == .openRouter ? 5 : 8
 
             ProviderModelListSection(title: "Available Enhancement Models") {
-                if provider == .openRouter {
-                    openRouterCatalogStatus(modelCount: models.count)
+                if supportsModelRefresh && !descriptor.hasTranscription {
+                    modelListStatus(modelCount: models.count)
                 }
 
                 if provider != .openRouter && models.isEmpty {
@@ -298,28 +308,53 @@ struct ProviderDetailPanel: View {
                         .foregroundStyle(.secondary)
                         .padding(.vertical, 8)
                 } else {
-                    ForEach(Array(models.prefix(previewCount).enumerated()), id: \.offset) { index, model in
-                        modelRow(
-                            title: model,
-                            subtitle: nil,
-                            trailing: nil,
-                            systemImage: "sparkles"
-                        )
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(models.enumerated()), id: \.offset) { index, model in
+                            modelRow(
+                                title: model,
+                                subtitle: nil,
+                                trailing: nil,
+                                systemImage: "sparkles"
+                            )
 
-                        if index < min(models.count, previewCount) - 1 {
-                            Divider()
+                            if index < models.count - 1 {
+                                Divider()
+                            }
                         }
-                    }
-
-                    if models.count > previewCount {
-                        Divider()
-                        Text("+\(models.count - previewCount) more enhancement models available")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .padding(.vertical, 8)
                     }
                 }
 
+            }
+        }
+    }
+
+    /// The rest of what the provider lists, such as speech or embedding models, which the app doesn't use.
+    private var otherModels: [ListedModel] {
+        guard let listed = ProviderModelCatalog.shared.models(for: descriptor.providerKey) else { return [] }
+        var usedModels = Set(descriptor.transcriptionModels.map(\.name))
+        if let provider = descriptor.aiProvider {
+            usedModels.formUnion(aiService.availableModels(for: provider))
+        }
+        return listed.filter { !usedModels.contains($0.id) }
+    }
+
+    private var otherModelsSection: some View {
+        let models = otherModels
+
+        return ProviderModelListSection(title: "Other Models") {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(models.enumerated()), id: \.offset) { index, model in
+                    modelRow(
+                        title: model.id,
+                        subtitle: model.displayName.flatMap { $0 == model.id ? nil : $0 },
+                        trailing: nil,
+                        systemImage: "square.stack.3d.up"
+                    )
+
+                    if index < models.count - 1 {
+                        Divider()
+                    }
+                }
             }
         }
     }
@@ -332,31 +367,73 @@ struct ProviderDetailPanel: View {
         return String(localized: "\(count) models available")
     }
 
-    private func openRouterCatalogStatus(modelCount: Int) -> some View {
-        HStack(spacing: 12) {
-            Text(openRouterModelAvailabilityText(for: modelCount))
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(modelCount == 0 ? .secondary : .primary)
+    /// OpenRouter's public catalog, and providers whose list-models API the catalog can fetch.
+    private var supportsModelRefresh: Bool {
+        isOpenRouter || ProviderModelCatalog.supportsListing(descriptor.providerKey)
+    }
 
-            Spacer()
+    private var isOpenRouter: Bool {
+        descriptor.providerKey == AIProvider.openRouter.rawValue
+    }
 
-            Button {
-                refreshOpenRouterModels()
-            } label: {
-                HStack(spacing: 5) {
-                    if isRefreshingOpenRouterModels {
-                        ProgressView()
-                            .controlSize(.small)
-                    } else {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    Text(isRefreshingOpenRouterModels ? LocalizedStringKey("Refreshing") : LocalizedStringKey("Refresh"))
+    /// Fetching needs a saved key, except for OpenRouter's public catalog.
+    private var canRefreshModels: Bool {
+        isOpenRouter || isConfigured
+    }
+
+    private func modelListStatusText(modelCount: Int) -> String {
+        if isOpenRouter {
+            return openRouterModelAvailabilityText(for: modelCount)
+        }
+        if let fetchedAt = ProviderModelCatalog.shared.fetchedAt(for: descriptor.providerKey) {
+            return String(
+                format: String(localized: "Updated %@"), fetchedAt.formatted(.relative(presentation: .named)))
+        }
+        return String(localized: "Built-in model list")
+    }
+
+    private func modelListStatus(modelCount: Int) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 12) {
+                // Redrawn each minute so "Updated 5 minutes ago" stays current.
+                TimelineView(.everyMinute) { _ in
+                    Text(modelListStatusText(modelCount: modelCount))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(modelCount == 0 ? .secondary : .primary)
                 }
-                .font(.system(size: 12, weight: .medium))
+
+                Spacer()
+
+                Button {
+                    refreshModels()
+                } label: {
+                    HStack(spacing: 5) {
+                        if isRefreshingModels {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        Text(isRefreshingModels ? LocalizedStringKey("Refreshing") : LocalizedStringKey("Refresh"))
+                    }
+                    .font(.system(size: 12, weight: .medium))
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(isRefreshingModels || !canRefreshModels)
+                .help(
+                    canRefreshModels
+                        ? String(format: String(localized: "Fetch the latest models from %@"), descriptor.displayName)
+                        : String(localized: "Add an API key to fetch the latest models")
+                )
             }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
-            .disabled(isRefreshingOpenRouterModels)
+
+            if let modelRefreshError {
+                Text(modelRefreshError)
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.Status.error)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .padding(.vertical, 8)
     }
@@ -428,7 +505,8 @@ struct ProviderDetailPanel: View {
         verificationSucceeded = isConfigured
         apiKey = ""
         isVerifying = false
-        isRefreshingOpenRouterModels = false
+        isRefreshingModels = false
+        modelRefreshError = nil
         verificationMessage = nil
         verificationDetailMessage = nil
         isShowingRemoveAPIKeyConfirmation = false
@@ -485,6 +563,9 @@ struct ProviderDetailPanel: View {
                     verificationDetailMessage = nil
                     transcriptionModelManager.refreshAllAvailableModels()
                     NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
+                    if supportsModelRefresh && !isOpenRouter {
+                        refreshModels()
+                    }
                 } else {
                     verificationMessage = String(
                         localized: "Could not verify this API key. Check the key and try again.")
@@ -504,15 +585,30 @@ struct ProviderDetailPanel: View {
         NotificationCenter.default.post(name: .aiProviderKeyChanged, object: nil)
     }
 
-    private func refreshOpenRouterModels() {
-        guard !isRefreshingOpenRouterModels else { return }
-        isRefreshingOpenRouterModels = true
+    private func refreshModels() {
+        guard !isRefreshingModels else { return }
+        isRefreshingModels = true
+        modelRefreshError = nil
+        let providerID = descriptor.id
 
         Task {
-            await aiService.fetchOpenRouterModels()
-            await transcriptionModelManager.refreshOpenRouterCatalog()
+            var failure: String?
+            if isOpenRouter {
+                await aiService.fetchOpenRouterModels()
+                await transcriptionModelManager.refreshOpenRouterCatalog()
+            } else {
+                do {
+                    try await ProviderModelCatalog.shared.refresh(providerKey: descriptor.providerKey)
+                } catch {
+                    failure = error.localizedDescription
+                }
+            }
             await MainActor.run {
-                isRefreshingOpenRouterModels = false
+                guard activeDescriptorID == providerID else { return }
+                isRefreshingModels = false
+                modelRefreshError = failure.map {
+                    String(format: String(localized: "Couldn't fetch models: %@"), $0)
+                }
             }
         }
     }

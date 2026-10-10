@@ -13,7 +13,7 @@ struct CartesiaProvider: CloudProvider {
         [
             CloudModel(
                 name: "ink-2",
-                displayName: "Ink 2",
+                displayName: "ink-2",
                 description: "Cartesia's fastest streaming speech to text model. With English only support.",
                 provider: .cartesia,
                 isMultilingual: false,

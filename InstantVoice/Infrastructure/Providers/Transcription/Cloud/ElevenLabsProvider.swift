@@ -22,16 +22,26 @@ struct ElevenLabsProvider: CloudProvider {
         [
             CloudModel(
                 name: "scribe_v2",
-                displayName: "Scribe V2",
+                displayName: "scribe_v2",
                 description: "ElevenLabs' Scribe V2 model for the most accurate transcription",
                 provider: .elevenLabs,
                 isMultilingual: true,
-                supportsStreaming: true,
                 supportedLanguages: LanguageDictionary.forProvider(isMultilingual: true, provider: .elevenLabs)
             ),
             CloudModel(
+                name: "scribe_v2_realtime",
+                displayName: "scribe_v2_realtime",
+                description: "ElevenLabs' Scribe V2 model for real-time transcription",
+                provider: .elevenLabs,
+                isMultilingual: true,
+                supportsStreaming: true,
+                supportsBatch: false,
+                supportedLanguages: LanguageDictionary.forProvider(isMultilingual: true, provider: .elevenLabs),
+                batchFallbackName: "scribe_v2"
+            ),
+            CloudModel(
                 name: "scribe_v2_medical",
-                displayName: "Scribe V2 Medical",
+                displayName: "scribe_v2_medical",
                 description: "Optimized for clinical audio and medical terminology in 90+ languages. Transcribes after recording stops; no realtime support.",
                 provider: .elevenLabs,
                 isMultilingual: true,

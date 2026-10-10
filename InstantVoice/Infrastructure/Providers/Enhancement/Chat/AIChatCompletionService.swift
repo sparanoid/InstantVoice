@@ -111,7 +111,7 @@ extension AIService {
                 model: resolvedModel,
                 messages: messages,
                 systemPrompt: systemPrompt,
-                temperature: 0.3,
+                temperature: ReasoningConfig.acceptsTemperature(for: provider, modelName: resolvedModel) ? 0.3 : nil,
                 reasoningEffort: reasoningEffort,
                 extraBody: extraBody,
                 timeout: timeout

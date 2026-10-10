@@ -49,6 +49,9 @@ protocol StreamingTranscriptionProvider: AnyObject {
     /// Connect to the streaming transcription endpoint
     func connect(model: any TranscriptionModel, language: String?) async throws
 
+    /// Connect for audio that may contain any of `languages`, primary language first. Empty means auto-detect.
+    func connect(model: any TranscriptionModel, languages: [String]) async throws
+
     /// Send a chunk of raw PCM audio data (16-bit, 16kHz, mono, little-endian)
     func sendAudioChunk(_ data: Data) async throws
 
@@ -69,4 +72,9 @@ protocol StreamingTranscriptionProvider: AnyObject {
 extension StreamingTranscriptionProvider {
     var stopDisposition: StreamingStopDisposition { .finalizeStreaming }
     var finalizationEvents: AsyncStream<String>? { nil }
+
+    /// Providers that accept one language connect with the primary one.
+    func connect(model: any TranscriptionModel, languages: [String]) async throws {
+        try await connect(model: model, language: languages.first ?? "auto")
+    }
 }

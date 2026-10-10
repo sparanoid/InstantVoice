@@ -72,8 +72,8 @@ struct OpenRouterProvider: CloudProvider {
             CloudModel(
                 id: stableID(for: model.id),
                 name: model.id,
-                displayName: model.name ?? model.id,
-                description: String(localized: "OpenRouter speech-to-text model"),
+                displayName: model.id,
+                description: model.name ?? String(localized: "OpenRouter speech-to-text model"),
                 provider: .openRouter,
                 isMultilingual: true,
                 supportedLanguages: ["auto": String(localized: "Auto-detect")]

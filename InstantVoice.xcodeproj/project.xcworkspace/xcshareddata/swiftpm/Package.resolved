@@ -1,5 +1,5 @@
 {
-  "originHash" : "15c38058afe4ec7fe9d718e5c988a04a0d0f495adc1485cf989bdc8b7a560ab7",
+  "originHash" : "915b2265d3762f1f980cc5e1e28852962f4b0240a5a5fdf36340009b6aa6fa43",
   "pins" : [
     {
       "identity" : "axswift",
@@ -35,14 +35,6 @@
       "state" : {
         "revision" : "99584bf1a03ab600cc44be89a2dcd98b2dbeb9de",
         "version" : "0.0.5"
-      }
-    },
-    {
-      "identity" : "llmkit",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Beingpax/LLMkit.git",
-      "state" : {
-        "revision" : "37100b22033674f183af0b6e18f81db071ea6320"
       }
     },
     {

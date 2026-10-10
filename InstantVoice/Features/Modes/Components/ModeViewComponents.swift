@@ -46,8 +46,18 @@ struct ModeIconTile: View {
 /// A row in the Modes list: icon tile, name, and a one-line summary of how the mode transcribes.
 struct ModeListRow: View {
     let config: ModeConfig
+    /// `ModeConfig` compares only IDs, so SwiftUI would keep showing a row's old summary after an edit.
+    /// Comparing the encoded settings redraws the row when anything in the mode changes.
+    private let settings: Data?
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @EnvironmentObject private var transcriptionModelManager: TranscriptionModelManager
+
+    init(config: ModeConfig) {
+        self.config = config
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        settings = try? encoder.encode(config)
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -101,7 +111,7 @@ struct ModeListRow: View {
 
         switch modelResolution {
         case .available(_, let model):
-            parts.append(model.displayName)
+            parts.append(model.providerQualifiedName)
         case .noMode, .noSelection, .modelNotFound, .unavailable:
             parts.append(String(localized: "Unavailable"))
         }
@@ -138,13 +148,18 @@ struct ModeListRow: View {
             let model = TranscriptionModelRegistry.model(
                 forSelectionKey: modelName,
                 in: transcriptionModelManager.allAvailableModels
-            ),
-            let name = TranscriptionLanguageSupport.languages(
+            )
+        {
+            let languages = TranscriptionLanguageSupport.languages(
                 for: model,
                 realtimeEnabled: config.isRealtimeTranscriptionEnabled
-            )[code]
-        {
-            return name
+            )
+            if let name = languages[code] {
+                let additionalNames = TranscriptionLanguageSupport.additionalLanguages(
+                    config.additionalLanguages, primary: code, for: model
+                ).compactMap { languages[$0] }
+                return ([name] + additionalNames).joined(separator: ", ")
+            }
         }
         return code.uppercased()
     }

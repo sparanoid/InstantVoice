@@ -36,7 +36,7 @@ final class ElevenLabsStreamingProvider: StreamingTranscriptionProvider {
         do {
             try await client.connect(
                 apiKey: apiKey,
-                model: "scribe_v2_realtime",
+                model: model.name,
                 language: language,
                 customVocabulary: getCustomDictionaryTerms()
             )

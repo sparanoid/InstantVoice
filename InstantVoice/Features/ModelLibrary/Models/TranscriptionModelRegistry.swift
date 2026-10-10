@@ -19,7 +19,13 @@ enum TranscriptionModelRegistry {
             return openRouter
         }
 
-        return models.first { $0.name == key && $0.provider != .openRouter }
+        if let model = models.first(where: { $0.name == key && $0.provider != .openRouter }) {
+            return model
+        }
+
+        // Providers retire a model by turning its ID into an alias of the successor, which they keep accepting.
+        guard let successor = ProviderModelCatalog.shared.aliasTarget(of: key) else { return nil }
+        return models.first { $0.name == successor && $0.provider != .openRouter }
     }
 
     private static let predefinedModels: [any TranscriptionModel] = {

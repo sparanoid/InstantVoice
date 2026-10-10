@@ -16,7 +16,7 @@ struct XAIProvider: CloudProvider {
         [
             CloudModel(
                 name: "grok-voice-transcribe-2.0",
-                displayName: "Grok Voice Transcribe 2.0",
+                displayName: "grok-voice-transcribe-2.0",
                 description: "xAI's Grok Voice Transcribe 2.0 model with real-time streaming and batch transcription",
                 provider: .xai,
                 isMultilingual: true,

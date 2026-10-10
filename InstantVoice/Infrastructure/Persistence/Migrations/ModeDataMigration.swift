@@ -17,6 +17,9 @@ extension ModeManager {
 
     func migrateLoadedModeConfigurationsIfNeeded() {
         var didChange = false
+        let migratesRawModelNames = !UserDefaults.standard.bool(forKey: Self.rawModelNamesMigrationKey)
+        let customModelNames =
+            migratesRawModelNames ? Set(CustomCloudModelManager.shared.customModels.map(\.name)) : []
 
         for index in configurations.indices {
             var config = configurations[index]
@@ -50,6 +53,15 @@ extension ModeManager {
                 changedConfig = true
             }
 
+            if migratesRawModelNames,
+                let modelName = config.selectedTranscriptionModelName,
+                let rawName = Self.rawModelName(
+                    for: modelName, realtime: config.isRealtimeTranscriptionEnabled, customModelNames: customModelNames)
+            {
+                config.selectedTranscriptionModelName = rawName
+                changedConfig = true
+            }
+
             if changedConfig {
                 configurations[index] = config
                 didChange = true
@@ -59,9 +71,64 @@ extension ModeManager {
         if didChange {
             saveConfigurations()
         }
+        if migratesRawModelNames {
+            // The default model is saved the same way. It has no Real-time switch, so only renamed models
+            // such as `nova-3` change.
+            if let modelName = UserDefaults.standard.string(forKey: "CurrentTranscriptionModel"),
+                let rawName = Self.rawModelName(for: modelName, realtime: false, customModelNames: customModelNames)
+            {
+                UserDefaults.standard.set(rawName, forKey: "CurrentTranscriptionModel")
+            }
+            UserDefaults.standard.set(true, forKey: Self.rawModelNamesMigrationKey)
+        }
 
         migrateLegacyShortcutStorageIfNeeded()
     }
+
+    private static let rawModelNamesMigrationKey = "didMigrateModesToRawModelNames"
+
+    /// Applies the launch migration's model renames to modes it never saw, such as an older backup's.
+    static func withRawModelNames(_ configs: [ModeConfig], customModelNames: Set<String>) -> [ModeConfig] {
+        configs.map { config in
+            guard let modelName = config.selectedTranscriptionModelName,
+                let rawName = rawModelName(
+                    for: modelName, realtime: config.isRealtimeTranscriptionEnabled, customModelNames: customModelNames)
+            else { return config }
+            var config = config
+            config.selectedTranscriptionModelName = rawName
+            return config
+        }
+    }
+
+    /// The names earlier versions gave the built-in models these renames apply to.
+    private static let legacyBuiltInModelNames: Set<String> = [
+        "nova-3", "stt-async-v5", "scribe_v2", "gemini-3.5-transcribe",
+    ]
+
+    /// Cloud models used to merge a provider's file and real-time models into one entry, with the Real-time
+    /// switch picking between them. Modes now name the model they use, so real-time modes move to the
+    /// streaming model, and Deepgram's general models take their canonical names. Earlier versions also saved a
+    /// custom model by its name, which can look like a provider's model, such as `nova-2`; those names stay.
+    /// A name their built-in models used, such as `nova-3`, still changes: they resolved it to the built-in model
+    /// even when a custom model had the same name.
+    private static func rawModelName(for modelName: String, realtime: Bool, customModelNames: Set<String>) -> String? {
+        if customModelNames.contains(modelName), !legacyBuiltInModelNames.contains(modelName) { return nil }
+        if modelName.range(of: #"^nova-\d+$"#, options: .regularExpression) != nil {
+            return "\(modelName)-general"
+        }
+        guard realtime else { return nil }
+        if modelName.hasPrefix("stt-async-") {
+            return "stt-rt-" + modelName.dropFirst("stt-async-".count)
+        }
+        if modelName == "scribe_v2" {
+            return "scribe_v2_realtime"
+        }
+        if modelName.hasPrefix("gemini-"), modelName.hasSuffix("-transcribe") {
+            return "\(modelName)-live"
+        }
+        return nil
+    }
+
     private func migrateLegacyShortcutStorageIfNeeded() {
         let defaults = UserDefaults.standard
 

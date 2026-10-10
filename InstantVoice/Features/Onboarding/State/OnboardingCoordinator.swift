@@ -361,8 +361,11 @@ final class OnboardingCoordinator: ObservableObject {
         )
     }
 
+    /// The provider's recommended model, preferring real-time, when its current list still has it.
     func selectedTranscriptionModel(for provider: any CloudProvider) -> CloudModel? {
-        provider.models.first(where: \.supportsStreaming) ?? provider.models.first
+        let recommended = provider.builtInModels.first(where: \.supportsStreaming) ?? provider.builtInModels.first
+        return provider.models.first { $0.name == recommended?.name }
+            ?? provider.models.first(where: \.supportsStreaming) ?? provider.models.first
     }
 
     func selectedOnboardingProviderBinding(aiService: AIService) -> Binding<AIProvider> {

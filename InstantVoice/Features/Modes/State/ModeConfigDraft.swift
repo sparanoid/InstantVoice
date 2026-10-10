@@ -13,6 +13,7 @@ struct ModeConfigDraft {
     var selectedTranscriptionModelName: String?
     var isRealtimeTranscriptionEnabled: Bool
     var selectedLanguage: String?
+    var additionalLanguages: [String]
     var isTextFormattingEnabled: Bool
     var useClipboardContext: Bool
     var useSelectedTextContext: Bool
@@ -43,6 +44,7 @@ struct ModeConfigDraft {
             selectedTranscriptionModelName = inheritedConfig?.selectedTranscriptionModelName
             isRealtimeTranscriptionEnabled = true
             selectedLanguage = inheritedConfig?.selectedLanguage
+            additionalLanguages = inheritedConfig?.additionalLanguages ?? []
             isTextFormattingEnabled = true
             useClipboardContext = false
             useSelectedTextContext = false
@@ -69,6 +71,7 @@ struct ModeConfigDraft {
             selectedTranscriptionModelName = latestConfig.selectedTranscriptionModelName
             isRealtimeTranscriptionEnabled = latestConfig.isRealtimeTranscriptionEnabled
             selectedLanguage = latestConfig.selectedLanguage
+            additionalLanguages = latestConfig.additionalLanguages
             isTextFormattingEnabled = latestConfig.isTextFormattingEnabled
             useClipboardContext = latestConfig.useClipboardContext
             useSelectedTextContext = latestConfig.useSelectedTextContext
@@ -172,6 +175,7 @@ struct ModeConfigDraft {
                 selectedTranscriptionModelName: selectedTranscriptionModelName,
                 isRealtimeTranscriptionEnabled: isRealtimeTranscriptionEnabled,
                 selectedLanguage: selectedLanguage,
+                additionalLanguages: additionalLanguages,
                 useClipboardContext: useClipboardContext,
                 useSelectedTextContext: useSelectedTextContext,
                 useScreenCapture: useScreenCapture,
@@ -206,6 +210,7 @@ struct ModeConfigDraft {
         updatedConfig.selectedTranscriptionModelName = selectedTranscriptionModelName
         updatedConfig.isRealtimeTranscriptionEnabled = isRealtimeTranscriptionEnabled
         updatedConfig.selectedLanguage = selectedLanguage
+        updatedConfig.additionalLanguages = additionalLanguages
         updatedConfig.isTextFormattingEnabled = isTextFormattingEnabled
         updatedConfig.useClipboardContext = useClipboardContext
         updatedConfig.useSelectedTextContext = useSelectedTextContext
