@@ -1,0 +1,42 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "display-p3:0.96637,0.84460,0.50382,1.00000",
+      "display-p3:0.84133,0.50836,0.00000,1.00000"
+    ]
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "fill" : {
+            "automatic-gradient" : "display-p3:1.00000,0.99285,0.90666,1.00000"
+          },
+          "image-name" : "Lightning.svg",
+          "name" : "Lightning",
+          "position" : {
+            "scale" : 1.25,
+            "translation-in-points" : [
+              3.504779661168925,
+              15.427308295812509
+            ]
+          }
+        }
+      ],
+      "name" : "Instant",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.35
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.35
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : [
+      "macOS"
+    ]
+  }
+}

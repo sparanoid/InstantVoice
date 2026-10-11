@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="InstantVoice/Assets.xcassets/AppIcon.appiconset/256-mac.png" width="180" height="180" alt="InstantVoice app icon" />
+  <img src=".github/assets/app-icon.png" width="180" height="180" alt="InstantVoice app icon" />
   <h1>InstantVoice</h1>
   <p>Voice to text for macOS, almost instantly</p>
 
