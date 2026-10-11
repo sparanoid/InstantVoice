@@ -425,49 +425,49 @@ enum DashboardProgressBenchmark {
     }
 
     private struct Milestone {
-        let title: LocalizedStringResource
+        let title: String
         let wordCount: Int
-
-        var localizedTitle: String {
-            String(localized: title)
-        }
     }
 
-    private static let repeatBenchmark = Milestone(
-        title: "Tolstoy's War and Peace",
-        wordCount: 700_000
-    )
+    // Computed so titles follow the current language, and localized at their literals so Xcode extracts them.
+    private static var repeatBenchmark: Milestone {
+        Milestone(title: String(localized: "Tolstoy's War and Peace"), wordCount: 700_000)
+    }
 
-    private static let oneTimeMilestones = [
-        Milestone(title: "The Metamorphosis", wordCount: 21_180),
-        Milestone(title: "Animal Farm", wordCount: 29_966),
-        Milestone(title: "The Great Gatsby", wordCount: 47_094),
-        Milestone(title: "Homer's Iliad", wordCount: 114_715),
-        Milestone(title: "Homer's Odyssey", wordCount: 121_365),
-        Milestone(title: "Homer's Iliad and Odyssey", wordCount: 236_080),
-    ]
+    private static var oneTimeMilestones: [Milestone] {
+        [
+            Milestone(title: String(localized: "The Metamorphosis"), wordCount: 21_180),
+            Milestone(title: String(localized: "Animal Farm"), wordCount: 29_966),
+            Milestone(title: String(localized: "The Great Gatsby"), wordCount: 47_094),
+            Milestone(title: String(localized: "Homer's Iliad"), wordCount: 114_715),
+            Milestone(title: String(localized: "Homer's Odyssey"), wordCount: 121_365),
+            Milestone(title: String(localized: "Homer's Iliad and Odyssey"), wordCount: 236_080),
+        ]
+    }
 
     static func equivalence(for words: Int) -> Equivalence {
-        if words >= repeatBenchmark.wordCount {
-            let wholeMultiple = words / repeatBenchmark.wordCount
+        let benchmark = repeatBenchmark
+        if words >= benchmark.wordCount {
+            let wholeMultiple = words / benchmark.wordCount
 
             if wholeMultiple >= 2 {
-                return .repeated(title: repeatBenchmark.localizedTitle, count: wholeMultiple)
+                return .repeated(title: benchmark.title, count: wholeMultiple)
             }
 
-            return .matched(title: repeatBenchmark.localizedTitle)
+            return .matched(title: benchmark.title)
         }
 
-        if let milestone = oneTimeMilestones.last(where: { words >= $0.wordCount }) {
-            return .matched(title: milestone.localizedTitle)
+        let milestones = oneTimeMilestones
+        if let milestone = milestones.last(where: { words >= $0.wordCount }) {
+            return .matched(title: milestone.title)
         }
 
-        guard let firstMilestone = oneTimeMilestones.first else {
+        guard let firstMilestone = milestones.first else {
             return .remaining(words: 0, title: "")
         }
 
         let remainingWords = firstMilestone.wordCount - words
-        return .remaining(words: remainingWords, title: firstMilestone.localizedTitle)
+        return .remaining(words: remainingWords, title: firstMilestone.title)
     }
 }
 

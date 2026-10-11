@@ -153,7 +153,7 @@ final class QuickHistoryController: NSObject {
         self.targetApplication = nil
         dismiss()
 
-        targetApplication?.activate(options: [.activateIgnoringOtherApps])
+        targetApplication?.activate()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
             CursorPaster.pasteAtCursor(text)
         }

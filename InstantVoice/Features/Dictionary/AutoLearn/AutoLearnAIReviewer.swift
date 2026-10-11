@@ -117,9 +117,8 @@ final class AutoLearnAIReviewer: @unchecked Sendable {
         )
         let requestText = String(decoding: requestData, as: UTF8.self)
 
-        let loggedModelName = modelName ?? "provider-default"
         logger.notice(
-            "Auto Learn review started provider=\(provider.rawValue, privacy: .public) model=\(loggedModelName, privacy: .public) candidates=\(candidates.count, privacy: .public)"
+            "Auto Learn review started provider=\(provider.rawValue, privacy: .public) model=\(modelName, privacy: .public) candidates=\(candidates.count, privacy: .public)"
         )
         let responseText = try await aiService.reviewAutoLearnCandidates(
             payload: requestText,
@@ -130,7 +129,7 @@ final class AutoLearnAIReviewer: @unchecked Sendable {
         let candidateReviewDecisions = try decodeResponse(
             responseText,
             provider: provider,
-            modelName: loggedModelName
+            modelName: modelName
         )
         let expectedCandidateIDs = Set(candidates.indices)
         let decisionsByCandidateID = Dictionary(grouping: candidateReviewDecisions) {

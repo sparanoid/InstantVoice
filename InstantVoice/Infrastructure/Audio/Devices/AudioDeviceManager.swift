@@ -520,8 +520,9 @@ class AudioDeviceManager: ObservableObject {
         guard deviceID != 0 else { return nil }
 
         var address = createPropertyAddress(selector: selector, scope: scope)
-        var propertySize = UInt32(MemoryLayout<CFString>.size)
-        var property = "" as CFString
+        // Core Audio returns a retained string, so it arrives unmanaged and is taken over below.
+        var propertySize = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+        var property: Unmanaged<CFString>?
 
         let status = AudioObjectGetPropertyData(
             deviceID,
@@ -539,7 +540,7 @@ class AudioDeviceManager: ObservableObject {
             return nil
         }
 
-        return property
+        return property?.takeRetainedValue()
     }
 
     func getUInt32DeviceProperty(

@@ -1,5 +1,6 @@
 import Carbon.HIToolbox
 import Cocoa
+import SwiftData
 import SwiftUI
 
 @MainActor

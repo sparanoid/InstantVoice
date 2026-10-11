@@ -1123,8 +1123,9 @@ final class CoreAudioRecorder: @unchecked Sendable {
             mElement: kAudioObjectPropertyElementMain
         )
 
-        var propertySize = UInt32(MemoryLayout<CFString>.size)
-        var property = "" as CFString
+        // Core Audio returns a retained string, so it arrives unmanaged and is taken over below.
+        var propertySize = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+        var property: Unmanaged<CFString>?
 
         let status = AudioObjectGetPropertyData(
             deviceID,
@@ -1135,8 +1136,8 @@ final class CoreAudioRecorder: @unchecked Sendable {
             &property
         )
 
-        if status == noErr {
-            return property as String
+        if status == noErr, let property {
+            return property.takeRetainedValue() as String
         }
         return nil
     }
