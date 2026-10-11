@@ -17,10 +17,13 @@ enum ViewType: String, CaseIterable, Identifiable {
 struct ContentView: View {
     private let logger = Logger(subsystem: "com.sparanoid.instantvoice", category: "ContentView")
     @EnvironmentObject private var navigation: MainWindowNavigation
+    /// The sidebar's copy of the selected section. Its list reports clicks while SwiftUI is still updating views,
+    /// where publishing into `navigation` isn't allowed, so the two sync through `onChange` instead.
+    @State private var sidebarSelection = MainWindowNavigation.shared.selectedView
 
     var body: some View {
         NavigationSplitView {
-            AppSidebar(selection: sidebarSelection)
+            AppSidebar(selection: $sidebarSelection)
                 .navigationSplitViewColumnWidth(
                     min: AppWindowLayout.sidebarMinimumWidth,
                     ideal: AppWindowLayout.sidebarIdealWidth,
@@ -55,13 +58,15 @@ struct ContentView: View {
                 navigation.navigate(to: destination)
             }
         }
-    }
-
-    private var sidebarSelection: Binding<ViewType> {
-        Binding(
-            get: { navigation.selectedView },
-            set: { navigation.navigate(to: $0) }
-        )
+        .onChange(of: sidebarSelection) { _, section in
+            // Skips the echo of navigation's own changes, which would reset a pushed page to its section's top.
+            if section != navigation.selectedView {
+                navigation.navigate(to: section)
+            }
+        }
+        .onChange(of: navigation.selectedView) { _, section in
+            sidebarSelection = section
+        }
     }
 
     private var pathBinding: Binding<[MainWindowRoute]> {
