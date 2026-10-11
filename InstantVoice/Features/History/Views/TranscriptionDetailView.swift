@@ -7,11 +7,14 @@ enum HistoryDetailPresentation {
 
 struct TranscriptionDetailView: View {
     let transcription: Transcription
-    @Binding var isInfoPresented: Bool
     let onBack: () -> Void
     let onTranscriptionUpdated: (Transcription) -> Void
     var presentation: HistoryDetailPresentation = .mainWindow
+    /// Drives the quick panel's Info popover. The main window shows details in its inspector instead.
+    var isInfoPresented: Binding<Bool>? = nil
     var onPaste: (() -> Void)? = nil
+    /// Work running on this transcription from the main window's toolbar, shown in place of its metadata.
+    var activity: TranscriptionReprocessor.Activity? = nil
 
     private var audioURL: URL? { transcription.availableHistoryAudioURL }
     private var playbackURL: URL? { presentation == .mainWindow ? audioURL : nil }
@@ -49,12 +52,6 @@ struct TranscriptionDetailView: View {
             floatingControls
         }
         .id(transcription.id)
-        .sidePanel(isPresented: $isInfoPresented, width: 340, dismissOnExitCommand: false) {
-            TranscriptionInfoSidePanel(transcription: transcription) {
-                isInfoPresented = false
-            }
-            .id(transcription.id)
-        }
     }
 
     private var detailHeader: some View {
@@ -65,60 +62,64 @@ struct TranscriptionDetailView: View {
                 .textSelection(.enabled)
                 .accessibilityAddTraits(.isHeader)
 
-            HStack(spacing: 14) {
-                if let modeName = transcription.modeName, !modeName.isEmpty {
-                    Label {
-                        Text(modeName)
-                    } icon: {
-                        if let icon = transcription.recordedHistoryModeIcon {
-                            ModeIconView(icon: icon, size: 11, color: .secondary)
-                        } else {
-                            Image(systemName: "sparkles.rectangle.stack")
-                        }
-                    }
+            if let activity {
+                Label {
+                    Text(activity == .retranscribing ? "Retranscribing…" : "Enhancing…")
+                } icon: {
+                    ProgressView()
+                        .controlSize(.small)
                 }
-
-                if transcription.duration > 0 {
-                    Label {
-                        Text(Duration.seconds(Int(transcription.duration)), format: .time(pattern: .minuteSecond))
-                            .monospacedDigit()
-                    } icon: {
-                        Image(systemName: "clock")
-                    }
-                }
-
-                if let modelName = transcription.transcriptionModelName, !modelName.isEmpty {
-                    Label(modelName, systemImage: "cpu")
-                        .lineLimit(1)
-                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            } else {
+                metadata
             }
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .labelStyle(.titleAndIcon)
         }
     }
 
-    /// Playback and actions float over the transcript on Liquid Glass, like media controls.
-    private var floatingControls: some View {
-        GlassEffectContainer(spacing: 10) {
-            VStack(spacing: 10) {
-                if let playbackURL {
-                    HistoryAudioPlayer(url: playbackURL)
+    private var metadata: some View {
+        HStack(spacing: 14) {
+            if let modeName = transcription.modeName, !modeName.isEmpty {
+                Label {
+                    Text(modeName)
+                } icon: {
+                    if let icon = transcription.recordedHistoryModeIcon {
+                        ModeIconView(icon: icon, size: 11, color: .secondary)
+                    } else {
+                        Image(systemName: "sparkles.rectangle.stack")
+                    }
                 }
+            }
 
-                HistoryDetailActionBar(
-                    transcription: transcription,
-                    audioURL: audioURL,
-                    isInfoPresented: isInfoPresented,
-                    onToggleInfo: { isInfoPresented.toggle() },
-                    onTranscriptionUpdated: onTranscriptionUpdated,
-                    onPaste: onPaste
-                )
+            if transcription.duration > 0 {
+                Label {
+                    Text(Duration.seconds(Int(transcription.duration)), format: .time(pattern: .minuteSecond))
+                        .monospacedDigit()
+                } icon: {
+                    Image(systemName: "clock")
+                }
+            }
+
+            if let modelName = transcription.transcriptionModelName, !modelName.isEmpty {
+                Label(modelName, systemImage: "cpu")
             }
         }
-        .environment(\.historyControlStyle, .glass)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 14)
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .labelStyle(.titleAndIcon)
+        // Truncates rather than wrapping mid-word when the inspector leaves the detail pane narrow.
+        .lineLimit(1)
+    }
+
+    /// Playback floats over the transcript on Liquid Glass, like media controls; actions live in the toolbar.
+    @ViewBuilder
+    private var floatingControls: some View {
+        if let playbackURL {
+            HistoryAudioPlayer(url: playbackURL)
+                .environment(\.historyControlStyle, .glass)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 14)
+        }
     }
 
     // MARK: - Quick Panel
@@ -138,12 +139,6 @@ struct TranscriptionDetailView: View {
             footer
         }
         .id(transcription.id)
-        .sidePanel(isPresented: $isInfoPresented, dismissOnExitCommand: false) {
-            TranscriptionInfoSidePanel(transcription: transcription) {
-                isInfoPresented = false
-            }
-            .id(transcription.id)
-        }
     }
 
     private var header: some View {
@@ -202,9 +197,8 @@ struct TranscriptionDetailView: View {
             HistoryDetailActionBar(
                 transcription: transcription,
                 audioURL: audioURL,
-                isInfoPresented: isInfoPresented,
-                onToggleInfo: { isInfoPresented.toggle() },
                 onTranscriptionUpdated: onTranscriptionUpdated,
+                isInfoPresented: isInfoPresented,
                 onPaste: onPaste
             )
         }

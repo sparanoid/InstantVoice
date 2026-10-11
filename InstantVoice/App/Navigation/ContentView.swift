@@ -40,7 +40,9 @@ struct ContentView: View {
             }
             .id(navigation.selectedView)
         }
-        .frame(minWidth: AppWindowLayout.minimumWidth, minHeight: AppWindowLayout.minimumHeight)
+        // Not a minimum frame: that replaces a page's own larger minimum, so a narrow window clipped History with its
+        // inspector open, and it could send the split view into a crashing layout loop.
+        .minimumSizeFloor(width: AppWindowLayout.minimumWidth, height: AppWindowLayout.minimumHeight)
         .onAppear {
             logger.notice("ContentView appeared")
         }
@@ -93,6 +95,16 @@ struct ContentView: View {
 }
 
 private extension View {
+    /// Keeps the window at least this size while still honoring a page that needs more.
+    func minimumSizeFloor(width: CGFloat, height: CGFloat) -> some View {
+        ZStack {
+            Color.clear
+                .frame(minWidth: width, minHeight: height)
+
+            self
+        }
+    }
+
     /// Each page declares the control itself, since a pushed page replaces the toolbar items above it.
     func historyNavigationToolbar() -> some View {
         toolbar {

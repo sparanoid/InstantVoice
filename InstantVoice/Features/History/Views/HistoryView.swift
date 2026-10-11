@@ -15,7 +15,8 @@ struct HistoryView: View {
     /// Keeps the detail pane on a selected row that a reload or search pushed out of the loaded pages.
     @State private var focusedFallback: Transcription?
     @State private var showDeleteConfirmation = false
-    @State private var isShowingInfo = false
+    @AppStorage("HistoryInspectorIsPresented") private var isInspectorPresented = false
+    @State private var reprocessor = TranscriptionReprocessor()
     @State private var displayedTranscriptions: [Transcription] = []
     @State private var isLoading = false
     @State private var hasLoadedInitialContent = false
@@ -115,12 +116,32 @@ struct HistoryView: View {
 
                     detailColumn
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        // On the detail pane rather than the whole page: a window too narrow for the inspector then
+                        // grows by the inspector's width alone, as in AppKit, instead of by that plus the sidebar.
+                        .inspector(isPresented: $isInspectorPresented) {
+                            inspector
+                                .inspectorColumnWidth(min: 240, ideal: 280, max: 400)
+                        }
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .searchable(text: $searchText, placement: .toolbar, prompt: Text("Search transcriptions..."))
+        .searchable(text: $searchText, placement: .toolbar, prompt: Text("Search"))
         .toolbar {
+            HistoryTranscriptionToolbar(
+                transcription: focusedTranscription,
+                selectionCount: selection.count,
+                reprocessor: reprocessor,
+                onTranscriptionUpdated: { [focusedID = focusedTranscription?.id] updated in
+                    guard let focusedID else { return }
+                    showRetranscription(updated, of: focusedID)
+                },
+                onCopy: { copyText(of: selection) },
+                onDelete: { showDeleteConfirmation = true }
+            )
+
+            ToolbarSpacer(.fixed, placement: .primaryAction)
+
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     navigation.push(.historySettings)
@@ -129,11 +150,20 @@ struct HistoryView: View {
                 }
                 .help("History settings")
             }
+
+            ToolbarItem(placement: .primaryAction) {
+                Toggle(isOn: $isInspectorPresented) {
+                    Label("Info", systemImage: "info.circle")
+                }
+                .help(
+                    isInspectorPresented
+                        ? LocalizedStringKey("Hide transcription info") : LocalizedStringKey("Show transcription info")
+                )
+                .disabled(isHistoryEmpty)
+            }
         }
         .onExitCommand {
-            if isShowingInfo {
-                isShowingInfo = false
-            } else if !selection.isEmpty {
+            if !selection.isEmpty {
                 selection.removeAll()
             }
         }
@@ -167,7 +197,6 @@ struct HistoryView: View {
             }
         }
         .onChange(of: selection) { _, newSelection in
-            isShowingInfo = false
             if newSelection.count != 1 {
                 updatedTranscription = nil
             }
@@ -261,14 +290,9 @@ struct HistoryView: View {
         if let transcription = focusedTranscription {
             TranscriptionDetailView(
                 transcription: transcription,
-                isInfoPresented: $isShowingInfo,
                 onBack: { selection.removeAll() },
-                onTranscriptionUpdated: { updated in
-                    guard selection.contains(transcription.id) else { return }
-                    isShowingInfo = false
-                    updatedTranscription = updated
-                    selection = [updated.id]
-                }
+                onTranscriptionUpdated: { showRetranscription($0, of: transcription.id) },
+                activity: reprocessor.transcriptionID == transcription.id ? reprocessor.activity : nil
             )
             .id(transcription.id)
         } else if selection.count > 1 {
@@ -289,7 +313,29 @@ struct HistoryView: View {
         }
     }
 
+    // MARK: - Inspector
+
+    /// Follows the selection like other macOS inspectors, staying open as rows change.
+    @ViewBuilder
+    private var inspector: some View {
+        if let transcription = focusedTranscription {
+            TranscriptionInspector(transcription: transcription)
+        } else {
+            Text(selection.isEmpty ? LocalizedStringKey("No Selection") : LocalizedStringKey("Multiple Selection"))
+                .font(.title3)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
     // MARK: - Actions
+
+    /// Moves the selection to a retranscription's new item, unless the user has moved on to other rows meanwhile.
+    private func showRetranscription(_ updated: Transcription, of originalID: UUID) {
+        guard selection.contains(originalID) else { return }
+        updatedTranscription = updated
+        selection = [updated.id]
+    }
 
     private func copyText(of ids: Set<UUID>) {
         let text = transcriptions(for: ids)
@@ -425,7 +471,6 @@ struct HistoryView: View {
         selection.removeAll()
         updatedTranscription = nil
         focusedFallback = nil
-        isShowingInfo = false
 
         let loadedCount = displayedTranscriptions.count
         Task {

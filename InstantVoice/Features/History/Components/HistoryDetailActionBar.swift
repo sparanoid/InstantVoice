@@ -2,91 +2,59 @@ import AppKit
 import SwiftData
 import SwiftUI
 
+/// Quick History's actions for the transcription it shows. The main window offers them in its toolbar instead.
 struct HistoryDetailActionBar: View {
     let transcription: Transcription
     let audioURL: URL?
-    let isInfoPresented: Bool
-    let onToggleInfo: () -> Void
     let onTranscriptionUpdated: (Transcription) -> Void
+    /// Adds an Info button whose popover shows the transcription's details.
+    var isInfoPresented: Binding<Bool>? = nil
     var onPaste: (() -> Void)? = nil
 
     @EnvironmentObject private var engine: InstantVoiceEngine
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @Environment(\.modelContext) private var modelContext
     @ObservedObject private var modeManager = ModeManager.shared
-    @Environment(\.historyControlStyle) private var style
 
     @State private var didCopy = false
     @State private var isShowingModes = false
     @State private var isShowingPrompts = false
-    @State private var isWorking = false
-    @State private var selectedPromptOverride: CustomPrompt?
+    @State private var reprocessor = TranscriptionReprocessor()
 
     private var selectedMode: ModeConfig? {
         modeManager.currentEffectiveConfiguration
     }
 
     private var enhancementConfiguration: EnhancementRuntimeConfiguration? {
-        guard let aiService = enhancementService.getAIService() else { return nil }
-        return ModeRuntimeResolver.currentEnhancementConfiguration(
-            mode: selectedMode,
-            enhancementService: enhancementService,
-            aiService: aiService
-        )
+        TranscriptionReprocessor.enhancementConfiguration(mode: selectedMode, enhancementService: enhancementService)
     }
 
     private var selectedPromptTitle: String {
-        selectedPromptOverride?.title
+        reprocessor.pendingPrompt?.title
             ?? transcription.promptName
             ?? enhancementConfiguration?.prompt?.title
             ?? String(localized: "Select Prompt")
     }
 
     var body: some View {
-        switch style {
-        case .panel:
-            HStack(spacing: 8) {
-                modeButton
-                promptButton
-                retryButton
-                finderButton
-                infoButton
-                Spacer(minLength: 8)
-                textActionButton
-            }
-            .padding(.horizontal, 10)
-            .frame(height: HistoryLayout.actionBarHeight)
-        case .glass:
-            // Picker titles drop away, leaving icons and tooltips, when the detail pane is too narrow.
-            ViewThatFits(in: .horizontal) {
-                glassBar(showsModeTitle: true, showsPromptTitle: true)
-                glassBar(showsModeTitle: true, showsPromptTitle: false)
-                glassBar(showsModeTitle: false, showsPromptTitle: false)
-            }
-        }
-    }
-
-    private func glassBar(showsModeTitle: Bool, showsPromptTitle: Bool) -> some View {
         HStack(spacing: 8) {
-            modeButton(showsTitle: showsModeTitle)
-            promptButton(showsTitle: showsPromptTitle)
-            Spacer(minLength: 8)
+            modeButton
+            promptButton
             retryButton
             finderButton
             infoButton
-            copyIconButton
+            Spacer(minLength: 8)
+            textActionButton
         }
+        .padding(.horizontal, 10)
+        .frame(height: HistoryLayout.actionBarHeight)
     }
 
     private var modeButton: some View {
-        modeButton(showsTitle: true)
-    }
-
-    private func modeButton(showsTitle: Bool) -> some View {
         Button {
             isShowingModes.toggle()
         } label: {
-            actionLabel(title: selectedMode?.name ?? String(localized: "Select Mode"), showsTitle: showsTitle) {
+            actionLabel(title: selectedMode?.name ?? String(localized: "Select Mode")) {
                 if let selectedMode {
                     ModeIconView(
                         icon: selectedMode.icon,
@@ -99,8 +67,8 @@ struct HistoryDetailActionBar: View {
                 }
             }
         }
-        .modifier(HistoryActionPickerStyle(style: style))
-        .disabled(isWorking)
+        .buttonStyle(.plain)
+        .disabled(reprocessor.isWorking)
         .popover(isPresented: $isShowingModes, arrowEdge: .bottom) {
             ModePopover(selectedModeId: selectedMode?.id) { mode in
                 modeManager.setActiveConfiguration(mode)
@@ -112,19 +80,15 @@ struct HistoryDetailActionBar: View {
     }
 
     private var promptButton: some View {
-        promptButton(showsTitle: true)
-    }
-
-    private func promptButton(showsTitle: Bool) -> some View {
         Button {
             isShowingPrompts.toggle()
         } label: {
-            actionLabel(title: selectedPromptTitle, showsTitle: showsTitle) {
+            actionLabel(title: selectedPromptTitle) {
                 Image(systemName: "wand.and.stars")
             }
         }
-        .modifier(HistoryActionPickerStyle(style: style))
-        .disabled(isWorking)
+        .buttonStyle(.plain)
+        .disabled(reprocessor.isWorking)
         .popover(isPresented: $isShowingPrompts, arrowEdge: .bottom) {
             promptPopover
         }
@@ -146,15 +110,6 @@ struct HistoryDetailActionBar: View {
         )
     }
 
-    /// Icon-only copy for the floating bar, so the bar fits the narrowest detail pane.
-    private var copyIconButton: some View {
-        HistoryIconButton(
-            systemName: didCopy ? "checkmark" : "doc.on.doc",
-            help: "Copy transcription",
-            action: performTextAction
-        )
-    }
-
     private func performTextAction() {
         if let onPaste {
             onPaste()
@@ -171,15 +126,19 @@ struct HistoryDetailActionBar: View {
         HistoryIconButton(
             systemName: "arrow.clockwise",
             help: "Retranscribe with the selected mode",
-            isLoading: isWorking
+            isLoading: reprocessor.isWorking
         ) {
             guard let selectedMode else {
-                showError(String(localized: "No mode selected"))
+                NotificationManager.shared.showNotification(
+                    title: String(localized: "No mode selected"),
+                    type: .error,
+                    duration: 3.0
+                )
                 return
             }
             retranscribe(using: selectedMode)
         }
-        .disabled(isWorking || audioURL == nil)
+        .disabled(reprocessor.isWorking || audioURL == nil)
     }
 
     private var finderButton: some View {
@@ -193,41 +152,27 @@ struct HistoryDetailActionBar: View {
         .disabled(audioURL == nil)
     }
 
-    private var infoButton: some View {
-        HistoryIconButton(
-            systemName: "info.circle",
-            help: isInfoPresented ? "Hide transcription info" : "Show transcription info",
-            isSelected: isInfoPresented,
-            action: onToggleInfo
-        )
-    }
-
     @ViewBuilder
-    private func actionLabel<Icon: View>(
-        title: String,
-        showsTitle: Bool = true,
-        @ViewBuilder icon: () -> Icon
-    ) -> some View {
-        switch style {
-        case .panel:
-            panelActionLabel(title: title, icon: icon)
-        case .glass:
-            HStack(spacing: 6) {
-                icon()
-                if showsTitle {
-                    Text(title.count > 22 ? String(title.prefix(20)) + "…" : title)
-                        .lineLimit(1)
-                }
-                Image(systemName: "chevron.down")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.secondary)
+    private var infoButton: some View {
+        if let isInfoPresented {
+            HistoryIconButton(
+                systemName: "info.circle",
+                help: isInfoPresented.wrappedValue ? "Hide transcription info" : "Show transcription info",
+                isSelected: isInfoPresented.wrappedValue
+            ) {
+                isInfoPresented.wrappedValue.toggle()
             }
-            .fixedSize()
-            .accessibilityLabel(Text(title))
+            .popover(isPresented: isInfoPresented, arrowEdge: .top) {
+                // Fits short details, and scrolls long AI requests.
+                TranscriptionInspector(transcription: transcription)
+                    .frame(width: 320)
+                    .frame(maxHeight: 440)
+                    .popoverAppAppearance()
+            }
         }
     }
 
-    private func panelActionLabel<Icon: View>(title: String, @ViewBuilder icon: () -> Icon) -> some View {
+    private func actionLabel<Icon: View>(title: String, @ViewBuilder icon: () -> Icon) -> some View {
         HStack(spacing: 7) {
             icon()
             Text(title)
@@ -283,7 +228,6 @@ struct HistoryDetailActionBar: View {
                                 isDisabled: promptsUnavailable,
                                 action: {
                                     isShowingPrompts = false
-                                    selectedPromptOverride = prompt
                                     enhance(using: prompt)
                                 }
                             )
@@ -303,135 +247,22 @@ struct HistoryDetailActionBar: View {
     }
 
     private func retranscribe(using mode: ModeConfig) {
-        guard let audioURL else {
-            showError(String(localized: "Audio file is unavailable"))
-            return
-        }
-        guard let configuration = ModeRuntimeResolver.transcriptionConfiguration(
-            mode: mode,
-            transcriptionModelManager: engine.transcriptionModelManager
-        ) else {
-            showError(String(localized: "No transcription model selected"))
-            return
-        }
-
-        isWorking = true
-        let service = AudioTranscriptionService(modelContext: modelContext, engine: engine)
-
-        Task {
-            do {
-                let result = try await service.retranscribeAudio(
-                    from: audioURL,
-                    using: configuration.model,
-                    mode: mode
-                )
-                await MainActor.run {
-                    isWorking = false
-                    if let failure = result.enhancementFailure {
-                        NotificationManager.shared.showNotification(
-                            title: EnhancementFailureFormatter.transcriptionSavedMessage(description: failure),
-                            type: .warning
-                        )
-                    } else {
-                        NotificationManager.shared.showNotification(
-                            title: String(localized: "Retranscription successful"),
-                            type: .success,
-                            duration: 1.0
-                        )
-                    }
-                    onTranscriptionUpdated(result.transcription)
-                }
-            } catch {
-                await MainActor.run {
-                    isWorking = false
-                    showError(
-                        error.localizedDescription.isEmpty
-                            ? String(localized: "Retranscription failed")
-                            : error.localizedDescription
-                    )
-                }
-            }
-        }
+        reprocessor.retranscribe(
+            transcription,
+            using: mode,
+            engine: engine,
+            modelContext: modelContext,
+            onUpdated: onTranscriptionUpdated
+        )
     }
 
     private func enhance(using prompt: CustomPrompt) {
-        guard let baseConfiguration = enhancementConfiguration else {
-            selectedPromptOverride = nil
-            showError(String(localized: "AI Enhancement is not enabled or configured"))
-            return
-        }
-
-        isWorking = true
-        let configuration = baseConfiguration.replacingPrompt(prompt)
-
-        Task {
-            do {
-                transcription.aiEnhancementModelName =
-                    configuration.modelName ?? configuration.provider?.defaultModel
-                transcription.promptName = configuration.prompt?.title
-                let result = try await enhancementService.enhance(
-                    transcription.text,
-                    configuration: configuration
-                )
-                await MainActor.run {
-                    transcription.enhancedText = result.text
-                    transcription.aiEnhancementModelName =
-                        configuration.modelName ?? configuration.provider?.defaultModel
-                    transcription.promptName =
-                        result.promptName ?? configuration.prompt?.title
-                    transcription.enhancementDuration = result.duration
-                    transcription.aiRequestSystemMessage = result.systemMessage
-                    transcription.aiRequestUserMessage = result.userMessage
-                    do {
-                        try modelContext.save()
-                    } catch {
-                        modelContext.rollback()
-                        selectedPromptOverride = nil
-                        isWorking = false
-                        showError(
-                            error.localizedDescription.isEmpty
-                                ? String(localized: "Could not save re-enhancement")
-                                : error.localizedDescription
-                        )
-                        return
-                    }
-                    selectedPromptOverride = nil
-                    isWorking = false
-                    NotificationManager.shared.showNotification(
-                        title: String(localized: "Re-enhancement successful"),
-                        type: .success,
-                        duration: 1.0
-                    )
-                }
-            } catch {
-                await MainActor.run {
-                    selectedPromptOverride = nil
-                    isWorking = false
-                    let description = EnhancementFailureFormatter.description(for: error)
-                    showError(
-                        EnhancementFailureFormatter.reEnhancementMessage(description: description)
-                    )
-                }
-            }
-        }
-    }
-
-    private func showError(_ title: String) {
-        NotificationManager.shared.showNotification(title: title, type: .error, duration: 3.0)
-    }
-}
-
-private struct HistoryActionPickerStyle: ViewModifier {
-    let style: HistoryControlStyle
-
-    func body(content: Content) -> some View {
-        switch style {
-        case .panel:
-            content.buttonStyle(.plain)
-        case .glass:
-            content
-                .buttonStyle(.glass)
-                .controlSize(.large)
-        }
+        reprocessor.enhance(
+            transcription,
+            using: prompt,
+            configuration: enhancementConfiguration,
+            enhancementService: enhancementService,
+            modelContext: modelContext
+        )
     }
 }

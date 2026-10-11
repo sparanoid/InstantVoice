@@ -18,8 +18,8 @@ enum HistoryLayout {
     static let playerSpacing: CGFloat = 4
 }
 
-/// How history controls draw themselves: bordered tiles in the quick panel, or Liquid Glass when they
-/// float over the main window's detail pane.
+/// How the history audio player draws itself: a bordered tile in the quick panel, or Liquid Glass when it floats
+/// over the main window's detail pane.
 enum HistoryControlStyle {
     case panel
     case glass
@@ -27,19 +27,6 @@ enum HistoryControlStyle {
 
 extension EnvironmentValues {
     @Entry var historyControlStyle: HistoryControlStyle = .panel
-}
-
-/// Applies the glass button style, switching to the prominent variant for selected or primary controls.
-struct HistoryGlassButtonStyle: ViewModifier {
-    var isProminent = false
-
-    func body(content: Content) -> some View {
-        if isProminent {
-            content.buttonStyle(.glassProminent)
-        } else {
-            content.buttonStyle(.glass)
-        }
-    }
 }
 
 struct HistorySearchHeader<Accessory: View>: View {
@@ -224,37 +211,7 @@ struct HistoryIconButton: View {
     var isLoading = false
     let action: () -> Void
 
-    @Environment(\.historyControlStyle) private var style
-
     var body: some View {
-        switch style {
-        case .panel:
-            panelButton
-        case .glass:
-            glassButton
-        }
-    }
-
-    private var glassButton: some View {
-        Button(action: action) {
-            Group {
-                if isLoading {
-                    ProgressView()
-                        .controlSize(.small)
-                } else {
-                    Image(systemName: systemName)
-                }
-            }
-            .frame(width: 16, height: 16)
-        }
-        .modifier(HistoryGlassButtonStyle(isProminent: isSelected))
-        .buttonBorderShape(.circle)
-        .controlSize(.large)
-        .help(help)
-        .accessibilityLabel(help)
-    }
-
-    private var panelButton: some View {
         Button(action: action) {
             Group {
                 if isLoading {
@@ -299,31 +256,7 @@ struct HistoryCommandButton: View {
         self.action = action
     }
 
-    @Environment(\.historyControlStyle) private var style
-
     var body: some View {
-        switch style {
-        case .panel:
-            panelButton
-        case .glass:
-            glassButton
-        }
-    }
-
-    private var glassButton: some View {
-        Button(role: isDestructive ? .destructive : nil, action: action) {
-            if let systemImage {
-                Label(title, systemImage: systemImage)
-            } else {
-                Text(title)
-            }
-        }
-        .buttonStyle(.glass)
-        .controlSize(.large)
-        .fixedSize()
-    }
-
-    private var panelButton: some View {
         Button(role: isDestructive ? .destructive : nil, action: action) {
             HStack(spacing: 7) {
                 if let systemImage {

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// App and View menu commands for the main window: Settings (⌘,), one item per sidebar section (⌘1–⌘7),
-/// and the standard sidebar toggle.
+/// and the standard sidebar and inspector toggles.
 struct MainWindowCommands: Commands {
     @Environment(\.openWindow) private var openWindow
     let navigation: MainWindowNavigation
@@ -10,6 +10,7 @@ struct MainWindowCommands: Commands {
 
     var body: some Commands {
         SidebarCommands()
+        InspectorCommands()
 
         CommandGroup(replacing: .appSettings) {
             Button("Settings…") {

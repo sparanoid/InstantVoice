@@ -100,7 +100,6 @@ struct QuickHistoryView: View {
         if let transcription = viewModel.selectedTranscription {
             TranscriptionDetailView(
                 transcription: transcription,
-                isInfoPresented: $viewModel.isShowingInfo,
                 onBack: {
                     withAnimation(reduceMotion ? nil : .easeOut(duration: 0.16)) {
                         viewModel.isShowingDetail = false
@@ -108,6 +107,7 @@ struct QuickHistoryView: View {
                 },
                 onTranscriptionUpdated: { viewModel.reload(selecting: $0) },
                 presentation: .quickPanel,
+                isInfoPresented: $viewModel.isShowingInfo,
                 onPaste: { onPaste(transcription) }
             )
         }

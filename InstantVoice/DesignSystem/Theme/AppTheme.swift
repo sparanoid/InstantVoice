@@ -21,7 +21,6 @@ enum AppTheme {
         static let controlActive = Color.secondary.opacity(0.14)
         static let control = Color(nsColor: .controlBackgroundColor)
         static let window = Color(nsColor: .windowBackgroundColor)
-        static let sidePanelOverlay = Color(nsColor: .windowBackgroundColor).opacity(0.50)
         static let clear = Color.clear
     }
 
