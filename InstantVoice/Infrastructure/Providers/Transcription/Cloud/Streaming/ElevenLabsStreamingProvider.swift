@@ -38,7 +38,7 @@ final class ElevenLabsStreamingProvider: StreamingTranscriptionProvider {
                 apiKey: apiKey,
                 model: model.name,
                 language: language,
-                customVocabulary: getCustomDictionaryTerms()
+                customVocabulary: await getCustomDictionaryTerms()
             )
         } catch {
             // Clean up forwarding task on connection failure
@@ -91,6 +91,9 @@ final class ElevenLabsStreamingProvider: StreamingTranscriptionProvider {
         }
     }
 
+    // `modelContext` is the container's main context; fetching from it off the main actor
+    // makes SwiftData unbind it from the main queue.
+    @MainActor
     private func getCustomDictionaryTerms() -> [String] {
         let descriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\.word)])
         guard let vocabularyWords = try? modelContext.fetch(descriptor) else {

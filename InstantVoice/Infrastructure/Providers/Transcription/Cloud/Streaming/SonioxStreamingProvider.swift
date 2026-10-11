@@ -33,7 +33,7 @@ final class SonioxStreamingProvider: StreamingTranscriptionProvider {
             throw StreamingTranscriptionError.missingAPIKey
         }
 
-        let vocabulary = getCustomDictionaryTerms()
+        let vocabulary = await getCustomDictionaryTerms()
 
         // Cancel any existing forwarding task before starting a new one
         forwardingTask?.cancel()
@@ -95,6 +95,9 @@ final class SonioxStreamingProvider: StreamingTranscriptionProvider {
         }
     }
 
+    // `modelContext` is the container's main context; fetching from it off the main actor
+    // makes SwiftData unbind it from the main queue.
+    @MainActor
     private func getCustomDictionaryTerms() -> [String] {
         let descriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\.word)])
         guard let vocabularyWords = try? modelContext.fetch(descriptor) else {

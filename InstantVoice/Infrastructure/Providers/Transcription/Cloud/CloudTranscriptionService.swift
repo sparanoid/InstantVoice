@@ -73,7 +73,7 @@ class CloudTranscriptionService: TranscriptionService {
                 apiKey: apiKey,
                 model: (model as? CloudModel)?.batchName ?? model.name,
                 languages: context.languages,
-                customVocabulary: getCustomDictionaryTerms(),
+                customVocabulary: await getCustomDictionaryTerms(),
                 timeout: timeout
             )
         } catch let error as CloudTranscriptionError {
@@ -101,6 +101,9 @@ class CloudTranscriptionService: TranscriptionService {
         return apiKey
     }
 
+    // `modelContext` is the container's main context; fetching from it off the main actor
+    // makes SwiftData unbind it from the main queue.
+    @MainActor
     private func getCustomDictionaryTerms() -> [String] {
         let descriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\.word)])
         guard let vocabularyWords = try? modelContext.fetch(descriptor) else {

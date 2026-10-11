@@ -49,7 +49,8 @@ final class AnnouncementManager {
 
         position(panel)
         panel.alphaValue = 0
-        panel.makeKeyAndOrderFront(nil as Any?)
+        // A borderless panel can't become key; making it key only logs an AppKit warning.
+        panel.orderFrontRegardless()
         self.panel = panel
 
         NSAnimationContext.runAnimationGroup { context in

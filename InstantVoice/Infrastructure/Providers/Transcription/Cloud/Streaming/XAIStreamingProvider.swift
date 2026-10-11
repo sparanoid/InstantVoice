@@ -37,7 +37,7 @@ final class XAIStreamingProvider: StreamingTranscriptionProvider {
                 apiKey: apiKey,
                 model: model.name,
                 language: language,
-                customVocabulary: getCustomVocabularyTerms()
+                customVocabulary: await getCustomVocabularyTerms()
             )
         } catch {
             forwardingTask?.cancel()
@@ -71,6 +71,9 @@ final class XAIStreamingProvider: StreamingTranscriptionProvider {
 
     // MARK: - Private
 
+    // `modelContext` is the container's main context; fetching from it off the main actor
+    // makes SwiftData unbind it from the main queue.
+    @MainActor
     private func getCustomVocabularyTerms() -> [String] {
         let descriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\.word)])
         guard let vocabularyWords = try? modelContext.fetch(descriptor) else {

@@ -37,7 +37,7 @@ final class GeminiStreamingProvider: StreamingTranscriptionProvider {
                 apiKey: apiKey,
                 model: model.name,
                 language: language,
-                customVocabulary: customVocabularyTerms()
+                customVocabulary: await customVocabularyTerms()
             )
         } catch {
             forwardingTask?.cancel()
@@ -88,6 +88,9 @@ final class GeminiStreamingProvider: StreamingTranscriptionProvider {
         }
     }
 
+    // `modelContext` is the container's main context; fetching from it off the main actor
+    // makes SwiftData unbind it from the main queue.
+    @MainActor
     private func customVocabularyTerms() -> [String] {
         let descriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\.word)])
         guard let vocabularyWords = try? modelContext.fetch(descriptor) else {

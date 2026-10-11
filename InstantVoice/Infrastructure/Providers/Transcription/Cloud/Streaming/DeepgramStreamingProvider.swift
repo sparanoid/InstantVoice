@@ -30,7 +30,7 @@ final class DeepgramStreamingProvider: StreamingTranscriptionProvider {
             throw StreamingTranscriptionError.missingAPIKey
         }
 
-        let vocabulary = getCustomVocabularyTerms()
+        let vocabulary = await getCustomVocabularyTerms()
         let deepgramLanguage = DeepgramProvider.usesMultilingualMode(model.name) && (language == nil || language == "auto")
             ? "multi"
             : language
@@ -93,6 +93,9 @@ final class DeepgramStreamingProvider: StreamingTranscriptionProvider {
         }
     }
 
+    // `modelContext` is the container's main context; fetching from it off the main actor
+    // makes SwiftData unbind it from the main queue.
+    @MainActor
     private func getCustomVocabularyTerms() -> [String] {
         let descriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\.word)])
         guard let vocabularyWords = try? modelContext.fetch(descriptor) else {
