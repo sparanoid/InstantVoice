@@ -6,6 +6,8 @@
 	<true/>
 	<key>SUFeedURL</key>
 	<string>https://sparanoid.github.io/InstantVoice/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>TNVyhkYzhSNQHdNt9I5ZDmV9s3emtytXchTs/12zYhU=</string>
 	<key>LSUIElement</key>
 	<false/>
 	<key>SUEnableAutomaticChecks</key>
