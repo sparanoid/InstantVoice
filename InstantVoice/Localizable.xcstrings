@@ -13910,6 +13910,7 @@
       }
     },
     "InstantVoice is Private by Default" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -18340,6 +18341,7 @@
       }
     },
     "Notes" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -28800,6 +28802,7 @@
       }
     },
     "Your data never has to leave your device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

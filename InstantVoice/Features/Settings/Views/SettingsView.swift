@@ -81,6 +81,7 @@ struct SettingsView: View {
                     InfoTip("Supports keyboard combinations and mouse buttons.")
                 }
             }
+            .labeledContentStyle(FormControlRowStyle())
 
             Section("Additional Shortcuts") {
                 LabeledContent("Paste Last Transcription (Original)") {
@@ -133,6 +134,7 @@ struct SettingsView: View {
                 }
 
             }
+            .labeledContentStyle(FormControlRowStyle())
 
             Section("Pasting") {
                 Picker(selection: $finishAndSendKey) {
@@ -311,10 +313,12 @@ struct SettingsView: View {
             } footer: {
                 Text("Export all settings, or choose specific categories when importing a backup.")
             }
+            .labeledContentStyle(FormControlRowStyle())
 
             Section("Diagnostics") {
                 DiagnosticsSettingsView()
             }
+            .labeledContentStyle(FormControlRowStyle())
         }
         .formStyle(.grouped)
         .alert("Reset Onboarding", isPresented: $showResetOnboardingAlert) {
