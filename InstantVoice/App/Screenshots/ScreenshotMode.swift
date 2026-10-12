@@ -28,8 +28,19 @@ enum ScreenshotMode {
         case provider
         case audio
         case settings
+        case onboardingPermissions = "onboarding-permissions"
+        case onboardingMicrophone = "onboarding-microphone"
+        case onboardingModel = "onboarding-model"
+        case onboardingAPI = "onboarding-api"
+        case onboardingShortcut = "onboarding-shortcut"
+        case onboardingDictation = "onboarding-dictation"
+        case onboardingEnhance = "onboarding-enhance"
+        case onboardingEmail = "onboarding-email"
+        case onboardingContext = "onboarding-context"
+        case onboardingTrust = "onboarding-trust"
 
-        var section: ViewType {
+        /// The main-window section, or nil for onboarding scenes.
+        var section: ViewType? {
             switch self {
             case .dashboard, .insights: return .dashboard
             case .transcribe: return .transcribeAudio
@@ -39,6 +50,7 @@ enum ScreenshotMode {
             case .models, .provider: return .models
             case .audio: return .audio
             case .settings: return .settings
+            default: return nil
             }
         }
 
@@ -50,6 +62,34 @@ enum ScreenshotMode {
             case .provider: return .cloudProvider(AIProvider.soniox.rawValue)
             default: return nil
             }
+        }
+
+        var onboardingStage: OnboardingStage? {
+            switch self {
+            case .onboardingPermissions: return .permissions
+            case .onboardingMicrophone: return .microphone
+            case .onboardingModel: return .model
+            case .onboardingAPI: return .api
+            case .onboardingShortcut, .onboardingDictation, .onboardingEnhance, .onboardingEmail: return .experience
+            case .onboardingContext: return .contextAwareness
+            case .onboardingTrust: return .trust
+            default: return nil
+            }
+        }
+
+        /// The experience step on screen; Context Awareness follows the last one.
+        var onboardingExperienceIndex: Int {
+            switch self {
+            case .onboardingEnhance: return 1
+            case .onboardingEmail, .onboardingContext: return 2
+            default: return 0
+            }
+        }
+
+        /// Every step after Permissions only opens once the required access is granted.
+        var grantsOnboardingPermissions: Bool {
+            guard let onboardingStage else { return false }
+            return onboardingStage != .permissions
         }
     }
 
@@ -85,11 +125,23 @@ enum ScreenshotMode {
             return NSSize(width: parts[0], height: parts[1])
         }
 
-        /// Seeds the demo state before any service reads defaults, and opens the scene's section.
+        /// Seeds the demo state before any service reads defaults, and opens the scene's section or onboarding step.
         func prepare() {
             guard let scene else { return }
-            ScreenshotDemoData.seedDefaults(for: scene)
-            MainWindowNavigation.shared.reset(to: scene.section)
+            if let stage = scene.onboardingStage {
+                ScreenshotDemoData.seedOnboardingDefaults(for: scene, stage: stage)
+            } else if let section = scene.section {
+                ScreenshotDemoData.seedDefaults(for: scene)
+                MainWindowNavigation.shared.reset(to: section)
+            }
+        }
+
+        /// The first experience step always opens on its shortcut intro, so its practice scene skips ahead.
+        @MainActor
+        func prepare(_ coordinator: OnboardingCoordinator) {
+            if scene == .onboardingDictation {
+                coordinator.isExperienceInIntroPhase = false
+            }
         }
 
         /// Sizes the main window, opens the scene's page, and tells the script when the window is ready to capture.
@@ -103,13 +155,17 @@ enum ScreenshotMode {
 
             // Wherever the pointer rests, it must not leave hover highlights in the capture.
             window.ignoresMouseEvents = true
+            // Onboarding content has a fixed width, so its window keeps the size it opens at on a first launch.
+            let size =
+                scene.onboardingStage == nil
+                ? windowSize : NSSize(width: AppWindowLayout.onboardingWidth, height: AppWindowLayout.defaultHeight)
             let visibleFrame = (window.screen ?? NSScreen.main)?.visibleFrame ?? window.frame
             window.setFrame(
                 NSRect(
-                    x: (visibleFrame.midX - windowSize.width / 2).rounded(),
-                    y: (visibleFrame.midY - windowSize.height / 2).rounded(),
-                    width: windowSize.width,
-                    height: windowSize.height
+                    x: (visibleFrame.midX - size.width / 2).rounded(),
+                    y: (visibleFrame.midY - size.height / 2).rounded(),
+                    width: size.width,
+                    height: size.height
                 ),
                 display: true
             )
@@ -125,6 +181,11 @@ enum ScreenshotMode {
                     NSApp.activate()
                     window.makeKeyAndOrderFront(nil)
                     try? await Task.sleep(for: .milliseconds(500))
+                }
+                // A focused text view blinks its insertion point, so captures would differ from run to run.
+                if window.firstResponder is NSTextView {
+                    window.makeFirstResponder(nil)
+                    try? await Task.sleep(for: .milliseconds(400))
                 }
                 window.displayIfNeeded()
                 report([

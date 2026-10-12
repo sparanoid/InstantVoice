@@ -217,6 +217,8 @@ private struct ContextAwarenessModeHub: View {
         .shadow(color: Color(nsColor: .systemIndigo).opacity(0.22), radius: 16, y: 8)
         .shadow(color: Color.white.opacity(0.18), radius: 7, y: -1)
         .onAppear {
+            // Screenshots need the same frame every run, so the border stays still there.
+            guard !ScreenshotMode.isActive else { return }
             withAnimation(.linear(duration: 2.6).repeatForever(autoreverses: false)) {
                 borderRotation = .degrees(360)
             }

@@ -388,6 +388,9 @@ struct InstantVoiceApp: App {
                         .background(
                             WindowAccessor { window in
                                 WindowManager.shared.configureWindow(window)
+                                #if DEBUG
+                                    ScreenshotSession.current?.present(window)
+                                #endif
                             })
                 }
             }

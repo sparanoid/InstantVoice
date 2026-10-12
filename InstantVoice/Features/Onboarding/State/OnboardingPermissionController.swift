@@ -114,6 +114,12 @@ final class OnboardingPermissionController {
     }
 
     private func diagnose(_ permission: OnboardingPermissionKind) -> OnboardingPermissionStatus {
+        #if DEBUG
+            // Screenshot runs never get access, but show the later steps as a user who granted it sees them.
+            if ScreenshotSession.current?.scene?.grantsOnboardingPermissions == true {
+                return .granted
+            }
+        #endif
         switch permission {
         case .microphone:
             switch AVCaptureDevice.authorizationStatus(for: .audio) {

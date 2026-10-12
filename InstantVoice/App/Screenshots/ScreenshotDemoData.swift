@@ -31,6 +31,38 @@
             ShortcutStore.setShortcut(.rightCommand, for: .primaryRecording)
         }
 
+        /// Opens onboarding at a step as a new user reaches it: earlier steps are complete, the current one untouched.
+        static func seedOnboardingDefaults(for scene: ScreenshotScene, stage: OnboardingStage) {
+            let defaults = UserDefaults.standard
+            // Without this, OnboardingV2Migration clears the onboarding state seeded below.
+            defaults.set(true, forKey: OnboardingSettings.preparedV2Key)
+            defaults.set(false, forKey: "PrewarmModelOnWake")
+            defaults.set(stage.rawValue, forKey: OnboardingStorageKeys.stage)
+            defaults.set(scene.onboardingExperienceIndex, forKey: OnboardingStorageKeys.experienceIndex)
+
+            if stage.stepNumber > OnboardingStage.microphone.stepNumber {
+                defaults.audioInputModeRawValue = AudioInputMode.custom.rawValue
+                defaults.selectedAudioDeviceUID = audioDevices[0].uid
+            }
+            if stage.stepNumber > OnboardingStage.model.stepNumber {
+                defaults.set(OnboardingTranscriptionSetupKind.cloud.rawValue, forKey: OnboardingStorageKeys.transcriptionSetupKind)
+                defaults.set(AIProvider.soniox.rawValue, forKey: OnboardingStorageKeys.transcriptionProvider)
+            }
+            if stage.stepNumber > OnboardingStage.api.stepNumber {
+                defaults.set(AIProvider.openAI.rawValue, forKey: OnboardingStorageKeys.aiProvider)
+            }
+
+            switch scene {
+            case .onboardingShortcut:
+                // The first experience step starts by asking for a recording shortcut.
+                ShortcutStore.setShortcut(nil, for: .primaryRecording)
+            case .onboardingDictation, .onboardingEnhance, .onboardingEmail, .onboardingContext, .onboardingTrust:
+                ShortcutStore.setShortcut(.rightCommand, for: .primaryRecording)
+            default:
+                break
+            }
+        }
+
         private static var modes: [ModeConfig] {
             [
                 ModeConfig(

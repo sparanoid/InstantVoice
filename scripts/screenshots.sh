@@ -19,9 +19,12 @@ BUNDLE_ID="com.sparanoid.InstantVoice.screenshots"
 DISPLAY_P3_PROFILE="/System/Library/ColorSync/Profiles/Display P3.icc"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
-# Sidebar order. Screenshot files are numbered by position, so keep new scenes in that order.
 # Each name must match a ScreenshotScene case in InstantVoice/App/Screenshots/ScreenshotMode.swift.
-ALL_SCENES=(dashboard insights transcribe history history-info modes mode dictionary models provider audio settings)
+# Files are numbered by position: main-window scenes in sidebar order, onboarding scenes in flow order.
+MAIN_SCENES=(dashboard insights transcribe history history-info modes mode dictionary models provider audio settings)
+ONBOARDING_SCENES=(onboarding-permissions onboarding-microphone onboarding-model onboarding-api onboarding-shortcut
+    onboarding-dictation onboarding-enhance onboarding-email onboarding-context onboarding-trust)
+ALL_SCENES=("${MAIN_SCENES[@]}" "${ONBOARDING_SCENES[@]}")
 
 SCENES=()
 APPEARANCES=(light dark)
@@ -42,18 +45,21 @@ usage() {
 Usage:
   scripts/screenshots.sh [options]
 
-Captures InstantVoice's main window with demo data, one launch per scene, for review and marketing.
-Runs use a Debug build copy with its own bundle identifier, home folder, and clock, so they never touch
-your data or your running app, and every run renders the same content.
+Captures InstantVoice's main window and every onboarding step with demo data, one launch per scene,
+for review and marketing. Runs use a Debug build copy with its own bundle identifier, home folder, and
+clock, so they never touch your data or your running app, and every run renders the same content.
 
-The app comes to the front for each capture, which takes about 10 seconds per scene. Leave the
+The app comes to the front for each capture, which takes about 5 seconds per scene. Leave the
 keyboard and mouse alone until it finishes, or pass --background.
 
 Options:
   --scene <name>          Capture only this scene; repeat for more (default: all, see --list).
+                          "main" and "onboarding" select every scene in that group.
   --appearance <mode>     light, dark, or both (default: both).
-  --size <WxH>            Window size in points (default: 1280x800, which captures 2560x1600 on Retina).
-  --output-dir <dir>      Where to write <appearance>/<NN>-<scene>.png (default: ./screenshots).
+  --size <WxH>            Main window size in points (default: 1280x800, which captures 2560x1600 on
+                          Retina). Onboarding keeps its own fixed-width window.
+  --output-dir <dir>      Where to write <appearance>/<NN>-<scene>.png and onboarding-<NN>-<step>.png
+                          (default: ./screenshots).
   --date <date>           Clock at launch, "YYYY-MM-DD HH:MM:SS" (default: 2026-10-13 09:41:00).
   --time-zone <zone>      Time zone for the clock and dates (default: America/Los_Angeles).
   --language <code>       App language (default: en).
@@ -68,6 +74,7 @@ Options:
 Examples:
   make screenshots
   make screenshots SCREENSHOT_ARGS="--scene history --appearance dark"
+  make screenshots SCREENSHOT_ARGS="--scene onboarding"
   scripts/screenshots.sh --skip-build --scene dashboard --scene settings
 EOF
 }
@@ -85,11 +92,18 @@ require_command() {
     command -v "$1" >/dev/null 2>&1 || fail "Required command not found: $1"
 }
 
-scene_number() {
+# Prints a scene's file name, numbered within its group, or fails for an unknown scene.
+output_name() {
     local index
-    for index in "${!ALL_SCENES[@]}"; do
-        if [[ "${ALL_SCENES[$index]}" == "$1" ]]; then
-            printf '%02d' $((index + 1))
+    for index in "${!MAIN_SCENES[@]}"; do
+        if [[ "${MAIN_SCENES[$index]}" == "$1" ]]; then
+            printf '%02d-%s.png' $((index + 1)) "$1"
+            return 0
+        fi
+    done
+    for index in "${!ONBOARDING_SCENES[@]}"; do
+        if [[ "${ONBOARDING_SCENES[$index]}" == "$1" ]]; then
+            printf 'onboarding-%02d-%s.png' $((index + 1)) "${1#onboarding-}"
             return 0
         fi
     done
@@ -100,7 +114,11 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --scene)
             [[ $# -ge 2 ]] || fail "--scene requires a name"
-            SCENES+=("$2")
+            case "$2" in
+                main) SCENES+=("${MAIN_SCENES[@]}") ;;
+                onboarding) SCENES+=("${ONBOARDING_SCENES[@]}") ;;
+                *) SCENES+=("$2") ;;
+            esac
             shift 2
             ;;
         --appearance)
@@ -175,7 +193,7 @@ done
 
 [[ ${#SCENES[@]} -gt 0 ]] || SCENES=("${ALL_SCENES[@]}")
 for scene in "${SCENES[@]}"; do
-    scene_number "$scene" >/dev/null || fail "Unknown scene: $scene (see --list)"
+    output_name "$scene" >/dev/null || fail "Unknown scene: $scene (see --list)"
 done
 [[ "$WINDOW_SIZE" =~ ^([0-9]+)x([0-9]+)$ ]] || fail "--size must look like 1280x800"
 WINDOW_WIDTH="${BASH_REMATCH[1]}"
@@ -267,7 +285,7 @@ capture_scene() {
     local scene="$2"
     local work_dir="$RUN_DIR/$appearance-$scene"
     local ready_file="$work_dir/ready.json"
-    local output="$OUTPUT_DIR/$appearance/$(scene_number "$scene")-$scene.png"
+    local output="$OUTPUT_DIR/$appearance/$(output_name "$scene")"
     mkdir -p "$work_dir/home" "$OUTPUT_DIR/$appearance"
 
     # Every scene starts from empty defaults and an empty home folder.
@@ -302,10 +320,19 @@ capture_scene() {
     error="$(plutil -extract error raw -o - "$ready_file" 2>/dev/null || true)"
     [[ -z "$error" ]] || fail "$error"
 
-    local window_id scale
+    local window_id scale window_width window_height
     window_id="$(plutil -extract windowID raw -o - "$ready_file")"
     scale="$(plutil -extract scale raw -o - "$ready_file")"
+    window_width="$(plutil -extract width raw -o - "$ready_file")"
+    window_height="$(plutil -extract height raw -o - "$ready_file")"
     CURRENT_PID="$(plutil -extract pid raw -o - "$ready_file")"
+
+    # Main-window scenes open at the requested size; onboarding keeps its own.
+    if [[ "$scene" != onboarding-* ]] \
+        && ! awk -v w="$window_width" -v h="$window_height" -v rw="$WINDOW_WIDTH" -v rh="$WINDOW_HEIGHT" \
+            'BEGIN { exit !(w == rw && h == rh) }'; then
+        fail "$scene opened at ${window_width}x${window_height} points instead of $WINDOW_SIZE"
+    fi
 
     local capture_flags=(-x "-l$window_id")
     [[ "$SHADOW" == 1 ]] || capture_flags+=(-o)
@@ -318,7 +345,7 @@ capture_scene() {
 
     if [[ "$SHADOW" == 0 ]]; then
         local expected actual
-        expected="$(awk -v w="$WINDOW_WIDTH" -v h="$WINDOW_HEIGHT" -v s="$scale" 'BEGIN { printf "%dx%d", w * s, h * s }')"
+        expected="$(awk -v w="$window_width" -v h="$window_height" -v s="$scale" 'BEGIN { printf "%dx%d", w * s, h * s }')"
         actual="$(sips -g pixelWidth -g pixelHeight "$output" | awk '/pixelWidth/ { w = $2 } /pixelHeight/ { h = $2 } END { printf "%sx%s", w, h }')"
         [[ "$actual" == "$expected" ]] || fail "$output is $actual, expected $expected"
     fi

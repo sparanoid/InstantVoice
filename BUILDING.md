@@ -57,17 +57,18 @@ Select the `InstantVoice` scheme. Run builds `InstantVoice Dev.app`; Archive use
 
 ## Screenshots
 
-`make screenshots` captures the main window, one scene per launch, in Light and Dark Mode, as `screenshots/<appearance>/<NN>-<scene>.png`. At the default 1280×800 window size, captures come out at 2560×1600 on a Retina display. They're plain window captures with transparent rounded corners, converted to Display P3, ready for review or marketing.
+`make screenshots` captures the main window and every onboarding step, one scene per launch, in Light and Dark Mode. Main-window scenes are saved as `screenshots/<appearance>/<NN>-<scene>.png`; at the default 1280×800 window size, they come out at 2560×1600 on a Retina display. Onboarding steps are saved as `onboarding-<NN>-<step>.png` at onboarding's own fixed-width window size, each showing the step as a new user first reaches it. All are plain window captures with transparent rounded corners, converted to Display P3, ready for review or marketing.
 
 The script runs a Debug build in `.screenshots-build` as `com.sparanoid.InstantVoice.screenshots`, with a scratch home folder and demo data, so it never touches your data, Keychain, or running app. Each launch pins the clock to Tuesday, October 13, 2026, 9:41 AM Pacific, along with language, locale, accent color, and scroll bars, so every run renders the same content. The app comes to the front for each capture; leave the keyboard and mouse alone until it finishes, or pass `--background` to keep the window inactive.
 
 ```bash
 make screenshots SCREENSHOT_ARGS="--scene history --appearance dark"
+make screenshots SCREENSHOT_ARGS="--scene onboarding"
 scripts/screenshots.sh --list
 scripts/screenshots.sh --help
 ```
 
-Scenes are defined by `ScreenshotScene` in `InstantVoice/App/Screenshots/ScreenshotMode.swift`, and their content by `ScreenshotDemoData`. Add a new scene to both and to `ALL_SCENES` in `scripts/screenshots.sh`.
+Scenes are defined by `ScreenshotScene` in `InstantVoice/App/Screenshots/ScreenshotMode.swift`, and their content by `ScreenshotDemoData`. Add a new scene to both and to `MAIN_SCENES` or `ONBOARDING_SCENES` in `scripts/screenshots.sh`.
 
 ## Merging Upstream
 

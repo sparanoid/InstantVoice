@@ -84,6 +84,9 @@ final class OnboardingCoordinator: ObservableObject {
                 forKey: OnboardingStorageKeys.transcriptionProvider
             ) ?? ""
         self.hasSkippedAPISetup = defaults.bool(forKey: OnboardingStorageKeys.skippedAPISetup)
+        #if DEBUG
+            ScreenshotSession.current?.prepare(self)
+        #endif
     }
 
     deinit {
