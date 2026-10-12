@@ -24,7 +24,8 @@ struct InstantVoiceApp: App {
     @StateObject private var activeWindowService = ActiveWindowService.shared
     @AppStorage(OnboardingSettings.completedV2Key) private var hasCompletedOnboardingV2 = false
     @AppStorage("enableAnnouncements") private var enableAnnouncements = true
-    @State private var showMenuBarIcon = true
+    // Screenshot runs keep their copy out of the menu bar.
+    @State private var showMenuBarIcon = !ScreenshotMode.isActive
     @State private var didShowLaunchReminders = false
 
     // Audio cleanup manager for automatic deletion of old audio files
@@ -42,6 +43,9 @@ struct InstantVoiceApp: App {
         // Disable HTTP response caching — prevents API responses from being stored in Cache.db
         URLCache.shared = URLCache(memoryCapacity: 0, diskCapacity: 0)
 
+        #if DEBUG
+            ScreenshotSession.current?.prepare()
+        #endif
         AppDefaults.registerDefaults()
         AppLanguagePreference.applyStored()
         AppAppearancePreference.applyStored()
@@ -57,9 +61,12 @@ struct InstantVoiceApp: App {
         ])
         let resolvedContainer: ModelContainer
 
-        // Attempt 1: Try persistent storage
+        // Attempt 1: Try persistent storage. Screenshot runs show demo data and never open the stores.
         do {
-            resolvedContainer = try Self.createPersistentContainer(schema: schema, logger: logger)
+            resolvedContainer =
+                try ScreenshotMode.isActive
+                ? Self.createInMemoryContainer(schema: schema, logger: logger)
+                : Self.createPersistentContainer(schema: schema, logger: logger)
         } catch let persistentError {
             // Attempt 2: Try in-memory storage
             do {
@@ -90,17 +97,25 @@ struct InstantVoiceApp: App {
         }
 
         container = resolvedContainer
+        #if DEBUG
+            if ScreenshotMode.isActive {
+                ScreenshotDemoData.seed(into: resolvedContainer.mainContext)
+            }
+        #endif
         DictionaryService.cleanUpDictionaryContent(context: resolvedContainer.mainContext, source: "launch")
 
         // Initialize services with proper sharing of instances
         let aiService = AIService()
         _aiService = StateObject(wrappedValue: aiService)
-        aiService.refreshOllamaAvailabilityInBackground()
-        Task { @MainActor in
-            await aiService.fetchOpenRouterModelsIfNeededForMigration()
-        }
-        Task {
-            await ProviderModelCatalog.shared.refreshStaleCatalogs()
+        // Screenshot runs stay offline.
+        if !ScreenshotMode.isActive {
+            aiService.refreshOllamaAvailabilityInBackground()
+            Task { @MainActor in
+                await aiService.fetchOpenRouterModelsIfNeededForMigration()
+            }
+            Task {
+                await ProviderModelCatalog.shared.refreshStaleCatalogs()
+            }
         }
 
         let updaterViewModel = UpdaterViewModel()
@@ -109,11 +124,13 @@ struct InstantVoiceApp: App {
         let enhancementService = AIEnhancementService(aiService: aiService, modelContext: resolvedContainer.mainContext)
         _enhancementService = StateObject(wrappedValue: enhancementService)
         let autoLearnReviewer = AutoLearnAIReviewer(enhancementService: enhancementService)
-        Task {
-            await AutoLearnService.shared.configure(
-                modelContainer: resolvedContainer,
-                reviewer: autoLearnReviewer
-            )
+        if !ScreenshotMode.isActive {
+            Task {
+                await AutoLearnService.shared.configure(
+                    modelContainer: resolvedContainer,
+                    reviewer: autoLearnReviewer
+                )
+            }
         }
 
         // 1. Create modelsDirectory URL
@@ -182,6 +199,9 @@ struct InstantVoiceApp: App {
         Task {
             await recorderUIManager.resetOnLaunch()
         }
+
+        // Screenshot runs leave system registrations and stored data alone.
+        guard !ScreenshotMode.isActive else { return }
 
         AppShortcuts.updateAppShortcutParameters()
 
@@ -311,7 +331,7 @@ struct InstantVoiceApp: App {
                         .environmentObject(enhancementService)
                         .modelContainer(container)
                         .onAppear {
-                            if enableAnnouncements {
+                            if enableAnnouncements && !ScreenshotMode.isActive {
                                 AnnouncementsService.shared.start()
                             }
                             showLaunchRemindersIfNeeded()
@@ -342,6 +362,9 @@ struct InstantVoiceApp: App {
                         .background(
                             WindowAccessor { window in
                                 WindowManager.shared.configureWindow(window)
+                                #if DEBUG
+                                    ScreenshotSession.current?.present(window)
+                                #endif
                             }
                         )
                         .onDisappear {
@@ -423,7 +446,7 @@ struct InstantVoiceApp: App {
 
     /// Only one notification fits on screen, so show at most one launch reminder.
     private func showLaunchRemindersIfNeeded() {
-        guard !didShowLaunchReminders else { return }
+        guard !didShowLaunchReminders, !ScreenshotMode.isActive else { return }
         didShowLaunchReminders = true
 
         if !AXIsProcessTrusted() {

@@ -52,6 +52,9 @@ final class ShortcutMonitor {
     ) -> Bool {
         stop()
 
+        // Screenshot runs show shortcuts but never listen for them, so they can't take keys from the real app.
+        guard !ScreenshotMode.isActive else { return true }
+
         for (action, shortcut) in shortcuts {
             self.shortcuts[action] = ShortcutState(shortcut: shortcut)
         }

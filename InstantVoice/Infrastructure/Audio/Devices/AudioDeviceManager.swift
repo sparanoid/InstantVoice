@@ -54,6 +54,9 @@ class AudioDeviceManager: ObservableObject {
     }
 
     func getSystemDefaultDevice() -> AudioDeviceID? {
+        #if DEBUG
+            if ScreenshotMode.isActive { return ScreenshotDemoData.audioDevices.first?.id }
+        #endif
         var deviceID = AudioDeviceID(0)
         var propertySize = UInt32(MemoryLayout<AudioDeviceID>.size)
         var address = AudioObjectPropertyAddress(
@@ -126,6 +129,16 @@ class AudioDeviceManager: ObservableObject {
     }
 
     func loadAvailableDevices(completion: (() -> Void)? = nil) {
+        #if DEBUG
+            // Screenshot runs list demo microphones instead of the machine's own.
+            if ScreenshotMode.isActive {
+                DispatchQueue.main.async { [weak self] in
+                    self?.availableDevices = ScreenshotDemoData.audioDevices
+                    completion?()
+                }
+                return
+            }
+        #endif
         var propertySize: UInt32 = 0
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDevices,
@@ -186,6 +199,11 @@ class AudioDeviceManager: ObservableObject {
     }
 
     func getDeviceName(deviceID: AudioDeviceID) -> String? {
+        #if DEBUG
+            if ScreenshotMode.isActive {
+                return ScreenshotDemoData.audioDevices.first { $0.id == deviceID }?.name
+            }
+        #endif
         let name = getCFStringDeviceProperty(
             deviceID: deviceID,
             selector: kAudioDevicePropertyDeviceNameCFString)

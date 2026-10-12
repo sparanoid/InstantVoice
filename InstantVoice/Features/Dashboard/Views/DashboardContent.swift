@@ -26,7 +26,7 @@ struct DashboardContent: View {
     @State private var dashboardStatsLoadGeneration = 0
     @State private var autoLearnReviewBacklogCount = 0
     @State private var autoLearnBacklogRefreshGeneration = 0
-    @State private var isAccessibilityEnabled = AXIsProcessTrusted()
+    @State private var isAccessibilityEnabled = Self.isAccessibilityTrusted()
     @EnvironmentObject private var updaterViewModel: UpdaterViewModel
     @EnvironmentObject private var navigation: MainWindowNavigation
     @ObservedObject private var modeManager = ModeManager.shared
@@ -330,7 +330,12 @@ struct DashboardContent: View {
     }
 
     private func refreshAccessibilityStatus() {
-        isAccessibilityEnabled = AXIsProcessTrusted()
+        isAccessibilityEnabled = Self.isAccessibilityTrusted()
+    }
+
+    /// Screenshot runs never get Accessibility access, but show the Dashboard of a set-up app.
+    private static func isAccessibilityTrusted() -> Bool {
+        ScreenshotMode.isActive || AXIsProcessTrusted()
     }
 
     private func openAccessibilitySettings() {

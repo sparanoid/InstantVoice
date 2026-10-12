@@ -62,7 +62,7 @@ final class UpdaterViewModel: NSObject, ObservableObject, SPUUpdaterDelegate {
     }
 
     func checkForUpdatesIfDue() {
-        guard checksForUpdatesWhenDashboardAppears else { return }
+        guard checksForUpdatesWhenDashboardAppears, !ScreenshotMode.isActive else { return }
 
         let updater = updaterController.updater
         guard !updater.sessionInProgress else { return }

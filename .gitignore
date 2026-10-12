@@ -34,7 +34,11 @@ playground.xcworkspace
 build/
 .local-build/
 .review-build/
+.screenshots-build/
 .local-dependencies/
+
+# scripts/screenshots.sh output; regenerate it instead of committing it
+/screenshots/
 
 # CocoaPods
 #

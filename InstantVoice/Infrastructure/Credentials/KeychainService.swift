@@ -34,6 +34,11 @@ final class KeychainService {
 
     private init() {}
 
+    #if DEBUG
+        /// Screenshot runs read demo credentials and never touch the Keychain.
+        private let screenshotItems: [String: Data]? = ScreenshotMode.isActive ? ScreenshotDemoData.credentials : nil
+    #endif
+
     // MARK: - Public API
 
     /// Saves a string value to Keychain.
@@ -59,6 +64,9 @@ final class KeychainService {
         syncable: Bool = true,
         accessibility: Accessibility? = nil
     ) -> Bool {
+        #if DEBUG
+            if screenshotItems != nil { return true }
+        #endif
         let query = baseQuery(forKey: key, syncable: syncable)
         var attributes: [String: Any] = [kSecValueData as String: data]
         applyAccessibility(accessibility, to: &attributes)
@@ -142,6 +150,11 @@ final class KeychainService {
 
     /// Retrieves data while preserving the Security framework status.
     func readData(forKey key: String, syncable: Bool = true) -> ReadResult<Data> {
+        #if DEBUG
+            if let screenshotItems {
+                return screenshotItems[key].map { .value($0) } ?? .notFound
+            }
+        #endif
         var query = baseQuery(forKey: key, syncable: syncable)
         query[kSecReturnData as String] = kCFBooleanTrue
         query[kSecMatchLimit as String] = kSecMatchLimitOne
@@ -177,6 +190,9 @@ final class KeychainService {
     /// Deletes an item from Keychain.
     @discardableResult
     func delete(forKey key: String, syncable: Bool = true) -> Bool {
+        #if DEBUG
+            if screenshotItems != nil { return true }
+        #endif
         let query = baseQuery(forKey: key, syncable: syncable)
         let status = SecItemDelete(query as CFDictionary)
 
@@ -196,6 +212,9 @@ final class KeychainService {
 
     /// Checks if a key exists in Keychain.
     func exists(forKey key: String, syncable: Bool = true) -> Bool {
+        #if DEBUG
+            if let screenshotItems { return screenshotItems[key] != nil }
+        #endif
         var query = baseQuery(forKey: key, syncable: syncable)
         query[kSecReturnData as String] = kCFBooleanFalse
 

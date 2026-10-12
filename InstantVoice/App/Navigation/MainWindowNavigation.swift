@@ -62,6 +62,13 @@ final class MainWindowNavigation: ObservableObject {
         visit(MainWindowLocation(section: selectedView, path: path + [route]))
     }
 
+    /// Shows a section's top page with no back or forward history, as at launch.
+    func reset(to destination: ViewType) {
+        backStack.removeAll()
+        forwardStack.removeAll()
+        apply(MainWindowLocation(section: destination, path: []))
+    }
+
     /// Records path changes made by the navigation stack itself, such as a `NavigationLink` push.
     func updatePath(_ newPath: [MainWindowRoute]) {
         visit(MainWindowLocation(section: selectedView, path: newPath))

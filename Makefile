@@ -6,7 +6,7 @@ LOCAL_DERIVED_DATA := $(CURDIR)/.local-build
 LOCAL_CODESIGN_IDENTITY ?=
 RUN_APP_NAME ?= InstantVoice
 
-.PHONY: all clean whisper setup build local check healthcheck help dev run release release-setup
+.PHONY: all clean whisper setup build local check healthcheck help dev run release release-setup screenshots
 
 # Default target
 all: check build
@@ -131,6 +131,10 @@ release: whisper
 release-setup:
 	@./scripts/setup-release-notarization.sh
 
+# Capture main-window screenshots with demo data into ./screenshots.
+screenshots: whisper
+	@./scripts/screenshots.sh $(SCREENSHOT_ARGS)
+
 # Cleanup
 clean:
 	@echo "Cleaning build artifacts..."
@@ -150,6 +154,8 @@ help:
 	@echo "  dev                Build and run the app (for development)"
 	@echo "  release            Build DMG and Appcast using release-notes/<version>.html"
 	@echo "  release-setup      Store notarization credentials in Keychain"
+	@echo "  screenshots        Capture app screenshots with demo data into ./screenshots"
+	@echo "    SCREENSHOT_ARGS=\"--scene history --appearance dark\" passes options to scripts/screenshots.sh"
 	@echo "  all                Run full build process (default)"
 	@echo "  clean              Remove build artifacts"
 	@echo "  help               Show this help message"
