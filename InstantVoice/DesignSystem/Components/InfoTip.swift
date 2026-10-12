@@ -15,6 +15,9 @@ struct InfoTip: View {
     // State
     @State private var isShowingTip: Bool = false
 
+    /// Enlarges the click target around the glyph.
+    private let targetPadding: CGFloat = 5
+
     var body: some View {
         Button {
             isShowingTip.toggle()
@@ -23,7 +26,7 @@ struct InfoTip: View {
                 .imageScale(iconSize)
                 .foregroundStyle(iconColor)
                 .fontWeight(.semibold)
-                .padding(5)
+                .padding(targetPadding)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.borderless)
@@ -44,6 +47,9 @@ struct InfoTip: View {
             .frame(width: width, alignment: .leading)
             .padding(14)
         }
+        // Keep the target's vertical padding out of layout, so a form row or section header with a tip is as
+        // tall as one without. The button still receives clicks across the whole padded area.
+        .padding(.vertical, -targetPadding)
     }
 }
 
