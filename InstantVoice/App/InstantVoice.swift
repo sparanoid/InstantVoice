@@ -1,6 +1,5 @@
 import AppIntents
 import AppKit
-import FluidAudio
 import OSLog
 import SwiftData
 import SwiftUI

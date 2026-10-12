@@ -1,7 +1,5 @@
-import Atomics
 import Foundation
 import SwiftUI
-import Zip
 import os
 
 // MARK: - WhisperModelFile
@@ -34,28 +32,14 @@ struct WhisperModelFile: Identifiable {
     }
 }
 
-// MARK: - Private download task delegate
-
-private class TaskDelegate: NSObject, URLSessionTaskDelegate {
-    private let continuation: CheckedContinuation<Void, Never>
-    private let finished = ManagedAtomic(false)
-
-    init(_ continuation: CheckedContinuation<Void, Never>) {
-        self.continuation = continuation
-    }
-
-    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        if finished.exchange(true, ordering: .acquiring) == false {
-            continuation.resume()
-        }
-    }
-}
+// MARK: - Private download request state
 
 private final class DownloadRequestState: @unchecked Sendable {
     private let lock = NSLock()
     private var task: URLSessionDownloadTask?
     private var observation: NSKeyValueObservation?
     private var isCancelled = false
+    private var isFinished = false
 
     func install(task: URLSessionDownloadTask, observation: NSKeyValueObservation) -> Bool {
         lock.withLock {
@@ -66,14 +50,18 @@ private final class DownloadRequestState: @unchecked Sendable {
         }
     }
 
-    func finish() {
-        let observation = lock.withLock {
+    /// Returns true only for the first call, so the download resumes its continuation once.
+    func finish() -> Bool {
+        let (observation, isFirstFinish) = lock.withLock {
             let observation = self.observation
             self.observation = nil
             task = nil
-            return observation
+            let isFirstFinish = !isFinished
+            isFinished = true
+            return (observation, isFirstFinish)
         }
         observation?.invalidate()
+        return isFirstFinish
     }
 
     func cancel() {
@@ -176,11 +164,8 @@ class WhisperModelManager: ObservableObject {
                 try Task.checkCancellation()
                 return try await withCheckedThrowingContinuation {
                     (continuation: CheckedContinuation<Data, Error>) in
-                    let finished = ManagedAtomic(false)
-
                     func finishOnce(_ result: Result<Data, Error>) {
-                        requestState.finish()
-                        if finished.exchange(true, ordering: .acquiring) == false {
+                        if requestState.finish() {
                             continuation.resume(with: result)
                         }
                     }
@@ -353,22 +338,26 @@ class WhisperModelManager: ObservableObject {
     }
 
     private func unzipCoreMLFile(_ zipPath: URL, to destination: URL) async throws {
-        let finished = ManagedAtomic(false)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
 
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            func finishOnce(_ result: Result<Void, Error>) {
-                if finished.exchange(true, ordering: .acquiring) == false {
-                    continuation.resume(with: result)
-                }
-            }
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
+        process.arguments = ["-x", "-k", zipPath.path, destination.path]
 
+        let exitStatus: Int32 = try await withCheckedThrowingContinuation { continuation in
+            process.terminationHandler = { continuation.resume(returning: $0.terminationStatus) }
             do {
-                try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
-                try Zip.unzipFile(zipPath, destination: destination, overwrite: true, password: nil)
-                finishOnce(.success(()))
+                try process.run()
             } catch {
-                finishOnce(.failure(error))
+                continuation.resume(throwing: error)
             }
+        }
+
+        guard exitStatus == 0 else {
+            logger.error(
+                "❌ ditto failed to unzip \(zipPath.lastPathComponent, privacy: .public) with status \(exitStatus, privacy: .public)"
+            )
+            throw InstantVoiceEngineError.unzipFailed
         }
     }
 

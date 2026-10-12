@@ -1,8 +1,8 @@
 import AVFoundation
-import Atomics
 import AudioToolbox
 import CoreAudio
 import Foundation
+import Synchronization
 import os
 
 struct AudioInputChannelSelection: Equatable {
@@ -75,8 +75,8 @@ final class CoreAudioRecorder: @unchecked Sendable {
     private var conversionBufferSize: UInt32 = 0
 
     // Audio metering. Store bit patterns so the render callback never locks.
-    private let averagePowerBits = ManagedAtomic<UInt32>(Float32(-160.0).bitPattern)
-    private let peakPowerBits = ManagedAtomic<UInt32>(Float32(-160.0).bitPattern)
+    private let averagePowerBits = Atomic<UInt32>(Float32(-160.0).bitPattern)
+    private let peakPowerBits = Atomic<UInt32>(Float32(-160.0).bitPattern)
 
     var averagePower: Float {
         Float32(bitPattern: averagePowerBits.load(ordering: .relaxed))
@@ -98,13 +98,13 @@ final class CoreAudioRecorder: @unchecked Sendable {
     private let inputRingSlotCount = 96
     private var inputBufferSlots: [InputBufferSlot] = []
     private var inputBufferCapacitySamples: UInt32 = 0
-    private let inputWriteIndex = ManagedAtomic<UInt64>(0)
-    private let inputReadIndex = ManagedAtomic<UInt64>(0)
-    private let audioProcessingScheduled = ManagedAtomic(false)
-    private let recordingActive = ManagedAtomic(false)
-    private let renderCallbacksInFlight = ManagedAtomic<UInt32>(0)
-    private let droppedInputBuffersBackpressure = ManagedAtomic<UInt64>(0)
-    private let droppedInputBuffersCapacity = ManagedAtomic<UInt64>(0)
+    private let inputWriteIndex = Atomic<UInt64>(0)
+    private let inputReadIndex = Atomic<UInt64>(0)
+    private let audioProcessingScheduled = Atomic(false)
+    private let recordingActive = Atomic(false)
+    private let renderCallbacksInFlight = Atomic<UInt32>(0)
+    private let droppedInputBuffersBackpressure = Atomic<UInt64>(0)
+    private let droppedInputBuffersCapacity = Atomic<UInt64>(0)
 
     /// Called from the recorder processing queue with raw PCM data (16-bit, 16kHz, mono) for streaming.
     private let audioChunkLock = NSLock()
@@ -789,9 +789,9 @@ final class CoreAudioRecorder: @unchecked Sendable {
         inNumberFrames: UInt32
     ) -> OSStatus {
 
-        renderCallbacksInFlight.wrappingIncrement(ordering: .acquiringAndReleasing)
+        renderCallbacksInFlight.wrappingAdd(1, ordering: .acquiringAndReleasing)
         defer {
-            renderCallbacksInFlight.wrappingDecrement(ordering: .acquiringAndReleasing)
+            renderCallbacksInFlight.wrappingSubtract(1, ordering: .acquiringAndReleasing)
         }
 
         guard let audioUnit = audioUnit,
@@ -808,7 +808,7 @@ final class CoreAudioRecorder: @unchecked Sendable {
             requiredSamples <= renderBufferSize,
             requiredSamples <= inputBufferCapacitySamples
         else {
-            droppedInputBuffersCapacity.wrappingIncrement(ordering: .relaxed)
+            droppedInputBuffersCapacity.wrappingAdd(1, ordering: .relaxed)
             return noErr
         }
 
@@ -894,14 +894,14 @@ final class CoreAudioRecorder: @unchecked Sendable {
         let sampleCount = frameCount * channelCount
 
         guard sampleCount <= inputBufferCapacitySamples else {
-            droppedInputBuffersCapacity.wrappingIncrement(ordering: .relaxed)
+            droppedInputBuffersCapacity.wrappingAdd(1, ordering: .relaxed)
             return
         }
 
         let writeIndex = inputWriteIndex.load(ordering: .relaxed)
         let readIndex = inputReadIndex.load(ordering: .acquiring)
         guard writeIndex - readIndex < UInt64(inputBufferSlots.count) else {
-            droppedInputBuffersBackpressure.wrappingIncrement(ordering: .relaxed)
+            droppedInputBuffersBackpressure.wrappingAdd(1, ordering: .relaxed)
             return
         }
 
