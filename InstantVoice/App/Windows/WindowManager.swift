@@ -11,9 +11,9 @@ enum AppWindowLayout {
     static let sidebarIdealWidth: CGFloat = 210
     static let sidebarMaximumWidth: CGFloat = 280
 
-    /// Onboarding keeps its fixed-width layout inside the same window.
+    /// Onboarding is a fixed-size setup assistant inside the same window.
     static let onboardingWidth: CGFloat = 950
-    static let onboardingMinimumHeight: CGFloat = 750
+    static let onboardingHeight: CGFloat = 660
 }
 
 enum AppWindowID {

@@ -1,128 +1,59 @@
 import SwiftUI
 
+/// A privacy permission as a form row, in the style of System Settings › Privacy & Security.
 struct PermissionStepRow: View {
-    let stepNumber: Int
-    let descriptor: OnboardingPermissionDescriptor
+    let permission: OnboardingPermissionKind
     let status: OnboardingPermissionStatus
-    let isActive: Bool
+    let isNext: Bool
     let isLocked: Bool
-    let showsRestartHint: Bool
     let actionTitle: String
-    let onSelect: () -> Void
     let onAction: () -> Void
-    let onQuit: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 14) {
-                stepNumberView
+        HStack(alignment: .center, spacing: 12) {
+            OnboardingIconTile(systemImage: permission.systemImage, tint: permission.tint, size: 30)
+                .saturation(isLocked ? 0 : 1)
+                .opacity(isLocked ? 0.5 : 1)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(LocalizedStringKey(descriptor.title))
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(AppTheme.Text.primary)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(LocalizedStringKey(permission.descriptor.title))
+                        .font(.system(size: 13, weight: .medium))
 
-                    Text(LocalizedStringKey(descriptor.subtitle))
-                        .font(.system(size: 12))
-                        .foregroundColor(AppTheme.Text.muted)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if !permission.isRequired {
+                        Text("Optional")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
-                Spacer(minLength: 10)
-
-                if status.isGranted || isLocked {
-                    statusBadge
-                } else {
-                    actionButton
-                }
+                Text(LocalizedStringKey(permission.descriptor.subtitle))
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            .opacity(isLocked ? 0.6 : 1)
 
-            if isActive && !isLocked && showsRestartHint {
-                restartHint
-                    .padding(.leading, 44)
-            }
+            Spacer(minLength: 12)
+
+            trailingControl
         }
-        .padding(14)
-        .background(
-            AppMaterialCardBackground(
-                isSelected: isActive && !isLocked,
-                cornerRadius: 10
-            )
-        )
-        .opacity(isLocked ? 0.55 : 1)
-        .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .onTapGesture {
-            guard !isLocked else { return }
-            onSelect()
-        }
+        .padding(.vertical, 3)
     }
 
-    private var stepNumberView: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 9, style: .continuous)
-                .fill(status.isGranted ? AppTheme.Selection.fill : AppTheme.Surface.controlActive)
-
-            if status.isGranted {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(AppTheme.Text.primary)
-            } else {
-                Text("\(stepNumber)")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(isActive && !isLocked ? AppTheme.Text.primary : AppTheme.Text.muted)
-            }
-        }
-        .frame(width: 30, height: 30)
-    }
-
-    private var actionButton: some View {
-        Button(action: onAction) {
-            Text(LocalizedStringKey(actionTitle))
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(AppTheme.Action.primaryForeground)
-                .frame(minWidth: 94)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: AppTheme.Radius.control, style: .continuous)
-                        .fill(AppTheme.Action.primaryFill)
-                )
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var statusBadge: some View {
-        Text(isLocked ? LocalizedStringKey("Locked") : LocalizedStringKey(status.label))
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundColor(isLocked ? AppTheme.Text.muted : statusTone)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .background(isLocked ? AppTheme.Surface.subtle : statusTone.opacity(0.12))
-            .clipShape(Capsule())
-    }
-
-    private var statusTone: Color {
-        switch status {
-        case .denied, .restricted:
-            return AppTheme.Status.error
-        default:
-            return AppTheme.Text.secondary
-        }
-    }
-
-    private var restartHint: some View {
-        HStack(spacing: 8) {
-            Text("Restart InstantVoice after enabling Screen Recording.")
-                .font(.system(size: 12))
-                .foregroundColor(AppTheme.Text.muted)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Button("Quit") {
-                onQuit()
-            }
-            .font(.system(size: 12, weight: .semibold))
-            .buttonStyle(.plain)
-            .foregroundColor(AppTheme.Action.secondaryForeground)
+    @ViewBuilder
+    private var trailingControl: some View {
+        // Both titles arrive localized.
+        if status.isGranted {
+            Label(status.label, systemImage: "checkmark.circle.fill")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.green)
+        } else if isNext {
+            Button(actionTitle, action: onAction)
+                .buttonStyle(.borderedProminent)
+        } else {
+            Button(actionTitle, action: onAction)
+                .disabled(isLocked)
         }
     }
 }

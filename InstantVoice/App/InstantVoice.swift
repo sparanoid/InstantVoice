@@ -380,9 +380,8 @@ struct InstantVoiceApp: App {
                         .environmentObject(transcriptionModelManager)
                         .environmentObject(aiService)
                         .environmentObject(enhancementService)
-                        .frame(width: AppWindowLayout.onboardingWidth)
-                        .frame(minHeight: AppWindowLayout.onboardingMinimumHeight)
-                        // Onboarding draws its own full-window backdrop, so keep the title bar empty and clear.
+                        .frame(width: AppWindowLayout.onboardingWidth, height: AppWindowLayout.onboardingHeight)
+                        // Each page carries its own heading, so the window title and toolbar stay empty.
                         .toolbar(removing: .title)
                         .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
                         .background(

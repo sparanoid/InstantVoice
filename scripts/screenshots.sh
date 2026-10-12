@@ -35,10 +35,11 @@ TIME_ZONE="America/Los_Angeles"
 LANGUAGE="en"
 LOCALE="en_US"
 SETTLE_SECONDS="2"
-BACKGROUND=0
+INACTIVE=0
 SHADOW=0
 SKIP_BUILD=0
 CURRENT_PID=""
+READY_FILE=""
 
 usage() {
     cat <<'EOF'
@@ -49,8 +50,8 @@ Captures InstantVoice's main window and every onboarding step with demo data, on
 for review and marketing. Runs use a Debug build copy with its own bundle identifier, home folder, and
 clock, so they never touch your data or your running app, and every run renders the same content.
 
-The app comes to the front for each capture, which takes about 5 seconds per scene. Leave the
-keyboard and mouse alone until it finishes, or pass --background.
+The app stays in the background, so you can keep working while it runs (about 5 seconds per scene).
+Windows still draw in their active style unless you pass --inactive.
 
 Options:
   --scene <name>          Capture only this scene; repeat for more (default: all, see --list).
@@ -65,7 +66,7 @@ Options:
   --language <code>       App language (default: en).
   --locale <id>           Formatting locale (default: en_US).
   --settle <seconds>      Wait after opening a scene before capturing (default: 2).
-  --background            Keep the app in the background; windows render in their inactive style.
+  --inactive              Draw windows in their inactive style, as when another app is in front.
   --shadow                Keep the window shadow on a transparent margin.
   --skip-build            Reuse the last build in .screenshots-build.
   --list                  List the scenes and exit.
@@ -165,8 +166,8 @@ while [[ $# -gt 0 ]]; do
             SETTLE_SECONDS="$2"
             shift 2
             ;;
-        --background)
-            BACKGROUND=1
+        --inactive)
+            INACTIVE=1
             shift
             ;;
         --shadow)
@@ -280,52 +281,59 @@ wait_for_ready() {
     done
 }
 
-capture_scene() {
+# Opens a scene in a fresh launch and waits until the app reports it ready. Sets READY_FILE and CURRENT_PID.
+launch_scene() {
     local appearance="$1"
     local scene="$2"
     local work_dir="$RUN_DIR/$appearance-$scene"
-    local ready_file="$work_dir/ready.json"
-    local output="$OUTPUT_DIR/$appearance/$(output_name "$scene")"
-    mkdir -p "$work_dir/home" "$OUTPUT_DIR/$appearance"
+    READY_FILE="$work_dir/ready.json"
+    mkdir -p "$work_dir/home"
 
-    # Every scene starts from empty defaults and an empty home folder.
+    # Every launch starts from empty defaults and an empty home folder.
     defaults delete "$BUNDLE_ID" >/dev/null 2>&1 || true
 
-    local open_flags=(-n -F)
-    local activate="YES"
-    if [[ "$BACKGROUND" == 1 ]]; then
-        open_flags+=(-g)
-        activate="NO"
-    fi
-    open "${open_flags[@]}" \
+    local active_appearance="YES"
+    [[ "$INACTIVE" == 1 ]] && active_appearance="NO"
+    # -g keeps the app in the background; screenshot mode draws the active style without taking focus.
+    open -n -g -F \
         --env "CFFIXED_USER_HOME=$work_dir/home" \
         --env "TZ=$TIME_ZONE" \
         --env "DYLD_INSERT_LIBRARIES=$CLOCK_LIBRARY" \
         --env "SCREENSHOT_EPOCH=$EPOCH" \
         "$APP_PATH" --args \
         -ScreenshotScene "$scene" \
-        -ScreenshotReadyFile "$ready_file" \
+        -ScreenshotReadyFile "$READY_FILE" \
         -ScreenshotWindowSize "$WINDOW_SIZE" \
         -ScreenshotSettleDelay "$SETTLE_SECONDS" \
-        -ScreenshotActivate "$activate" \
+        -ScreenshotActiveAppearance "$active_appearance" \
         -AppAppearancePreference "$appearance" \
         -AppleLanguages "($LANGUAGE)" \
         -AppleLocale "$LOCALE" \
         -AppleAccentColor 4 \
         -AppleShowScrollBars WhenScrolling \
+        -AppleReduceDesktopTinting YES \
         -ApplePersistenceIgnoreState YES
 
-    wait_for_ready "$ready_file" || fail "The app didn't open $scene within 2 minutes (run files: $RUN_DIR)"
+    wait_for_ready "$READY_FILE" || fail "The app didn't open $scene within 2 minutes (run files: $RUN_DIR)"
     local error
-    error="$(plutil -extract error raw -o - "$ready_file" 2>/dev/null || true)"
+    error="$(plutil -extract error raw -o - "$READY_FILE" 2>/dev/null || true)"
     [[ -z "$error" ]] || fail "$error"
+    CURRENT_PID="$(plutil -extract pid raw -o - "$READY_FILE")"
+}
+
+capture_scene() {
+    local appearance="$1"
+    local scene="$2"
+    local output="$OUTPUT_DIR/$appearance/$(output_name "$scene")"
+    mkdir -p "$OUTPUT_DIR/$appearance"
+
+    launch_scene "$appearance" "$scene"
 
     local window_id scale window_width window_height
-    window_id="$(plutil -extract windowID raw -o - "$ready_file")"
-    scale="$(plutil -extract scale raw -o - "$ready_file")"
-    window_width="$(plutil -extract width raw -o - "$ready_file")"
-    window_height="$(plutil -extract height raw -o - "$ready_file")"
-    CURRENT_PID="$(plutil -extract pid raw -o - "$ready_file")"
+    window_id="$(plutil -extract windowID raw -o - "$READY_FILE")"
+    scale="$(plutil -extract scale raw -o - "$READY_FILE")"
+    window_width="$(plutil -extract width raw -o - "$READY_FILE")"
+    window_height="$(plutil -extract height raw -o - "$READY_FILE")"
 
     # Main-window scenes open at the requested size; onboarding keeps its own.
     if [[ "$scene" != onboarding-* ]] \
@@ -366,6 +374,11 @@ prepare_app
 
 RUN_DIR="$(mktemp -d "${TMPDIR:-/tmp}/instantvoice-screenshots.XXXXXX")"
 log "Capturing ${#SCENES[@]} scene(s) in ${#APPEARANCES[@]} appearance(s) at $CLOCK_DATE ($TIME_ZONE)"
+# Light Mode ignores the wallpaper with the launch argument, but Dark Mode follows the system setting.
+if [[ "${APPEARANCES[*]}" == *dark* ]] \
+    && [[ "$(defaults read -g AppleReduceDesktopTinting 2>/dev/null || echo 0)" != 1 ]]; then
+    echo "  Dark Mode windows take a tint from your wallpaper; turn off wallpaper tinting in System Settings > Appearance for neutral ones."
+fi
 for appearance in "${APPEARANCES[@]}"; do
     for scene in "${SCENES[@]}"; do
         capture_scene "$appearance" "$scene"

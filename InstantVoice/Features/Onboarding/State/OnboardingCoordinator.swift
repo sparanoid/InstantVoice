@@ -121,24 +121,36 @@ final class OnboardingCoordinator: ObservableObject {
         defaults.audioInputModeRawValue == AudioInputMode.custom.rawValue && defaults.selectedAudioDeviceUID != nil
     }
 
-    var currentStepNumber: Int {
-        if stage == .experience {
-            return experienceStepNumber(for: normalizedExperienceStepIndex)
+    /// Every step in flow order, as the sidebar lists them.
+    var sidebarItems: [OnboardingSidebarItem] {
+        var items: [OnboardingSidebarItem] = [.permissions, .microphone, .transcription, .aiEnhancement]
+        for step in activeExperienceSteps {
+            items.append(.experience(step.kind))
+            if step.showsContextAwarenessAfterCompletion {
+                items.append(.modes)
+            }
         }
-
-        if stage == .contextAwareness {
-            return contextAwarenessStepNumber
-        }
-
-        if stage == .trust {
-            return OnboardingStage.baseStepCount + activeExperienceSteps.count + contextAwarenessStepCount + 1
-        }
-
-        return stage.stepNumber
+        items.append(.privacy)
+        return items
     }
 
-    var totalStepCount: Int {
-        OnboardingStage.baseStepCount + activeExperienceSteps.count + contextAwarenessStepCount + 1
+    var currentSidebarItem: OnboardingSidebarItem {
+        switch stage {
+        case .permissions:
+            return .permissions
+        case .microphone:
+            return .microphone
+        case .model:
+            return .transcription
+        case .api:
+            return .aiEnhancement
+        case .experience:
+            return .experience(experienceStep.kind)
+        case .contextAwareness:
+            return .modes
+        case .trust:
+            return .privacy
+        }
     }
 
     var experienceStep: OnboardingExperienceStep {
@@ -304,33 +316,6 @@ final class OnboardingCoordinator: ObservableObject {
         }
 
         return OnboardingExperienceCatalog.steps
-    }
-
-    private var contextAwarenessInsertionIndices: [Int] {
-        activeExperienceSteps.indices.compactMap { index in
-            guard activeExperienceSteps[index].showsContextAwarenessAfterCompletion else {
-                return nil
-            }
-
-            return index + 1
-        }
-    }
-
-    private var contextAwarenessStepCount: Int {
-        contextAwarenessInsertionIndices.count
-    }
-
-    private var contextAwarenessStepNumber: Int {
-        guard let insertionIndex = contextAwarenessInsertionIndices.first else {
-            return OnboardingStage.baseStepCount + activeExperienceSteps.count + 1
-        }
-
-        return OnboardingStage.baseStepCount + insertionIndex + 1
-    }
-
-    private func experienceStepNumber(for index: Int) -> Int {
-        let priorContextScreens = contextAwarenessInsertionIndices.filter { $0 <= index }.count
-        return OnboardingStage.baseStepCount + index + priorContextScreens + 1
     }
 
     var selectedOnboardingProvider: AIProvider {

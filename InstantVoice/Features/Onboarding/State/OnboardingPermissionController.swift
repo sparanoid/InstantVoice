@@ -10,14 +10,6 @@ final class OnboardingPermissionController {
         self.coordinator = coordinator
     }
 
-    func stepNumber(for permission: OnboardingPermissionKind) -> Int {
-        guard let index = OnboardingPermissionKind.allCases.firstIndex(of: permission) else {
-            return 1
-        }
-
-        return index + 1
-    }
-
     func status(for permission: OnboardingPermissionKind) -> OnboardingPermissionStatus {
         coordinator.permissionStatuses[permission] ?? diagnose(permission)
     }

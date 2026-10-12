@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct OnboardingModelScreen: View {
-    let contentMaxWidth: CGFloat
     let localModel: FluidAudioModel?
     let setupKind: OnboardingTranscriptionSetupKind
     let providerOptions: [any CloudProvider]
@@ -18,11 +17,21 @@ struct OnboardingModelScreen: View {
     let onContinue: () -> Void
 
     var body: some View {
-        OnboardingStepScreen(
-            stage: .model,
-            contentMaxWidth: contentMaxWidth
+        OnboardingPage(
+            navigation: OnboardingNavigationBar(
+                onBack: onBack,
+                isPrimaryEnabled: isSetupReady && !(setupKind == .local && isLocalDownloading),
+                onPrimary: onContinue
+            )
         ) {
-            OnboardingTranscriptionSetupCard(
+            OnboardingPageHeader(
+                systemImage: OnboardingStage.model.systemImage,
+                tint: OnboardingStage.model.tint,
+                title: OnboardingStage.model.title,
+                subtitle: OnboardingStage.model.subtitle
+            )
+        } content: {
+            OnboardingTranscriptionSetupSection(
                 localModel: localModel,
                 setupKind: setupKind,
                 providerOptions: providerOptions,
@@ -34,14 +43,6 @@ struct OnboardingModelScreen: View {
                 onDownloadLocalModel: onDownload,
                 onCancelLocalModelDownload: onCancelDownload,
                 onVerificationChanged: onVerificationChanged
-            )
-        } bottomBar: {
-            OnboardingBottomBar(
-                leadingTitle: "Back",
-                primaryTitle: "Continue",
-                isPrimaryEnabled: isSetupReady && !(setupKind == .local && isLocalDownloading),
-                onLeading: onBack,
-                onPrimary: onContinue
             )
         }
     }

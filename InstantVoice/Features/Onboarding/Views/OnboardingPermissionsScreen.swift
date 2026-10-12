@@ -1,59 +1,59 @@
 import SwiftUI
 
 struct OnboardingPermissionsScreen: View {
-    let contentMaxWidth: CGFloat
     let isComplete: Bool
     let activePermission: OnboardingPermissionKind
     let hasRequestedScreenRecording: Bool
-    let stepNumber: (OnboardingPermissionKind) -> Int
     let status: (OnboardingPermissionKind) -> OnboardingPermissionStatus
     let isLocked: (OnboardingPermissionKind) -> Bool
     let actionTitle: (OnboardingPermissionKind) -> String
-    let onSelect: (OnboardingPermissionKind) -> Void
     let onAction: (OnboardingPermissionKind) -> Void
     let onQuit: () -> Void
     let onRecheck: () -> Void
     let onContinue: () -> Void
 
     var body: some View {
-        OnboardingStepScreen(
-            stage: .permissions,
-            contentMaxWidth: contentMaxWidth
-        ) {
-            permissionList
-        } bottomBar: {
-            OnboardingBottomBar(
-                leadingTitle: "Recheck",
-                primaryTitle: "Continue",
+        OnboardingPage(
+            navigation: OnboardingNavigationBar(
+                secondaryTitle: "Recheck",
+                onSecondary: onRecheck,
                 isPrimaryEnabled: isComplete,
-                onLeading: onRecheck,
                 onPrimary: onContinue
             )
+        ) {
+            OnboardingPageHeader(
+                systemImage: OnboardingStage.permissions.systemImage,
+                tint: OnboardingStage.permissions.tint,
+                title: OnboardingStage.permissions.title,
+                subtitle: OnboardingStage.permissions.subtitle
+            )
+        } content: {
+            Section {
+                ForEach(OnboardingPermissionKind.allCases) { permission in
+                    PermissionStepRow(
+                        permission: permission,
+                        status: status(permission),
+                        isNext: !isComplete && activePermission == permission,
+                        isLocked: isLocked(permission),
+                        actionTitle: actionTitle(permission),
+                        onAction: { onAction(permission) }
+                    )
+                }
+            } footer: {
+                if showsScreenRecordingRestartHint {
+                    HStack(spacing: 6) {
+                        Text("Restart InstantVoice after enabling Screen Recording.")
+                        Button("Quit", action: onQuit)
+                            .buttonStyle(.link)
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                }
+            }
         }
     }
 
-    private var permissionList: some View {
-        VStack(spacing: 10) {
-            ForEach(OnboardingPermissionKind.allCases) { permission in
-                PermissionStepRow(
-                    stepNumber: stepNumber(permission),
-                    descriptor: permission.descriptor,
-                    status: status(permission),
-                    isActive: !isComplete && activePermission == permission,
-                    isLocked: isLocked(permission),
-                    showsRestartHint: permission == .screenRecording && hasRequestedScreenRecording
-                        && !status(.screenRecording).isGranted,
-                    actionTitle: actionTitle(permission),
-                    onSelect: {
-                        guard !isLocked(permission) else { return }
-                        onSelect(permission)
-                    },
-                    onAction: {
-                        onAction(permission)
-                    },
-                    onQuit: onQuit
-                )
-            }
-        }
+    private var showsScreenRecordingRestartHint: Bool {
+        hasRequestedScreenRecording && !status(.screenRecording).isGranted
     }
 }

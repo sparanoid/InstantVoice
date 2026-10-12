@@ -106,7 +106,7 @@ enum ScreenshotMode {
         let readyFileURL: URL?
         let windowSize: NSSize
         let settleDelay: Duration
-        let activatesApp: Bool
+        let showsActiveAppearance: Bool
 
         private init(defaults: UserDefaults) {
             sceneName = defaults.string(forKey: "ScreenshotScene") ?? ""
@@ -116,7 +116,9 @@ enum ScreenshotMode {
             let settleSeconds = defaults.object(forKey: "ScreenshotSettleDelay") == nil
                 ? 2 : defaults.double(forKey: "ScreenshotSettleDelay")
             settleDelay = .milliseconds(Int(settleSeconds * 1000))
-            activatesApp = defaults.object(forKey: "ScreenshotActivate") == nil || defaults.bool(forKey: "ScreenshotActivate")
+            showsActiveAppearance =
+                defaults.object(forKey: "ScreenshotActiveAppearance") == nil
+                || defaults.bool(forKey: "ScreenshotActiveAppearance")
         }
 
         private static func size(from value: String?) -> NSSize? {
@@ -128,6 +130,9 @@ enum ScreenshotMode {
         /// Seeds the demo state before any service reads defaults, and opens the scene's section or onboarding step.
         func prepare() {
             guard let scene else { return }
+            if showsActiveAppearance {
+                ScreenshotActiveAppearance.install()
+            }
             if let stage = scene.onboardingStage {
                 ScreenshotDemoData.seedOnboardingDefaults(for: scene, stage: stage)
             } else if let section = scene.section {
@@ -155,10 +160,10 @@ enum ScreenshotMode {
 
             // Wherever the pointer rests, it must not leave hover highlights in the capture.
             window.ignoresMouseEvents = true
-            // Onboarding content has a fixed width, so its window keeps the size it opens at on a first launch.
+            // Onboarding has a fixed size of its own.
             let size =
                 scene.onboardingStage == nil
-                ? windowSize : NSSize(width: AppWindowLayout.onboardingWidth, height: AppWindowLayout.defaultHeight)
+                ? windowSize : NSSize(width: AppWindowLayout.onboardingWidth, height: AppWindowLayout.onboardingHeight)
             let visibleFrame = (window.screen ?? NSScreen.main)?.visibleFrame ?? window.frame
             window.setFrame(
                 NSRect(
@@ -177,13 +182,9 @@ enum ScreenshotMode {
                     MainWindowNavigation.shared.push(route)
                 }
                 try? await Task.sleep(for: settleDelay)
-                if activatesApp {
-                    NSApp.activate()
-                    window.makeKeyAndOrderFront(nil)
-                    try? await Task.sleep(for: .milliseconds(500))
-                }
-                // A focused text view blinks its insertion point, so captures would differ from run to run.
-                if window.firstResponder is NSTextView {
+                // Nothing keeps focus: an insertion point blinks, and whether a focus ring shows depends on the
+                // viewer's keyboard navigation setting, so either would make captures differ.
+                if window.firstResponder !== window {
                     window.makeFirstResponder(nil)
                     try? await Task.sleep(for: .milliseconds(400))
                 }
@@ -204,6 +205,34 @@ enum ScreenshotMode {
                 let data = try? JSONSerialization.data(withJSONObject: info, options: [.sortedKeys])
             else { return }
             try? data.write(to: readyFileURL, options: .atomic)
+        }
+    }
+
+    /// Makes every window draw as the key and main window of the active app, so captures show the active style while
+    /// the app stays in the background. AppKit and SwiftUI pick a window's style from these getters, several of them
+    /// private; if a later macOS stops reading them, captures fall back to the inactive style.
+    enum ScreenshotActiveAppearance {
+        static func install() {
+            let windowGetters = [
+                "isKeyWindow", "isMainWindow", "hasKeyAppearance", "hasMainAppearance", "_hasKeyAppearance",
+                "_hasMainAppearance", "_hasActiveAppearance", "_hasActiveAppearanceIgnoringKeyFocus",
+                "_hasActiveControls", "_isKeyWindow", "_isKeyWindowIgnoringFocus",
+            ]
+            for name in windowGetters {
+                returnTrue(NSWindow.self, name)
+            }
+            returnTrue(NSWindow.self, "_hasActiveAppearanceForStandardWindowButton:", takesArgument: true)
+            returnTrue(NSApplication.self, "isActive")
+            returnTrue(NSApplication.self, "_isActiveApp")
+        }
+
+        private static func returnTrue(_ type: AnyClass, _ name: String, takesArgument: Bool = false) {
+            guard let method = class_getInstanceMethod(type, NSSelectorFromString(name)) else { return }
+            let block: Any =
+                takesArgument
+                ? { (_: AnyObject, _: Int) -> Bool in true } as @convention(block) (AnyObject, Int) -> Bool
+                : { (_: AnyObject) -> Bool in true } as @convention(block) (AnyObject) -> Bool
+            method_setImplementation(method, imp_implementationWithBlock(block))
         }
     }
 #endif

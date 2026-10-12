@@ -6,9 +6,9 @@ struct OnboardingExperienceScreen: View {
     let shortcutAction: ShortcutAction
     let hasShortcut: Bool
     @Binding var text: String
-    let isLastStep: Bool
     let isReady: Bool
     let isComplete: Bool
+    let onSkipSetup: (() -> Void)?
     let onBackFromIntro: () -> Void
     let onContinueIntro: () -> Void
     let onBackFromPractice: () -> Void
@@ -19,70 +19,87 @@ struct OnboardingExperienceScreen: View {
     var body: some View {
         Group {
             if isInIntroPhase {
-                introScreen
+                introPage
                     .transition(.opacity)
             } else {
-                practiceScreen
+                practicePage
                     .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: isInIntroPhase)
+        .animation(.easeInOut(duration: 0.25), value: isInIntroPhase)
         .onAppear(perform: onAppear)
     }
 
-    private var introScreen: some View {
-        OnboardingStepScreen(
-            systemImage: systemImage,
+    private var header: some View {
+        OnboardingPageHeader(
+            systemImage: step.systemImage,
+            tint: tint,
             title: step.title,
-            subtitle: step.subtitle,
-            contentMaxWidth: 560,
-            showsHeader: true
-        ) {
-            OnboardingExperienceIntroCard(
-                step: step,
-                shortcutAction: shortcutAction,
-                hasShortcut: hasShortcut,
-                onShortcutChanged: onShortcutChanged
-            )
-            .id(step.id)
-        } bottomBar: {
-            OnboardingBottomBar(
-                leadingTitle: "Back",
-                primaryTitle: "Continue",
+            subtitle: step.subtitle
+        )
+    }
+
+    private var introPage: some View {
+        OnboardingPage(
+            navigation: OnboardingNavigationBar(
+                secondaryTitle: onSkipSetup == nil ? nil : "Skip Setup",
+                onSecondary: onSkipSetup,
+                onBack: onBackFromIntro,
                 isPrimaryEnabled: hasShortcut,
-                onLeading: onBackFromIntro,
                 onPrimary: onContinueIntro
             )
+        ) {
+            header
+        } content: {
+            Section {
+                LabeledContent("Recording Shortcut") {
+                    OnboardingShortcutSetupView(
+                        action: shortcutAction,
+                        onShortcutChanged: onShortcutChanged
+                    )
+                }
+            } footer: {
+                Text(
+                    hasShortcut
+                        ? LocalizedStringKey(
+                            "Press the shortcut to start recording, then press it again to stop. You can change it anytime in Settings."
+                        )
+                        : LocalizedStringKey("Choose a shortcut to get started.")
+                )
+            }
         }
     }
 
-    private var practiceScreen: some View {
-        OnboardingStepScreen(
-            systemImage: systemImage,
-            title: step.title,
-            subtitle: step.subtitle,
-            contentMaxWidth: 700,
-            showsHeader: true
+    private var practicePage: some View {
+        OnboardingPage(
+            navigation: OnboardingNavigationBar(
+                secondaryTitle: onSkipSetup == nil ? nil : "Skip Setup",
+                onSecondary: onSkipSetup,
+                onBack: onBackFromPractice,
+                isPrimaryEnabled: isReady && isComplete,
+                onPrimary: onAdvance
+            )
         ) {
-            OnboardingExperienceCard(
+            header
+        } content: {
+            OnboardingPracticeSection(
                 step: step,
                 shortcutAction: shortcutAction,
                 hasShortcut: hasShortcut,
                 text: $text,
                 onShortcutChanged: onShortcutChanged
             )
-        } bottomBar: {
-            OnboardingBottomBar(
-                leadingTitle: "Back",
-                primaryTitle: isLastStep ? "Continue" : "Next",
-                isPrimaryEnabled: isReady && isComplete,
-                onLeading: onBackFromPractice,
-                onPrimary: onAdvance
-            )
         }
     }
 
-    private var systemImage: String {
-        step.systemImage
+    private var tint: Color {
+        switch step.kind {
+        case .dictation:
+            return .blue
+        case .enhance:
+            return .purple
+        case .email:
+            return .indigo
+        }
     }
 }

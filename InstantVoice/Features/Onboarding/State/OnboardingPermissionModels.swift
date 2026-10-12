@@ -31,19 +31,39 @@ enum OnboardingStage: String, CaseIterable {
     var systemImage: String {
         switch self {
         case .permissions:
-            return "lock.shield"
+            return "hand.raised.fill"
         case .microphone:
-            return "mic"
+            return "mic.fill"
         case .model:
-            return "captions.bubble"
+            return "waveform"
         case .api:
-            return "checkmark.seal"
+            return "sparkles"
         case .experience:
             return "square.grid.2x2.fill"
         case .contextAwareness:
-            return "slider.horizontal.3"
+            return "sparkles.rectangle.stack.fill"
         case .trust:
-            return "lock.shield"
+            return "lock.shield.fill"
+        }
+    }
+
+    /// The color of the page's icon tile.
+    var tint: Color {
+        switch self {
+        case .permissions:
+            return .blue
+        case .microphone:
+            return .orange
+        case .model:
+            return .teal
+        case .api:
+            return .purple
+        case .experience:
+            return .blue
+        case .contextAwareness:
+            return .pink
+        case .trust:
+            return .gray
         }
     }
 
@@ -88,10 +108,6 @@ enum OnboardingStage: String, CaseIterable {
             return String(localized: "InstantVoice is private by default. No data leaves your device unless you opt in.")
         }
     }
-
-    static var baseStepCount: Int {
-        4
-    }
 }
 
 enum OnboardingPermissionKind: String, CaseIterable, Identifiable {
@@ -107,6 +123,29 @@ enum OnboardingPermissionKind: String, CaseIterable, Identifiable {
 
     var isRequired: Bool {
         Self.required.contains(self)
+    }
+
+    var systemImage: String {
+        switch self {
+        case .microphone:
+            return "mic.fill"
+        case .accessibility:
+            return "accessibility"
+        case .screenRecording:
+            return "rectangle.dashed.badge.record"
+        }
+    }
+
+    /// Matches the color System Settings uses for the same privacy setting.
+    var tint: Color {
+        switch self {
+        case .microphone:
+            return .orange
+        case .accessibility:
+            return .blue
+        case .screenRecording:
+            return .purple
+        }
     }
 
     var descriptor: OnboardingPermissionDescriptor {

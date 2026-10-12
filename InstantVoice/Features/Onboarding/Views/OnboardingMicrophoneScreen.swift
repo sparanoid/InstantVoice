@@ -2,30 +2,55 @@ import CoreAudio
 import SwiftUI
 
 struct OnboardingMicrophoneScreen: View {
-    let contentMaxWidth: CGFloat
     let onBack: () -> Void
     let onContinue: () -> Void
 
     @ObservedObject private var audioDeviceManager = AudioDeviceManager.shared
     @State private var selectedDeviceUID: String?
-    @State private var refreshIconRotation = 0.0
 
     private typealias MicrophoneDevice = (id: AudioDeviceID, uid: String, name: String)
 
     var body: some View {
-        OnboardingStepScreen(
-            stage: .microphone,
-            contentMaxWidth: contentMaxWidth
-        ) {
-            microphoneList
-        } bottomBar: {
-            OnboardingBottomBar(
-                leadingTitle: "Back",
-                primaryTitle: "Continue",
+        OnboardingPage(
+            navigation: OnboardingNavigationBar(
+                onBack: onBack,
                 isPrimaryEnabled: selectedDevice != nil,
-                onLeading: onBack,
                 onPrimary: saveSelectionAndContinue
             )
+        ) {
+            OnboardingPageHeader(
+                systemImage: OnboardingStage.microphone.systemImage,
+                tint: OnboardingStage.microphone.tint,
+                title: OnboardingStage.microphone.title,
+                subtitle: OnboardingStage.microphone.subtitle
+            )
+        } content: {
+            Section {
+                if devices.isEmpty {
+                    ContentUnavailableView {
+                        Label("No microphones found", systemImage: "mic.slash")
+                    } description: {
+                        Text("Connect a microphone or allow microphone access, then refresh.")
+                    }
+                } else {
+                    ForEach(devices, id: \.uid) { device in
+                        microphoneRow(for: device)
+                    }
+                }
+            } header: {
+                HStack {
+                    Text("Available Microphones")
+
+                    Spacer()
+
+                    Button("Refresh", systemImage: "arrow.clockwise") {
+                        refreshMicrophones(selectingIfNeeded: false)
+                    }
+                    .buttonStyle(.borderless)
+                    .labelStyle(.titleAndIcon)
+                    .help("Refresh Microphones")
+                }
+            }
         }
         .onAppear {
             refreshMicrophones(selectingIfNeeded: true)
@@ -36,116 +61,32 @@ struct OnboardingMicrophoneScreen: View {
         }
     }
 
-    private var microphoneList: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if devices.isEmpty {
-                emptyState
-            } else {
-                listHeader
-
-                ScrollView {
-                    LazyVStack(spacing: 10) {
-                        ForEach(devices, id: \.uid) { device in
-                            microphoneRow(for: device)
-                        }
-                    }
-                }
-                .frame(maxHeight: 280)
-                .scrollIndicators(.automatic)
-            }
-        }
-    }
-
-    private var listHeader: some View {
-        HStack {
-            Text("Available Microphones")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(AppTheme.Text.secondary)
-
-            Spacer()
-
-            refreshButton
-        }
-        .padding(.horizontal, 2)
-    }
-
     private func microphoneRow(for device: MicrophoneDevice) -> some View {
         let isSelected = selectedDeviceUID == device.uid
 
         return Button {
             selectedDeviceUID = device.uid
         } label: {
-            HStack(spacing: 14) {
-                Image(systemName: isSelected ? "checkmark" : "mic")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(isSelected ? AppTheme.Text.primary : AppTheme.Text.muted)
-                    .frame(width: 30, height: 30)
-                    .background(
-                        RoundedRectangle(cornerRadius: 9, style: .continuous)
-                            .fill(isSelected ? AppTheme.Selection.fill : AppTheme.Surface.controlActive)
-                    )
+            HStack(spacing: 10) {
+                Image(systemName: "mic")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18)
 
                 Text(device.name)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(AppTheme.Text.primary)
                     .lineLimit(1)
 
                 Spacer(minLength: 12)
+
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.tint)
+                }
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                AppMaterialCardBackground(
-                    isSelected: isSelected,
-                    cornerRadius: 10
-                )
-            )
-            .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: 14) {
-            Image(systemName: "mic.slash")
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundColor(AppTheme.Text.secondary)
-
-            VStack(spacing: 4) {
-                Text("No microphones found")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(AppTheme.Text.primary)
-
-                Text("Connect a microphone or allow microphone access, then refresh.")
-                    .font(.system(size: 13))
-                    .foregroundColor(AppTheme.Text.secondary)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-            }
-
-            refreshButton
-        }
-        .padding(22)
-        .frame(maxWidth: .infinity)
-        .background(AppMaterialCardBackground(cornerRadius: 10))
-    }
-
-    private var refreshButton: some View {
-        Button {
-            refreshMicrophones(selectingIfNeeded: false)
-        } label: {
-            Label {
-                Text("Refresh")
-                    .font(.system(size: 12, weight: .semibold))
-            } icon: {
-                Image(systemName: "arrow.clockwise")
-                    .font(.system(size: 12, weight: .semibold))
-                    .rotationEffect(.degrees(refreshIconRotation))
-            }
-            .foregroundColor(AppTheme.Text.secondary)
-        }
-        .buttonStyle(.plain)
-        .help("Refresh Microphones")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private var devices: [MicrophoneDevice] {
@@ -158,10 +99,6 @@ struct OnboardingMicrophoneScreen: View {
     }
 
     private func refreshMicrophones(selectingIfNeeded: Bool) {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            refreshIconRotation += 360
-        }
-
         audioDeviceManager.loadAvailableDevices {
             if selectingIfNeeded {
                 initializeSelectionIfNeeded()
