@@ -153,6 +153,11 @@ enum BackupImporter {
         if let recType = general.recorderType {
             recorderUIManager.recorderType = recType
         }
+        if let rawMiniRecorderAppearance = general.miniRecorderAppearance,
+            let miniRecorderAppearance = MiniRecorderAppearance(rawValue: rawMiniRecorderAppearance)
+        {
+            recorderUIManager.miniRecorderAppearance = miniRecorderAppearance
+        }
         if let rawAppearancePreference = general.appAppearancePreference,
             let appearancePreference = AppAppearancePreference(rawValue: rawAppearancePreference)
         {

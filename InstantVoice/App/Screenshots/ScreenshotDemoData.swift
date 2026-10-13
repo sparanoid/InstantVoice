@@ -21,7 +21,7 @@
             let defaults = UserDefaults.standard
             defaults.set(true, forKey: OnboardingSettings.completedV2Key)
             defaults.set(try? JSONEncoder().encode(modes), forKey: "modeConfigurationsV2")
-            defaults.set(dictationModeID.uuidString, forKey: "activeConfigurationId")
+            defaults.set(activeModeID(for: scene).uuidString, forKey: "activeConfigurationId")
             defaults.set(try? JSONEncoder().encode(PromptTemplates.seedPrompts), forKey: "customPrompts")
             defaults.set(true, forKey: "didMigrateModesToRawModelNames")
             defaults.set("stt-rt-v5", forKey: "CurrentTranscriptionModel")
@@ -29,6 +29,16 @@
             defaults.set(false, forKey: "PrewarmModelOnWake")
             defaults.set(scene == .historyInfo, forKey: "HistoryInspectorIsPresented")
             ShortcutStore.setShortcut(.rightCommand, for: .primaryRecording)
+        }
+
+        /// The mode the recorder's mode button shows: Email while dictating the demo reply, Assistant for the
+        /// conversation, and Dictation everywhere else.
+        private static func activeModeID(for scene: ScreenshotScene) -> UUID {
+            switch scene {
+            case .recorderRecording, .recorderLiveText, .recorderTranscribing: return emailModeID
+            case .recorderAssistant: return assistantModeID
+            default: return dictationModeID
+            }
         }
 
         /// Opens onboarding at a step as a new user reaches it: earlier steps are complete, the current one untouched.
@@ -136,6 +146,48 @@
                     selectedAIModel: "claude-sonnet-5", isEnabled: false
                 ),
             ]
+        }
+
+        // MARK: - Recorder
+
+        /// A steady speaking level for the recorder's waveform.
+        static let recorderAudioMeter = AudioMeter(averagePower: 0.5, peakPower: 0.7)
+
+        /// The recorder's state in a recorder scene. Live text stops mid-sentence, as it does while someone speaks.
+        static func recorderContent(for scene: ScreenshotScene) -> (recordingState: RecordingState, partialTranscript: String) {
+            switch scene {
+            case .recorderLiveText:
+                return (
+                    .recording,
+                    "Thanks for the notes on Thursday's review. I moved the design sync to three o'clock so the whole team can join, and I'll send"
+                )
+            case .recorderTranscribing:
+                return (.transcribing, "")
+            case .recorderAssistant:
+                return (.idle, "")
+            default:
+                return (.recording, "")
+            }
+        }
+
+        /// An answered question in the assistant scene, and no conversation elsewhere.
+        @MainActor
+        static func assistantSession(for scene: ScreenshotScene) -> AssistantSession {
+            let session = AssistantSession()
+            guard scene == .recorderAssistant else { return session }
+            session.beginInitialResponse(
+                transcript: "What's a polite way to ask Alex to move Thursday's review to three o'clock?",
+                provider: .gemini,
+                modelName: "gemini-3.8-flash",
+                modeName: "Assistant",
+                modeEmoji: nil,
+                promptName: nil
+            )
+            session.finishInitialResponse(
+                "Try this: \"Hi Alex, could we move Thursday's review to 3 PM? That way the design team can join too. Thanks!\"",
+                systemPrompt: nil
+            )
+            return session
         }
 
         // MARK: - Credentials and devices

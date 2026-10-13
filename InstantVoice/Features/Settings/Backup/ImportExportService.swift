@@ -169,6 +169,7 @@ class ImportExportService {
             launchAtLoginEnabled: launchAtLoginEnabled,
             isMenuBarOnly: menuBarManager.isMenuBarOnly,
             recorderType: recorderUIManager.recorderPanelStyle.rawValue,
+            miniRecorderAppearance: recorderUIManager.miniRecorderAppearance.rawValue,
             appAppearancePreference: AppAppearancePreference.stored.rawValue,
             appLanguagePreference: AppLanguagePreference.storedRawValue,
             isTranscriptionCleanupEnabled: UserDefaults.standard.bool(

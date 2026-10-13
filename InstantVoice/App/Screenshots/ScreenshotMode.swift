@@ -38,8 +38,12 @@ enum ScreenshotMode {
         case onboardingEmail = "onboarding-email"
         case onboardingContext = "onboarding-context"
         case onboardingTrust = "onboarding-trust"
+        case recorderRecording = "recorder-recording"
+        case recorderLiveText = "recorder-live-text"
+        case recorderTranscribing = "recorder-transcribing"
+        case recorderAssistant = "recorder-assistant"
 
-        /// The main-window section, or nil for onboarding scenes.
+        /// The main-window section, or nil for onboarding and recorder scenes.
         var section: ViewType? {
             switch self {
             case .dashboard, .insights: return .dashboard
@@ -91,6 +95,14 @@ enum ScreenshotMode {
             guard let onboardingStage else { return false }
             return onboardingStage != .permissions
         }
+
+        /// Recorder scenes show the mini recorder over a wallpaper instead of the main window.
+        var isRecorderScene: Bool {
+            switch self {
+            case .recorderRecording, .recorderLiveText, .recorderTranscribing, .recorderAssistant: return true
+            default: return false
+            }
+        }
     }
 
     /// The launch arguments of one screenshot run.
@@ -130,7 +142,9 @@ enum ScreenshotMode {
         /// Seeds the demo state before any service reads defaults, and opens the scene's section or onboarding step.
         func prepare() {
             guard let scene else { return }
-            if showsActiveAppearance {
+            // Recorder scenes draw like the real recorder instead: InstantVoice stays in the background, and their
+            // stage keeps its glass active the same way the recorder panel does.
+            if showsActiveAppearance && !scene.isRecorderScene {
                 ScreenshotActiveAppearance.install()
             }
             if let stage = scene.onboardingStage {
@@ -138,6 +152,8 @@ enum ScreenshotMode {
             } else if let section = scene.section {
                 ScreenshotDemoData.seedDefaults(for: scene)
                 MainWindowNavigation.shared.reset(to: section)
+            } else if scene.isRecorderScene {
+                ScreenshotDemoData.seedDefaults(for: scene)
             }
         }
 
@@ -155,6 +171,10 @@ enum ScreenshotMode {
             guard let scene else {
                 report(["error": "Unknown screenshot scene \"\(sceneName)\""])
                 NSApp.terminate(nil)
+                return
+            }
+            if scene.isRecorderScene {
+                presentRecorderStage(for: scene, hiding: window)
                 return
             }
 
@@ -199,6 +219,32 @@ enum ScreenshotMode {
                 ])
             }
         }
+
+        /// Shows the mini recorder over a wallpaper in a window of its own, and tells the script to capture that window.
+        @MainActor
+        private func presentRecorderStage(for scene: ScreenshotScene, hiding mainWindow: NSWindow) {
+            let stage = ScreenshotRecorderStage.makeWindow(for: scene, on: mainWindow.screen)
+            Self.recorderStageWindow = stage
+            mainWindow.orderOut(nil)
+
+            Task { @MainActor in
+                try? await Task.sleep(for: settleDelay)
+                // An assistant reply focuses its follow-up field, whose insertion point would blink.
+                stage.makeFirstResponder(nil)
+                try? await Task.sleep(for: .milliseconds(400))
+                stage.displayIfNeeded()
+                report([
+                    "scene": scene.rawValue,
+                    "windowID": stage.windowNumber,
+                    "pid": Int(ProcessInfo.processInfo.processIdentifier),
+                    "scale": stage.backingScaleFactor,
+                    "width": stage.frame.width,
+                    "height": stage.frame.height,
+                ])
+            }
+        }
+
+        @MainActor private static var recorderStageWindow: NSWindow?
 
         private func report(_ info: [String: Any]) {
             guard let readyFileURL,

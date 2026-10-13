@@ -20,11 +20,12 @@ DISPLAY_P3_PROFILE="/System/Library/ColorSync/Profiles/Display P3.icc"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
 # Each name must match a ScreenshotScene case in InstantVoice/App/Screenshots/ScreenshotMode.swift.
-# Files are numbered by position: main-window scenes in sidebar order, onboarding scenes in flow order.
+# Files are numbered by position: main-window scenes in sidebar order, onboarding and recorder scenes in flow order.
 MAIN_SCENES=(dashboard insights transcribe history history-info modes mode dictionary models provider audio settings)
 ONBOARDING_SCENES=(onboarding-permissions onboarding-microphone onboarding-model onboarding-api onboarding-shortcut
     onboarding-dictation onboarding-enhance onboarding-email onboarding-context onboarding-trust)
-ALL_SCENES=("${MAIN_SCENES[@]}" "${ONBOARDING_SCENES[@]}")
+RECORDER_SCENES=(recorder-recording recorder-live-text recorder-transcribing recorder-assistant)
+ALL_SCENES=("${MAIN_SCENES[@]}" "${ONBOARDING_SCENES[@]}" "${RECORDER_SCENES[@]}")
 
 SCENES=()
 APPEARANCES=(light dark)
@@ -35,6 +36,7 @@ TIME_ZONE="America/Los_Angeles"
 LANGUAGE="en"
 LOCALE="en_US"
 SETTLE_SECONDS="2"
+RECORDER_APPEARANCE=""
 INACTIVE=0
 SHADOW=0
 SKIP_BUILD=0
@@ -46,8 +48,8 @@ usage() {
 Usage:
   scripts/screenshots.sh [options]
 
-Captures InstantVoice's main window and every onboarding step with demo data, one launch per scene,
-for review and marketing. Runs use a Debug build copy with its own bundle identifier, home folder, and
+Captures InstantVoice's main window, every onboarding step, and the mini recorder with demo data, one
+launch per scene, for review and marketing. Runs use a Debug build copy with its own bundle identifier, home folder, and
 clock, so they never touch your data or your running app, and every run renders the same content.
 
 The app stays in the background, so you can keep working while it runs (about 5 seconds per scene).
@@ -55,18 +57,22 @@ Windows still draw in their active style unless you pass --inactive.
 
 Options:
   --scene <name>          Capture only this scene; repeat for more (default: all, see --list).
-                          "main" and "onboarding" select every scene in that group.
+                          "main", "onboarding", and "recorder" select every scene in that group.
   --appearance <mode>     light, dark, or both (default: both).
   --size <WxH>            Main window size in points (default: 1280x800, which captures 2560x1600 on
-                          Retina). Onboarding keeps its own fixed-width window.
-  --output-dir <dir>      Where to write <appearance>/<NN>-<scene>.png and onboarding-<NN>-<step>.png
-                          (default: ./screenshots).
+                          Retina). Onboarding and the recorder keep their own sizes.
+  --output-dir <dir>      Where to write <appearance>/<NN>-<scene>.png, onboarding-<NN>-<step>.png, and
+                          recorder-<NN>-<state>.png (default: ./screenshots).
   --date <date>           Clock at launch, "YYYY-MM-DD HH:MM:SS" (default: 2026-10-13 09:41:00).
   --time-zone <zone>      Time zone for the clock and dates (default: America/Los_Angeles).
   --language <code>       App language (default: en).
   --locale <id>           Formatting locale (default: en_US).
   --settle <seconds>      Wait after opening a scene before capturing (default: 2).
+  --recorder-appearance <mode>
+                          The mini recorder's own appearance setting: automatic, light, or dark
+                          (default: automatic, which follows --appearance).
   --inactive              Draw windows in their inactive style, as when another app is in front.
+                          Recorder scenes ignore it and draw like the real recorder.
   --shadow                Keep the window shadow on a transparent margin.
   --skip-build            Reuse the last build in .screenshots-build.
   --list                  List the scenes and exit.
@@ -76,6 +82,7 @@ Examples:
   make screenshots
   make screenshots SCREENSHOT_ARGS="--scene history --appearance dark"
   make screenshots SCREENSHOT_ARGS="--scene onboarding"
+  make screenshots SCREENSHOT_ARGS="--scene recorder"
   scripts/screenshots.sh --skip-build --scene dashboard --scene settings
 EOF
 }
@@ -108,6 +115,12 @@ output_name() {
             return 0
         fi
     done
+    for index in "${!RECORDER_SCENES[@]}"; do
+        if [[ "${RECORDER_SCENES[$index]}" == "$1" ]]; then
+            printf 'recorder-%02d-%s.png' $((index + 1)) "${1#recorder-}"
+            return 0
+        fi
+    done
     return 1
 }
 
@@ -118,6 +131,7 @@ while [[ $# -gt 0 ]]; do
             case "$2" in
                 main) SCENES+=("${MAIN_SCENES[@]}") ;;
                 onboarding) SCENES+=("${ONBOARDING_SCENES[@]}") ;;
+                recorder) SCENES+=("${RECORDER_SCENES[@]}") ;;
                 *) SCENES+=("$2") ;;
             esac
             shift 2
@@ -164,6 +178,14 @@ while [[ $# -gt 0 ]]; do
         --settle)
             [[ $# -ge 2 ]] || fail "--settle requires seconds"
             SETTLE_SECONDS="$2"
+            shift 2
+            ;;
+        --recorder-appearance)
+            [[ $# -ge 2 ]] || fail "--recorder-appearance requires automatic, light, or dark"
+            case "$2" in
+                automatic | light | dark) RECORDER_APPEARANCE="$2" ;;
+                *) fail "Unknown recorder appearance: $2" ;;
+            esac
             shift 2
             ;;
         --inactive)
@@ -294,6 +316,8 @@ launch_scene() {
 
     local active_appearance="YES"
     [[ "$INACTIVE" == 1 ]] && active_appearance="NO"
+    local extra_arguments=()
+    [[ -n "$RECORDER_APPEARANCE" ]] && extra_arguments+=(-MiniRecorderAppearance "$RECORDER_APPEARANCE")
     # -g keeps the app in the background; screenshot mode draws the active style without taking focus.
     open -n -g -F \
         --env "CFFIXED_USER_HOME=$work_dir/home" \
@@ -312,7 +336,8 @@ launch_scene() {
         -AppleAccentColor 4 \
         -AppleShowScrollBars WhenScrolling \
         -AppleReduceDesktopTinting YES \
-        -ApplePersistenceIgnoreState YES
+        -ApplePersistenceIgnoreState YES \
+        ${extra_arguments[@]+"${extra_arguments[@]}"}
 
     wait_for_ready "$READY_FILE" || fail "The app didn't open $scene within 2 minutes (run files: $RUN_DIR)"
     local error
@@ -335,8 +360,8 @@ capture_scene() {
     window_width="$(plutil -extract width raw -o - "$READY_FILE")"
     window_height="$(plutil -extract height raw -o - "$READY_FILE")"
 
-    # Main-window scenes open at the requested size; onboarding keeps its own.
-    if [[ "$scene" != onboarding-* ]] \
+    # Main-window scenes open at the requested size; onboarding and the recorder keep their own.
+    if [[ "$scene" != onboarding-* && "$scene" != recorder-* ]] \
         && ! awk -v w="$window_width" -v h="$window_height" -v rw="$WINDOW_WIDTH" -v rh="$WINDOW_HEIGHT" \
             'BEGIN { exit !(w == rw && h == rh) }'; then
         fail "$scene opened at ${window_width}x${window_height} points instead of $WINDOW_SIZE"
@@ -375,7 +400,12 @@ prepare_app
 RUN_DIR="$(mktemp -d "${TMPDIR:-/tmp}/instantvoice-screenshots.XXXXXX")"
 log "Capturing ${#SCENES[@]} scene(s) in ${#APPEARANCES[@]} appearance(s) at $CLOCK_DATE ($TIME_ZONE)"
 # Light Mode ignores the wallpaper with the launch argument, but Dark Mode follows the system setting.
-if [[ "${APPEARANCES[*]}" == *dark* ]] \
+# Recorder scenes paint their own wallpaper, so only window backgrounds pick up the tint.
+TINTABLE_SCENES=0
+for scene in "${SCENES[@]}"; do
+    [[ "$scene" == recorder-* ]] || TINTABLE_SCENES=1
+done
+if [[ "$TINTABLE_SCENES" == 1 && "${APPEARANCES[*]}" == *dark* ]] \
     && [[ "$(defaults read -g AppleReduceDesktopTinting 2>/dev/null || echo 0)" != 1 ]]; then
     echo "  Dark Mode windows take a tint from your wallpaper; turn off wallpaper tinting in System Settings > Appearance for neutral ones."
 fi

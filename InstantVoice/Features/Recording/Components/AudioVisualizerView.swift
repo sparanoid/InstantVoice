@@ -23,6 +23,8 @@ struct AudioVisualizer: View {
     var body: some View {
         TimelineView(.animation(minimumInterval: 0.016)) { context in
             let audioMeter = audioMeterProvider()
+            // Screenshot runs freeze the wave, so every capture draws the same bars.
+            let date = ScreenshotMode.isActive ? Self.screenshotDate : context.date
 
             HStack(spacing: barSpacing) {
                 ForEach(0..<barCount, id: \.self) { index in
@@ -32,7 +34,7 @@ struct AudioVisualizer: View {
                             width: barWidth,
                             height: barHeight(
                                 for: index,
-                                at: context.date,
+                                at: date,
                                 audioMeter: audioMeter
                             )
                         )
@@ -40,6 +42,9 @@ struct AudioVisualizer: View {
             }
         }
     }
+
+    /// A moment when the wave peaks near the middle bars.
+    private static let screenshotDate = Date(timeIntervalSince1970: 0.63)
 
     private func barHeight(for index: Int, at date: Date, audioMeter: AudioMeter) -> CGFloat {
         guard isActive else { return minHeight }

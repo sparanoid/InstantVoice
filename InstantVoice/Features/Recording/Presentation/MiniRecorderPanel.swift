@@ -1,7 +1,20 @@
 import AppKit
 import os
 
-final class MiniRecorderPanel: NSPanel {
+/// A panel whose Liquid Glass keeps its active look while InstantVoice is in the background.
+///
+/// macOS draws glass in an inactive window as a flat, frosted fallback. The recorder never becomes key, so that typing
+/// and pasting keep going to the app being dictated into, and InstantVoice stays in the background, so its panel would
+/// always get that fallback. AppKit has no public switch for it; answering this private query only changes how the
+/// panel draws. If a later macOS stops asking, the panel falls back to the frosted look.
+class ActiveGlassPanel: NSPanel {
+    @objc(_hasActiveAppearanceIgnoringKeyFocus)
+    private func hasActiveAppearanceIgnoringKeyFocus() -> Bool {
+        true
+    }
+}
+
+final class MiniRecorderPanel: ActiveGlassPanel {
     override var canBecomeKey: Bool { true }
 
     private let logger = Logger(subsystem: "com.sparanoid.instantvoice", category: "MiniRecorderPanel")
@@ -29,27 +42,27 @@ final class MiniRecorderPanel: NSPanel {
         hasShadow = false
     }
 
+    /// Host stays large enough for assistant output; SwiftUI controls the visible mini width.
+    static let size = NSSize(width: 540, height: 430)
+
+    /// The gap between the panel and the bottom of the screen's visible area.
+    static let bottomPadding: CGFloat = 24
+
     /// Returns `nil` when there is no screen at all, so callers can skip showing the panel
     /// instead of placing it at the global origin.
     static func calculateWindowMetrics() -> NSRect? {
-        let width: CGFloat = 540
-        let height: CGFloat = 430
-
         guard let screen = RecorderScreenResolver.resolve() else { return nil }
-
-        // Host stays large enough for assistant output; SwiftUI controls the visible mini width.
-        let padding: CGFloat = 24
 
         let visibleFrame = screen.visibleFrame
         let centerX = visibleFrame.midX
-        let xPosition = centerX - (width / 2)
-        let yPosition = visibleFrame.minY + padding
+        let xPosition = centerX - (size.width / 2)
+        let yPosition = visibleFrame.minY + bottomPadding
 
         return NSRect(
             x: xPosition,
             y: yPosition,
-            width: width,
-            height: height
+            width: size.width,
+            height: size.height
         )
     }
 

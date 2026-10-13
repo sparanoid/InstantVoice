@@ -57,18 +57,20 @@ Select the `InstantVoice` scheme. Run builds `InstantVoice Dev.app`; Archive use
 
 ## Screenshots
 
-`make screenshots` captures the main window and every onboarding step, one scene per launch, in Light and Dark Mode. Main-window scenes are saved as `screenshots/<appearance>/<NN>-<scene>.png`; at the default 1280×800 window size, they come out at 2560×1600 on a Retina display. Onboarding steps are saved as `onboarding-<NN>-<step>.png` at onboarding's own fixed-width window size, each showing the step as a new user first reaches it. All are plain window captures with transparent rounded corners, converted to Display P3, ready for review or marketing.
+`make screenshots` captures the main window, every onboarding step, and the mini recorder, one scene per launch, in Light and Dark Mode. Main-window scenes are saved as `screenshots/<appearance>/<NN>-<scene>.png`; at the default 1280×800 window size, they come out at 2560×1600 on a Retina display. Onboarding steps are saved as `onboarding-<NN>-<step>.png` at onboarding's own fixed-width window size, each showing the step as a new user first reaches it. Recorder states are saved as `recorder-<NN>-<state>.png` at 1520×920: the mini recorder over a macOS wallpaper, because a window capture can't show the desktop behind the real recorder's Liquid Glass. They draw like the real recorder, which appears while another app is in front and keeps its glass in the active style. All are plain window captures converted to Display P3, ready for review or marketing; main-window and onboarding captures keep their transparent rounded corners.
 
 The script runs a Debug build in `.screenshots-build` as `com.sparanoid.InstantVoice.screenshots`, with a scratch home folder and demo data, so it never touches your data, Keychain, or running app. Each launch pins the clock to Tuesday, October 13, 2026, 9:41 AM Pacific, along with language, locale, accent color, and scroll bars, so every run renders the same content. Light Mode captures also ignore your wallpaper, but Dark Mode windows take a tint from it unless wallpaper tinting is off in System Settings > Appearance. The app stays in the background the whole time, so you can keep working; windows still draw in their active style unless you pass `--inactive`.
 
 ```bash
 make screenshots SCREENSHOT_ARGS="--scene history --appearance dark"
 make screenshots SCREENSHOT_ARGS="--scene onboarding"
+make screenshots SCREENSHOT_ARGS="--scene recorder"
+make screenshots SCREENSHOT_ARGS="--scene recorder --appearance light --recorder-appearance dark"
 scripts/screenshots.sh --list
 scripts/screenshots.sh --help
 ```
 
-Scenes are defined by `ScreenshotScene` in `InstantVoice/App/Screenshots/ScreenshotMode.swift`, and their content by `ScreenshotDemoData`. Add a new scene to both and to `MAIN_SCENES` or `ONBOARDING_SCENES` in `scripts/screenshots.sh`.
+Scenes are defined by `ScreenshotScene` in `InstantVoice/App/Screenshots/ScreenshotMode.swift`, and their content by `ScreenshotDemoData`. Add a new scene to both and to `MAIN_SCENES`, `ONBOARDING_SCENES`, or `RECORDER_SCENES` in `scripts/screenshots.sh`.
 
 ## Merging Upstream
 

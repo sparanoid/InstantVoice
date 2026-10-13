@@ -131,7 +131,7 @@ release: whisper
 release-setup:
 	@./scripts/setup-release-notarization.sh
 
-# Capture main-window screenshots with demo data into ./screenshots.
+# Capture app screenshots with demo data into ./screenshots.
 screenshots: whisper
 	@./scripts/screenshots.sh $(SCREENSHOT_ARGS)
 

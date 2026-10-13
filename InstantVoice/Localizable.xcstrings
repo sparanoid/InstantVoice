@@ -5539,6 +5539,51 @@
         }
       }
     },
+    "Automatic" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatique"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动"
+          }
+        }
+      }
+    },
+    "Automatic follows the app's appearance." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Automatisch“ folgt der Darstellung der App."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« Automatique » suit l'apparence de l'application."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“自动”跟随 App 的外观。"
+          }
+        }
+      }
+    },
     "Automatically Check for Updates" : {
       "localizations" : {
         "de" : {
@@ -14972,7 +15017,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lumière"
+            "value" : "Clair"
           }
         },
         "zh-Hans" : {
@@ -20697,6 +20742,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "录音和实时"
+          }
+        }
+      }
+    },
+    "Recorder Appearance" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recorder-Darstellung"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apparence de l'enregistreur"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音器外观"
           }
         }
       }

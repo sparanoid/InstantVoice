@@ -10,6 +10,11 @@ class MiniWindowManager {
     private let makeView: () -> AnyView
     private let logger = Logger(subsystem: "com.sparanoid.instantvoice", category: "MiniWindowManager")
 
+    /// The panel's appearance; nil follows the app's. Applies to the panel on screen right away.
+    var appearance: NSAppearance? {
+        didSet { panel?.appearance = appearance }
+    }
+
     init(
         engine: InstantVoiceEngine,
         recorder: Recorder,
@@ -22,7 +27,7 @@ class MiniWindowManager {
             AnyView(
                 MiniRecorderView(
                     stateProvider: engine,
-                    recorder: recorder,
+                    audioMeterProvider: recorder.audioMeterSnapshot,
                     assistantSession: assistantSession,
                     onRecordButtonTapped: onRecordButtonTapped,
                     onCloseTapped: onCloseTapped,
@@ -70,6 +75,7 @@ class MiniWindowManager {
             return
         }
         let newPanel = MiniRecorderPanel(contentRect: metrics)
+        newPanel.appearance = appearance
         let view = makeView()
         let hostingController = NSHostingController(rootView: view)
         newPanel.contentView = hostingController.view

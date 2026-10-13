@@ -25,6 +25,45 @@ enum RecorderPanelStyle: String, CaseIterable, Identifiable {
     }
 }
 
+/// Whether the mini recorder's glass is light or dark. The notch recorder stays black to blend with the notch.
+enum MiniRecorderAppearance: String, CaseIterable, Identifiable {
+    static let userDefaultsKey = "MiniRecorderAppearance"
+
+    case automatic
+    case light
+    case dark
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .automatic:
+            return String(localized: "Automatic")
+        case .light:
+            return String(localized: "Light")
+        case .dark:
+            return String(localized: "Dark")
+        }
+    }
+
+    static var stored: MiniRecorderAppearance {
+        let rawValue = UserDefaults.standard.string(forKey: userDefaultsKey) ?? MiniRecorderAppearance.automatic.rawValue
+        return MiniRecorderAppearance(rawValue: rawValue) ?? .automatic
+    }
+
+    /// The panel's appearance. Automatic leaves it nil, so the panel follows the app's Appearance setting.
+    var appKitAppearance: NSAppearance? {
+        switch self {
+        case .automatic:
+            return nil
+        case .light:
+            return NSAppearance(named: .aqua)
+        case .dark:
+            return NSAppearance(named: .darkAqua)
+        }
+    }
+}
+
 @MainActor
 protocol RecorderPanelPresenting: AnyObject {
     var isRecorderPanelVisible: Bool { get }
@@ -44,6 +83,14 @@ class RecorderUIManager: ObservableObject, RecorderPanelPresenting {
     var recorderType: String {
         get { recorderPanelStyle.rawValue }
         set { recorderPanelStyle = RecorderPanelStyle(rawValue: newValue) ?? .mini }
+    }
+
+    @Published var miniRecorderAppearance: MiniRecorderAppearance = .stored {
+        didSet {
+            guard oldValue != miniRecorderAppearance else { return }
+            UserDefaults.standard.set(miniRecorderAppearance.rawValue, forKey: MiniRecorderAppearance.userDefaultsKey)
+            miniWindowManager?.appearance = miniRecorderAppearance.appKitAppearance
+        }
     }
 
     @Published var isRecorderPanelVisible = false {
@@ -136,6 +183,7 @@ class RecorderUIManager: ObservableObject, RecorderPanelPresenting {
                         }
                     }
                 )
+                miniWindowManager?.appearance = miniRecorderAppearance.appKitAppearance
             }
             shown = miniWindowManager?.show() ?? false
         }

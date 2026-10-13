@@ -8,6 +8,8 @@ struct RecorderToggleButton: View {
     let disabled: Bool
     let action: () -> Void
 
+    @Environment(\.recorderSurfaceStyle) private var surfaceStyle
+
     init(isEnabled: Bool, icon: String, disabled: Bool = false, action: @escaping () -> Void) {
         self.isEnabled = isEnabled
         self.icon = icon
@@ -28,7 +30,9 @@ struct RecorderToggleButton: View {
                     Image(systemName: icon).font(.system(size: 13))
                 }
             }
-            .foregroundColor(disabled ? .white.opacity(0.3) : (isEnabled ? .white : .white.opacity(0.6)))
+            .foregroundColor(
+                disabled ? surfaceStyle.ink.opacity(0.3) : (isEnabled ? surfaceStyle.ink : surfaceStyle.ink.opacity(0.6))
+            )
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(disabled)
@@ -40,6 +44,8 @@ struct RecorderToggleButton: View {
 struct RecorderRecordButton: View {
     let recordingState: RecordingState
     let action: () -> Void
+
+    @Environment(\.recorderSurfaceStyle) private var surfaceStyle
 
     private var visualState: VisualState {
         switch recordingState {
@@ -90,6 +96,13 @@ struct RecorderRecordButton: View {
     private var colors: StateColors {
         switch visualState {
         case .ready:
+            if surfaceStyle == .glass {
+                return StateColors(
+                    surface: surfaceStyle.ink.opacity(0.13),
+                    border: surfaceStyle.ink.opacity(0.18),
+                    mark: surfaceStyle.ink.opacity(0.6)
+                )
+            }
             return StateColors(
                 surface: Color(red: 0.30, green: 0.30, blue: 0.32),
                 border: Color(red: 0.42, green: 0.42, blue: 0.44),
@@ -104,9 +117,9 @@ struct RecorderRecordButton: View {
             )
         case .processing:
             return StateColors(
-                surface: Color.white.opacity(0.13),
-                border: Color.white.opacity(0.18),
-                mark: Color.white.opacity(0.86)
+                surface: surfaceStyle.ink.opacity(0.13),
+                border: surfaceStyle.ink.opacity(0.18),
+                mark: surfaceStyle.ink.opacity(0.86)
             )
         }
     }
@@ -158,19 +171,21 @@ struct RecorderRecordButton: View {
 struct RecorderCloseButton: View {
     let action: () -> Void
 
+    @Environment(\.recorderSurfaceStyle) private var surfaceStyle
+
     var body: some View {
         Button(action: action) {
             ZStack {
                 Circle()
-                    .fill(Color.white.opacity(0.13))
+                    .fill(surfaceStyle.ink.opacity(0.13))
                     .overlay(
                         Circle()
-                            .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.6)
+                            .strokeBorder(surfaceStyle.ink.opacity(0.18), lineWidth: 0.6)
                     )
 
                 Image(systemName: "xmark")
                     .font(.system(size: 9, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.86))
+                    .foregroundColor(surfaceStyle.ink.opacity(0.86))
             }
             .frame(width: 21, height: 21)
             .contentShape(Circle())
@@ -193,6 +208,8 @@ struct ProcessingIndicator: View {
             .frame(width: 12, height: 12)
             .rotationEffect(.degrees(rotation))
             .onAppear {
+                // Screenshot runs hold the spinner still, so every capture draws the same frame.
+                guard !ScreenshotMode.isActive else { return }
                 withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
                     rotation = 360
                 }
@@ -236,6 +253,11 @@ struct ProgressAnimation: View {
     private func startAnimation() {
         timer?.invalidate()
         currentDot = 0
+        // Screenshot runs hold the dots still, so every capture draws the same frame.
+        guard !ScreenshotMode.isActive else {
+            currentDot = 2
+            return
+        }
         timer = Timer.scheduledTimer(withTimeInterval: animationSpeed, repeats: true) { _ in
             currentDot = (currentDot + 1) % (dotCount + 2)
             if currentDot > dotCount { currentDot = -1 }
@@ -343,6 +365,8 @@ struct RecorderStatusDisplay: View {
     let audioMeterProvider: () -> AudioMeter
     let menuBarHeight: CGFloat?
 
+    @Environment(\.recorderSurfaceStyle) private var surfaceStyle
+
     init(
         currentState: RecordingState,
         audioMeterProvider: @escaping () -> AudioMeter,
@@ -356,19 +380,19 @@ struct RecorderStatusDisplay: View {
     var body: some View {
         Group {
             if currentState == .enhancing {
-                ProcessingStatusDisplay(mode: .enhancing, color: .white).transition(.opacity)
+                ProcessingStatusDisplay(mode: .enhancing, color: surfaceStyle.ink).transition(.opacity)
             } else if currentState == .transcribing {
-                ProcessingStatusDisplay(mode: .transcribing, color: .white).transition(.opacity)
+                ProcessingStatusDisplay(mode: .transcribing, color: surfaceStyle.ink).transition(.opacity)
             } else if currentState == .recording {
                 AudioVisualizer(
                     audioMeterProvider: audioMeterProvider,
-                    color: .white,
+                    color: surfaceStyle.ink,
                     isActive: true
                 )
                     .scaleEffect(y: menuBarHeight != nil ? min(1.0, (menuBarHeight! - 8) / 25) : 1.0, anchor: .center)
                     .transition(.opacity)
             } else {
-                StaticVisualizer(color: .white)
+                StaticVisualizer(color: surfaceStyle.ink)
                     .scaleEffect(y: menuBarHeight != nil ? min(1.0, (menuBarHeight! - 8) / 25) : 1.0, anchor: .center)
                     .transition(.opacity)
             }
@@ -386,9 +410,13 @@ struct AssistantPanelView: View {
 
     @State private var draftMessage = ""
     @FocusState private var isFollowUpFieldFocused: Bool
+    @Environment(\.recorderSurfaceStyle) private var surfaceStyle
 
     private let horizontalPadding: CGFloat = 20
-    private let followUpTextColor = Color.white.opacity(0.9)
+
+    private var followUpTextColor: Color {
+        surfaceStyle.ink.opacity(0.9)
+    }
 
     private var statusText: String? {
         switch session.phase {
@@ -434,7 +462,7 @@ struct AssistantPanelView: View {
                     if let statusText {
                         Text(statusText)
                             .font(.system(size: 11))
-                            .foregroundColor(.white.opacity(0.62))
+                            .foregroundColor(surfaceStyle.ink.opacity(0.62))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -482,15 +510,15 @@ struct AssistantPanelView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
-            .background(Color.white.opacity(0.10))
+            .background(surfaceStyle.ink.opacity(0.10))
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
             Button(action: sendDraftMessage) {
                 Image(systemName: "paperplane.fill")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(canSendDraft ? .black : .white.opacity(0.35))
+                    .foregroundColor(sendIconColor)
                     .frame(width: 24, height: 24)
-                    .background(canSendDraft ? Color.white.opacity(0.88) : Color.white.opacity(0.10))
+                    .background(sendBackground)
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
@@ -505,6 +533,16 @@ struct AssistantPanelView: View {
 
     private var canSendDraft: Bool {
         session.canSendFollowUp && !draftMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var sendIconColor: Color {
+        guard canSendDraft else { return surfaceStyle.ink.opacity(0.35) }
+        return surfaceStyle == .glass ? .white : .black
+    }
+
+    private var sendBackground: Color {
+        guard canSendDraft else { return surfaceStyle.ink.opacity(0.10) }
+        return surfaceStyle == .glass ? .accentColor : Color.white.opacity(0.88)
     }
 
     private func sendDraftMessage() {
@@ -538,6 +576,8 @@ struct AssistantPanelView: View {
 private struct AssistantMessageBubble: View {
     let message: AssistantDisplayMessage
 
+    @Environment(\.recorderSurfaceStyle) private var surfaceStyle
+
     private var isUser: Bool {
         message.role == .user
     }
@@ -551,12 +591,12 @@ private struct AssistantMessageBubble: View {
             MarkdownContentView(
                 message.content,
                 fontSize: 12,
-                foregroundColor: .white.opacity(isUser ? 0.92 : 0.86),
+                foregroundColor: surfaceStyle.ink.opacity(isUser ? 0.92 : 0.86),
                 alignment: .leading
             )
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
-            .background(isUser ? Color.white.opacity(0.16) : Color.white.opacity(0.08))
+            .background(surfaceStyle.ink.opacity(isUser ? 0.16 : 0.08))
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             .overlay(alignment: .bottomTrailing) {
                 if !isUser {

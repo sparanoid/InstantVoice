@@ -223,6 +223,20 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.menu)
 
+                if recorderUIManager.recorderPanelStyle == .mini {
+                    Picker(selection: $recorderUIManager.miniRecorderAppearance) {
+                        ForEach(MiniRecorderAppearance.allCases) { appearance in
+                            Text(appearance.displayName).tag(appearance)
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Recorder Appearance")
+                            InfoTip("Automatic follows the app's appearance.")
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+
                 Toggle(isOn: $showLiveTranscript) {
                     HStack(spacing: 4) {
                         Text("Live Text Display")
